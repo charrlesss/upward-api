@@ -5,7 +5,7 @@ import cors from "cors"
 import router from './controller'
 import path from 'path'
 
-const PORT = 4000
+const PORT = process.env.PORT
 async function main() {
     const app = express()
     app.use(express.urlencoded({extended:true}))
