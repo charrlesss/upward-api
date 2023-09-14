@@ -13,9 +13,9 @@ async function main() {
     app.use(cors())
     app.use(router)
     app.use(express.static(path.join(__dirname,"/view")))
+    app.use(express.static(path.join(__dirname,"/static/image/")))
 
     app.get("*", (req,res)=>{
-
       res.sendFile(path.join(__dirname,"/view/","index.html"))
     })
     app.listen(PORT,()=>console.log(`Listen in port ${PORT}`))
