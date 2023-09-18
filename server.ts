@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
 import express from "express"
 import cors from "cors"
-import router from './controller'
+import router from './src/controller'
 import path from 'path'
 
+const prisma = new PrismaClient()
 const PORT = process.env.PORT
+
 async function main() {
     const app = express()
     app.use(express.urlencoded({extended:true}))

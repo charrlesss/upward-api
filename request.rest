@@ -1,0 +1,11 @@
+GET http://localhost:4000/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsIlVzZXJuYW1lIjoiSkVXRUwiLCJQYXNzd29yZCI6IiQyYiQxMiQ5MmRuL2RDbmY0UmlwZThJNS5GSnp1UGRNZmVWdUU5YVhtM3VUR2V3WDdkRE93ZkdEeXNoQyIsIkFjY291bnRUeXBlIjoiUFJPRFVDVElPTiIsIlJFRlJFU0hfVE9LRU4iOm51bGwsIkNyZWF0ZWRBdCI6IjIwMjMtMDktMTZUMTU6NDQ6MjIuNzQ4WiIsImlhdCI6MTY5NDg1NTUyMn0.cfVS0FbV5icwOnpAMz5QUHSY-NwYP3yduwaQjPFT2IU
+###
+
+POST http://localhost:4000/users
+Content-Type: application/json
+
+{
+    "username":"JEWEL",
+    "password":"JEWEL"
+}
