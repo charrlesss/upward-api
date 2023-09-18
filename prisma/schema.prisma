@@ -7,21 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  PRODUCTION
-  ACCOUNTING
-  ADMIN
-}
-
 model users {
-  UserId      Int    @id @default(autoincrement())
-  Username    String  @unique @db.VarChar(50)
-  Password    String @db.VarChar(500)
-  AccountType Role   
-  REFRESH_TOKEN String? @db.VarChar(500)
-  CreatedAt DateTime @default(now()) 
+  UserId        Int      @id @default(autoincrement())
+  Username      String   @unique @db.VarChar(50)
+  Password      String   @db.VarChar(500)
+  AccountType   Role
+  REFRESH_TOKEN String? @db.Text
+  CreatedAt     DateTime @default(now())
 }
-
 
 model account {
   Account_Id  String  @id @db.VarChar(10)
@@ -1015,7 +1008,6 @@ model transaction_code {
   @@ignore
 }
 
-
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model vpolicy {
   PolicyNo         String?   @db.VarChar(20)
@@ -1110,4 +1102,10 @@ model xsubsidiary {
   Balance     Decimal?  @db.Decimal(19, 4)
 
   @@ignore
+}
+
+enum Role {
+  PRODUCTION
+  ACCOUNTING
+  ADMIN
 }

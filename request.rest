@@ -1,11 +1,20 @@
 GET http://localhost:4000/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsIlVzZXJuYW1lIjoiSkVXRUwiLCJQYXNzd29yZCI6IiQyYiQxMiQ5MmRuL2RDbmY0UmlwZThJNS5GSnp1UGRNZmVWdUU5YVhtM3VUR2V3WDdkRE93ZkdEeXNoQyIsIkFjY291bnRUeXBlIjoiUFJPRFVDVElPTiIsIlJFRlJFU0hfVE9LRU4iOm51bGwsIkNyZWF0ZWRBdCI6IjIwMjMtMDktMTZUMTU6NDQ6MjIuNzQ4WiIsImlhdCI6MTY5NDg1NTUyMn0.cfVS0FbV5icwOnpAMz5QUHSY-NwYP3yduwaQjPFT2IU
-###
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImlhdCI6MTY5NTAwNjY5MywiZXhwIjoxNjk1MDA2NzAzfQ.XghLoUnEPNHDkhaS9ywhwIp9yGwaMEThMOvUgWBPwVg
 
-POST http://localhost:4000/users
+###
+POST http://localhost:4000/refresh-token
 Content-Type: application/json
 
 {
-    "username":"JEWEL",
+    "REFRESH_TOKEN":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImlhdCI6MTY5NTAwNjQzOH0.1xFHwgCD01ScHpbZIT_hsTx-SUjZIxRztZz_YAzyzyk"
+}
+
+###
+POST http://localhost:4000/login
+Content-Type: application/json
+
+{
+    "username":"Buboy",
     "password":"JEWEL"
 }
+

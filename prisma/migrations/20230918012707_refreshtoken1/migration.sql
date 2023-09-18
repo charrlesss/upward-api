@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `users` MODIFY `REFRESH_TOKEN` TEXT NULL;
