@@ -124,8 +124,8 @@ Authentication.get("/logout",(req:Request,res:Response)=>{
     res.clearCookie('up-rt-login')
     res.clearCookie('up-at-login')
     const id = (req.user as any).UserId
-    updateRefreshToken( id,'')
-    res.send({user:req.user})
+    updateRefreshToken(id,'')
+    res.send({message:"Logout Successfully" ,success:true})
 })
 
 
