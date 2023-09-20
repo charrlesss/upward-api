@@ -4,6 +4,7 @@ import cors from "cors"
 import router from './src/controller'
 import path from 'path'
 import cookieParser from "cookie-parser"
+import { creatSampleUser, createIdSequence } from './src/model/StoredProcedure'
 
 const prisma = new PrismaClient()
 const PORT = process.env.PORT
@@ -13,6 +14,12 @@ const corsOptions ={
   credentials:true,            
   optionSuccessStatus:200
 }
+
+function executeQuery(){
+  // creatSampleUser()
+  // createIdSequence()
+}
+
 async function main() {
     const app = express()
     app.use(express.urlencoded({extended:true}))
@@ -22,6 +29,7 @@ async function main() {
     app.use(express.static(path.join(__dirname,"/view")))
     app.use(express.static(path.join(__dirname,"/static/image/")))
     app.use(router)
+    executeQuery()
     app.get("*", (req,res)=>{
       res.sendFile(path.join(__dirname,"/view/","index.html"))
     })

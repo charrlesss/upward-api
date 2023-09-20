@@ -7,13 +7,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  UserId        Int      @id @default(autoincrement())
+model Id_Sequence {
+  seq_id     String @id @default(uuid())
+  type       String @unique @db.VarChar(100)
+  last_count String @db.VarChar(100)
+  year       String @db.VarChar(2)
+  month      String @db.VarChar(2)
+}
+
+model Users {
+  UserId        String   @id @default(uuid())
   Username      String   @unique @db.VarChar(50)
   Password      String   @db.VarChar(500)
   AccountType   Role
-  REFRESH_TOKEN String? @db.Text
+  REFRESH_TOKEN String?  @db.Text
   CreatedAt     DateTime @default(now())
+}
+
+model Entry_Client {
+  entry_client_id           String           @id @default(uuid())
+  firstname                 String           @default("") @db.VarChar(225)
+  lastname                  String           @default("") @db.VarChar(225)
+  middlename                String           @default("") @db.VarChar(225)
+  company                   String           @default("") @db.VarChar(225)
+  address                   String           @default("") @db.VarChar(225)
+  option                    String           @default("") @db.VarChar(225)
+  sub_account               String           @default("") @db.VarChar(225)
+  createdAt                 DateTime         @default(now())
+  update                    DateTime         @default(now())
+  contact_details           Contact_Details? @relation("ContactDetailsEntryClients", fields: [client_contact_details_id], references: [contact_details_id])
+  client_contact_details_id String           @unique
+}
+
+model Entry_Employee {
+  entry_employee_id String   @id @default(uuid())
+  firstname         String   @default("") @db.VarChar(225)
+  middlename        String   @default("") @db.VarChar(225)
+  lastname          String   @default("") @db.VarChar(225)
+  sub_account       String   @default("") @db.VarChar(225)
+  description       String   @db.Text
+  createdAt         DateTime @default(now())
+  update            DateTime @default(now())
+}
+
+model Entry_Agent {
+  entry_agent_id           String           @id @default(uuid())
+  firstname                String           @default("") @db.VarChar(225)
+  lastname                 String           @default("") @db.VarChar(225)
+  middlename               String           @default("") @db.VarChar(225)
+  address                  String           @db.Text
+  contact_details          Contact_Details? @relation("ContactDetailsEntryAgents", fields: [agent_contact_details_id], references: [contact_details_id])
+  agent_contact_details_id String           @unique
+  createdAt                DateTime         @default(now())
+  update                   DateTime         @default(now())
+}
+
+model Entry_Fixed_Assets {
+  entry_fixed_assets_id String   @id @default(uuid())
+  description           String   @db.Text
+  remarks               String   @db.Text
+  createdAt             DateTime @default(now())
+  update                DateTime @default(now())
+}
+
+model Entry_Others {
+  entry_others_id String   @id @default(uuid())
+  description     String   @db.Text
+  createdAt       DateTime @default(now())
+  update          DateTime @default(now())
+}
+
+model Entry_Supplier {
+  entry_supplier_id           String           @id @default(uuid())
+  contact_details             Contact_Details? @relation("ContactDetailsEntrySupplier", fields: [supplier_contact_details_id], references: [contact_details_id])
+  supplier_contact_details_id String           @unique
+  firstname                   String           @default("") @db.VarChar(225)
+  lastname                    String           @default("") @db.VarChar(225)
+  middlename                  String           @default("") @db.VarChar(225)
+  company                     String           @default("") @db.VarChar(225)
+  address                     String           @default("") @db.VarChar(225)
+  VAT_Type                     String           @default("") @db.VarChar(225)
+  option                     String           @default("") @db.VarChar(225)
+  tin_no                      String           @db.Text
+  createdAt                   DateTime         @default(now())
+  update                      DateTime         @default(now())
+}
+
+model Contact_Details {
+  contact_details_id String           @id @default(uuid())
+  email              String           @default("") @db.VarChar(225)
+  mobile             String           @default("") @db.VarChar(225)
+  telephone          String           @default("") @db.VarChar(225)
+  entry_agents       Entry_Agent[]    @relation("ContactDetailsEntryAgents")
+  entry_clients      Entry_Client[]   @relation("ContactDetailsEntryClients")
+  entry_supplier     Entry_Supplier[] @relation("ContactDetailsEntrySupplier")
 }
 
 model account {

@@ -2,15 +2,16 @@ import { PrismaClient } from "@prisma/client"
 import express ,{ NextFunction, Request ,Response} from "express"
 import {compareSync} from "bcrypt"
 import jwt from "jsonwebtoken"
+
 const Authentication = express.Router()
 const prisma = new PrismaClient()
 
 
-function generateAccessToken(UserId:number){
+function generateAccessToken(UserId:string){
     return jwt.sign({UserId}, process.env.ACCESS_TOKEN as string, {expiresIn:"30s"} )
 }
 
-async function updateRefreshToken(UserId:number,refreshToken:string){
+async function updateRefreshToken(UserId:string,refreshToken:string){
     await prisma.users.update({
         where:{
             UserId:UserId
@@ -88,23 +89,17 @@ Authentication.post("/login",async (req:Request,res:Response)=>{
 })
 
 Authentication.get("/token",(req,res)=>{
-   
     const accessToken = req.cookies['up-at-login'];
     const refreshToken = req.cookies['up-rt-login'];
-    console.log('acc',accessToken)
-    console.log('ref',refreshToken)
     if(refreshToken === '' || refreshToken == null){
         return   res.send(null)
     }
-
-    
     jwt.verify(refreshToken as string, process.env.REFRESH_TOKEN as string,(err,user)=>{
         if(err)  return res.send(null)
         const getUser:any = user
         const newAccessToken = generateAccessToken(getUser.UserId)
         res.cookie('up-at-login', newAccessToken, {httpOnly: true, sameSite: 'strict', secure:true });
         req.user = user 
-
         res.send({accessToken,refreshToken})
     })
 
