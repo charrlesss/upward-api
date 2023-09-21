@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client'
-import { IDGenerator } from '../StoredProcedure';
+import { IDGenerator, UpdateId } from '../StoredProcedure';
 const prisma = new PrismaClient()
 
-interface DataEntryClient {
+    interface DataEntryClient {
+    entry_client_id:string
     sub_account: string;
     email: string;
     mobile: string;
@@ -28,7 +29,8 @@ interface DataEntryClient {
     lastname: string;
     middlename: string;
     sub_account: string;
-    description: string;
+    address: string;
+    entry_employee_id:string
   }
   
   interface EntryAgentType {
@@ -60,13 +62,11 @@ interface DataEntryClient {
     mobile:string
   }
   type DataEntryClientTypes = CompanyData | IndividualData;
-  
 
-export async function CreateClientEntry(sign:string,type:string,data:DataEntryClientTypes){
+export async function CreateClientEntry(data:DataEntryClientTypes){
     const {email,telephone,mobile,...rest} = data
     await prisma.entry_Client.create({
         data:{
-            entry_client_id:await IDGenerator(sign,type),
             ...rest,
             contact_details:{
                 create:{
@@ -77,15 +77,11 @@ export async function CreateClientEntry(sign:string,type:string,data:DataEntryCl
             }
         }
     })
-
 }
 
-export async function CreateEmployeeEntry(sign:string,type:string,data:EntryEmployeeType){
+export async function CreateEmployeeEntry(data:EntryEmployeeType){
     await prisma.entry_Employee.create({
-        data:{
-            entry_employee_id:await IDGenerator(sign,type),
-            ...data
-        }
+        data
     })
 }
 
@@ -113,7 +109,6 @@ export async function CreateFixedAssetstEntry(sign:string,type:string,data:Entry
     })
 }
 
-
 export async function CreateSupplierEntry(sign:string,type:string,data:EntrySupplierType){
     const {email,telephone,mobile,...rest} = data
 
@@ -136,4 +131,57 @@ export async function CreateOtherEntry(sign:string,type:string,data:{description
     await prisma.entry_Others.create({
         data
     })
+}
+
+export async function getAllSubAccount(){
+    const query = `
+    SELECT 
+        a.Sub_Acct,
+        a.Acronym,
+    CONCAT(a.Acronym, '-', a.ShortName) AS NewShortName
+    FROM
+    sub_account a
+    `
+    return  await prisma.$queryRawUnsafe(query)
+}
+
+export async function getAllClientEntry() {
+    const query = `
+    SELECT 
+        a.entry_client_id,
+        a.firstname,
+        a.lastname,
+        a.middlename,
+        a.option,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
+        a.address,
+        a.company,
+        b.email,
+        b.mobile,
+        b.telephone,
+        concat(c.Acronym,'-',c.ShortName) as NewShortName
+    FROM
+    upward.entry_client a
+        LEFT JOIN
+    upward.contact_details b ON a.client_contact_details_id = b.contact_details_id
+        LEFT JOIN
+    upward.sub_account c ON a.sub_account = c.Sub_Acct;`
+    return await  prisma.$queryRawUnsafe(query)
+}
+
+export async function getAllEmployeeEntry() {
+    const query = `
+    SELECT 
+        a.entry_employee_id,
+        a.firstname,
+        a.middlename,
+        a.lastname,
+        a.address,
+        CONCAT(b.Acronym, '-', b.ShortName) AS NewShortName,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
+    FROM
+    upward.entry_employee a
+        LEFT JOIN
+    upward.sub_account b ON a.sub_account = b.Sub_Acct`
+    return await  prisma.$queryRawUnsafe(query)
 }

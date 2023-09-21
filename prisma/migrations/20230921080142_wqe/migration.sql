@@ -48,7 +48,7 @@ CREATE TABLE `Entry_Employee` (
     `middlename` VARCHAR(225) NOT NULL DEFAULT '',
     `lastname` VARCHAR(225) NOT NULL DEFAULT '',
     `sub_account` VARCHAR(225) NOT NULL DEFAULT '',
-    `description` TEXT NOT NULL,
+    `address` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
@@ -118,6 +118,17 @@ CREATE TABLE `Contact_Details` (
     `telephone` VARCHAR(225) NOT NULL DEFAULT '',
 
     PRIMARY KEY (`contact_details_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Sub_Account` (
+    `Sub_Acct` VARCHAR(191) NOT NULL,
+    `Description` TEXT NOT NULL,
+    `ShortName` VARCHAR(225) NOT NULL,
+    `Acronym` VARCHAR(50) NOT NULL,
+    `Inactive` BOOLEAN NOT NULL,
+
+    PRIMARY KEY (`Sub_Acct`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -954,16 +965,6 @@ CREATE TABLE `return checks` (
     `ORNum` VARCHAR(50) NULL,
     `BankAccnt` VARCHAR(50) NULL,
     `nSort` VARCHAR(50) NULL
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `subaccount` (
-    `Sub_Acct` VARCHAR(3) NOT NULL,
-    `Description` VARCHAR(100) NOT NULL,
-    `ShortName` VARCHAR(50) NOT NULL,
-    `Inactive` BOOLEAN NOT NULL,
-
-    PRIMARY KEY (`Sub_Acct`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable

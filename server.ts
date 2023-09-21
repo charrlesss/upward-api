@@ -4,7 +4,7 @@ import cors from "cors"
 import router from './src/controller'
 import path from 'path'
 import cookieParser from "cookie-parser"
-import { creatSampleUser, createIdSequence } from './src/model/StoredProcedure'
+import { creatSampleUser, createIdSequence,creatSampleSubAccount,getAcronym } from './src/model/StoredProcedure'
 
 const prisma = new PrismaClient()
 const PORT = process.env.PORT
@@ -18,6 +18,7 @@ const corsOptions ={
 function executeQuery(){
   // creatSampleUser()
   // createIdSequence()
+  // creatSampleSubAccount()
 }
 
 async function main() {

@@ -6,4 +6,5 @@ const router = express.Router()
 
 router.use(Authentication)
 router.use(Reference)
+
 export default router

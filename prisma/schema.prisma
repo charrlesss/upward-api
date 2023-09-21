@@ -25,7 +25,7 @@ model Users {
 }
 
 model Entry_Client {
-  entry_client_id           String           @id @default(uuid())
+  entry_client_id           String           @id 
   firstname                 String           @default("") @db.VarChar(225)
   lastname                  String           @default("") @db.VarChar(225)
   middlename                String           @default("") @db.VarChar(225)
@@ -45,7 +45,7 @@ model Entry_Employee {
   middlename        String   @default("") @db.VarChar(225)
   lastname          String   @default("") @db.VarChar(225)
   sub_account       String   @default("") @db.VarChar(225)
-  description       String   @db.Text
+  address       String   @db.Text
   createdAt         DateTime @default(now())
   update            DateTime @default(now())
 }
@@ -102,6 +102,16 @@ model Contact_Details {
   entry_clients      Entry_Client[]   @relation("ContactDetailsEntryClients")
   entry_supplier     Entry_Supplier[] @relation("ContactDetailsEntrySupplier")
 }
+
+
+model Sub_Account {
+  Sub_Acct    String  @id @default(uuid())
+  Description String  @db.Text
+  ShortName   String  @db.VarChar(225)
+  Acronym     String  @db.VarChar(50)
+  Inactive    Boolean
+}
+
 
 model account {
   Account_Id  String  @id @db.VarChar(10)
@@ -1002,12 +1012,6 @@ model return_checks {
   @@ignore
 }
 
-model subaccount {
-  Sub_Acct    String  @id @db.VarChar(3)
-  Description String  @db.VarChar(100)
-  ShortName   String  @db.VarChar(50)
-  Inactive    Boolean
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model subline {
