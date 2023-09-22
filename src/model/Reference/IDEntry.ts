@@ -34,6 +34,7 @@ const prisma = new PrismaClient()
   }
   
   interface EntryAgentType {
+    entry_agent_id:string
     firstname: string;
     lastname: string;
     middlename: string;
@@ -44,11 +45,13 @@ const prisma = new PrismaClient()
   }
 
   interface EntryFixedAssetsType {
+    entry_fixed_assets_id:string
     description: string;
     remarks: string;
   }
 
   interface EntrySupplierType {
+    entry_supplier_id:string
     firstname: string;
     lastname: string;
     middlename: string;
@@ -85,12 +88,11 @@ export async function CreateEmployeeEntry(data:EntryEmployeeType){
     })
 }
 
-export async function CreateAgentEntry(sign:string,type:string,data:EntryAgentType){
+export async function CreateAgentEntry(data:EntryAgentType){
     const {email,telephone,mobile,...rest} = data
 
     await prisma.entry_Agent.create({
         data:{
-            entry_agent_id:await IDGenerator(sign,type),
             ...rest,
             contact_details:{
                 create:{
@@ -103,18 +105,17 @@ export async function CreateAgentEntry(sign:string,type:string,data:EntryAgentTy
     })
 }
 
-export async function CreateFixedAssetstEntry(sign:string,type:string,data:EntryFixedAssetsType){
+export async function CreateFixedAssetstEntry(data:EntryFixedAssetsType){
     await prisma.entry_Fixed_Assets.create({
         data
     })
 }
 
-export async function CreateSupplierEntry(sign:string,type:string,data:EntrySupplierType){
+export async function CreateSupplierEntry(data:EntrySupplierType){
     const {email,telephone,mobile,...rest} = data
 
     await prisma.entry_Supplier.create({
         data:{
-            entry_supplier_id:await IDGenerator(sign,type),
             ...rest,
             contact_details:{
                 create:{
@@ -127,7 +128,7 @@ export async function CreateSupplierEntry(sign:string,type:string,data:EntrySupp
     })
 }
 
-export async function CreateOtherEntry(sign:string,type:string,data:{description:string}){
+export async function CreateOtherEntry(data:{entry_others_id:string,description:string}){
     await prisma.entry_Others.create({
         data
     })
@@ -183,5 +184,68 @@ export async function getAllEmployeeEntry() {
     upward.entry_employee a
         LEFT JOIN
     upward.sub_account b ON a.sub_account = b.Sub_Acct`
+    return await  prisma.$queryRawUnsafe(query)
+}
+
+export async function getAllAgentEntry() {
+    const query = `
+    SELECT 
+        a.entry_agent_id,
+        a.firstname,
+        a.lastname,
+        a.middlename,
+        a.address,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
+        b.email,
+        b.mobile,
+        b.telephone
+    FROM
+    upward.entry_agent a
+        LEFT JOIN
+    upward.contact_details b ON a.agent_contact_details_id = b.contact_details_id;`
+    return await  prisma.$queryRawUnsafe(query)
+}
+
+export async function getAllFixedAssetsEntry() {
+    const query = `
+    SELECT 
+        a.entry_fixed_assets_id,
+        a.description,
+        a.remarks,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
+    FROM
+    upward.entry_fixed_assets a`
+    return await  prisma.$queryRawUnsafe(query)
+}
+export async function getAllSupplierEntry() {
+    const query = `
+    SELECT  
+        a.entry_supplier_id,
+        a.firstname,
+        a.lastname,
+        a.middlename,
+        a.company,
+        a.address,
+        a.tin_no,
+        a.VAT_Type,
+        a.option,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt,
+        b.email,
+        b.mobile,
+        b.telephone
+    FROM
+    upward.entry_supplier a
+        LEFT JOIN
+    upward.contact_details b ON a.supplier_contact_details_id = b.contact_details_id;`
+    return await  prisma.$queryRawUnsafe(query)
+}
+export async function getAllOtherEntry() {
+    const query = `
+    SELECT 
+        a.entry_others_id,
+        a.description,
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt
+    FROM
+    upward.entry_others a;  `
     return await  prisma.$queryRawUnsafe(query)
 }
