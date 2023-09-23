@@ -27,12 +27,14 @@ async function main() {
     app.use(express.json())
     app.use(cookieParser());
     app.use(cors(corsOptions))
-    app.use(express.static(path.join(__dirname,"/view")))
     app.use(express.static(path.join(__dirname,"/static/image/")))
-    app.use(router)
+    app.use(express.static(path.join(__dirname,"/src/view")))
+
     executeQuery()
+    app.use("/api",router)
+
     app.get("*", (req,res)=>{
-      res.sendFile(path.join(__dirname,"/view/","index.html"))
+      res.sendFile(path.join(__dirname,"/src/view/","index.html"))
     })
     app.listen(PORT,()=>console.log(`Listen in port ${PORT}`))
 }

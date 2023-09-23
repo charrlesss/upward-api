@@ -143,6 +143,18 @@ ID_Entry.get('/id-entry-get-others',async (req:Request,res:Response)=>{
     }
 })
 
+ID_Entry.post('/id-entry-get-client-by-id',async (req:Request,res:Response)=>{
+    // try{
+    //     res.send({success:true,message:"Successfully Get All Supplier Entry ",entry:await getAllOtherEntry()})
+    // }catch(err:any){
+    //     res.send({success:false,message:err.message})
+    // }
+    console.log(req.body)
+    res.send({success:true,message:"Successfully Get All Supplier Entry ",})
+})
+
+
+
 
 
 ID_Entry.post('/id-entry-generate-id',async (req:Request,res:Response)=>{
