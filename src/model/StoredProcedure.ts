@@ -121,14 +121,20 @@ export async function testJoin() {
 }
 
 export async function creatSampleUser (){
-    const password =  hashSync("charles",12)
+  const password1 =  hashSync("charles",12)
+  const password2 =  hashSync("buboy",12)
       const user = await prisma.users.createMany({
           data:[ 
                   {
                       AccountType:"ACCOUNTING",
-                      Password:password,
+                      Password:password1,
                       Username:"charles"
                   },
+                  {
+                    AccountType:"ACCOUNTING",
+                    Password:password2,
+                    Username:"buboy"
+                },
           ]
         })
         console.log("new user : " ,user)

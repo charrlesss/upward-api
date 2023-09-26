@@ -75,6 +75,7 @@ CREATE TABLE `Entry_Fixed_Assets` (
     `entry_fixed_assets_id` VARCHAR(191) NOT NULL,
     `description` TEXT NOT NULL,
     `remarks` TEXT NOT NULL,
+    `fullname` VARCHAR(225) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 

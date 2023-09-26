@@ -25,7 +25,7 @@ model Users {
 }
 
 model Entry_Client {
-  entry_client_id           String           @id 
+  entry_client_id           String           @id
   firstname                 String           @default("") @db.VarChar(225)
   lastname                  String           @default("") @db.VarChar(225)
   middlename                String           @default("") @db.VarChar(225)
@@ -45,7 +45,7 @@ model Entry_Employee {
   middlename        String   @default("") @db.VarChar(225)
   lastname          String   @default("") @db.VarChar(225)
   sub_account       String   @default("") @db.VarChar(225)
-  address       String   @db.Text
+  address           String   @db.Text
   createdAt         DateTime @default(now())
   update            DateTime @default(now())
 }
@@ -66,6 +66,7 @@ model Entry_Fixed_Assets {
   entry_fixed_assets_id String   @id @default(uuid())
   description           String   @db.Text
   remarks               String   @db.Text
+  fullname              String   @db.VarChar(225)
   createdAt             DateTime @default(now())
   update                DateTime @default(now())
 }
@@ -86,8 +87,8 @@ model Entry_Supplier {
   middlename                  String           @default("") @db.VarChar(225)
   company                     String           @default("") @db.VarChar(225)
   address                     String           @default("") @db.VarChar(225)
-  VAT_Type                     String           @default("") @db.VarChar(225)
-  option                     String           @default("") @db.VarChar(225)
+  VAT_Type                    String           @default("") @db.VarChar(225)
+  option                      String           @default("") @db.VarChar(225)
   tin_no                      String           @db.Text
   createdAt                   DateTime         @default(now())
   update                      DateTime         @default(now())
@@ -103,7 +104,6 @@ model Contact_Details {
   entry_supplier     Entry_Supplier[] @relation("ContactDetailsEntrySupplier")
 }
 
-
 model Sub_Account {
   Sub_Acct    String  @id @default(uuid())
   Description String  @db.Text
@@ -111,7 +111,6 @@ model Sub_Account {
   Acronym     String  @db.VarChar(50)
   Inactive    Boolean
 }
-
 
 model account {
   Account_Id  String  @id @db.VarChar(10)
@@ -1011,7 +1010,6 @@ model return_checks {
   @@map("return checks")
   @@ignore
 }
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model subline {
