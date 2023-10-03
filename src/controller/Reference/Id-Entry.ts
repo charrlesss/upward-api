@@ -6,14 +6,16 @@ import {
   CreateFixedAssetstEntry,
   CreateOtherEntry,
   CreateSupplierEntry,
+  deleteEntry,
   getAllSubAccount,
-  getAllClientEntry,
-  getAllEmployeeEntry,
-  getAllAgentEntry,
-  getAllFixedAssetsEntry,
-  getAllSupplierEntry,
-  getAllOtherEntry,
-  searchByClient,
+  searchEntry,
+  updateEntry,
+  // getAllClientEntry,
+  // getAllEmployeeEntry,
+  // getAllAgentEntry,
+  // getAllFixedAssetsEntry,
+  // getAllSupplierEntry,
+  // getAllOtherEntry,
 } from "../../model/Reference/IDEntry";
 import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
 
@@ -115,6 +117,23 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
   }
 });
 
+ID_Entry.post("/entry-update", async (req, res) => {
+  try {
+    await updateEntry(req.query.entry as string,req.body)
+    res.send({message:"Update Successfully",success:true})
+  } catch (err: any) {
+    res.send({ success: false, message: err.message });
+  }
+});
+
+ID_Entry.post("/id-entry-generate-id", async (req: Request, res: Response) => {
+  res.send({
+    success: false,
+    message: "Generate ID Successfully",
+    generateID: await IDGenerator(req.body.sign, req.body.type),
+  });
+});
+
 ID_Entry.get("/id-entry-subaccounts", async (req: Request, res: Response) => {
   try {
     res.send({
@@ -127,115 +146,37 @@ ID_Entry.get("/id-entry-subaccounts", async (req: Request, res: Response) => {
   }
 });
 
-ID_Entry.get("/id-entry-get-clients", async (req: Request, res: Response) => {
+ID_Entry.get("/search-entry", async (req, res) => {
+  const { entry, entrySearch } = req.query;
   try {
+    if (entry === "Client" || entry === "Employee") {
+      return res.send({
+        success: true,
+        message: "Successfully Get All Client Entry ",
+        entry: await searchEntry(entry as string, entrySearch as string),
+        sub_accounts: await getAllSubAccount(),
+      });
+    }
     res.send({
       success: true,
       message: "Successfully Get All Client Entry ",
-      entry: await getAllClientEntry(),
-      sub_accounts: await getAllSubAccount(),
+      entry: await searchEntry(entry as string, entrySearch as string),
     });
   } catch (err: any) {
-    res.send({ success: false, message: err.message });
+    res.send({ success: false, message: err.message, entry: [] });
   }
 });
 
-ID_Entry.get("/id-entry-get-employee", async (req: Request, res: Response) => {
+ID_Entry.post('/entry-delete',async (req,res)=>{
   try {
+    await deleteEntry(req.query.entry as string,req.body.id)
     res.send({
       success: true,
-      message: "Successfully Get All Employee Entry ",
-      entry: await getAllEmployeeEntry(),
-      sub_accounts: await getAllSubAccount(),
+      message: "Successfully Delete",
     });
   } catch (err: any) {
     res.send({ success: false, message: err.message });
   }
-});
-
-ID_Entry.get("/id-entry-get-agent", async (req: Request, res: Response) => {
-  try {
-    res.send({
-      success: true,
-      message: "Successfully Get All Agent Entry ",
-      entry: await getAllAgentEntry(),
-    });
-  } catch (err: any) {
-    res.send({ success: false, message: err.message });
-  }
-});
-
-ID_Entry.get(
-  "/id-entry-get-fixed-assets",
-  async (req: Request, res: Response) => {
-    try {
-      res.send({
-        success: true,
-        message: "Successfully Get All Fixed Assests Entry ",
-        entry: await getAllFixedAssetsEntry(),
-      });
-    } catch (err: any) {
-      res.send({ success: false, message: err.message });
-    }
-  }
-);
-
-ID_Entry.get("/id-entry-get-supplier", async (req: Request, res: Response) => {
-  try {
-    res.send({
-      success: true,
-      message: "Successfully Get All Supplier Entry ",
-      entry: await getAllSupplierEntry(),
-    });
-  } catch (err: any) {
-    res.send({ success: false, message: err.message });
-  }
-});
-
-ID_Entry.get("/id-entry-get-others", async (req: Request, res: Response) => {
-  try {
-    res.send({
-      success: true,
-      message: "Successfully Get All Supplier Entry ",
-      entry: await getAllOtherEntry(),
-    });
-  } catch (err: any) {
-    res.send({ success: false, message: err.message });
-  }
-});
-
-ID_Entry.post(
-  "/id-entry-get-client-by-id",
-  async (req: Request, res: Response) => {
-    console.log(req.body);
-    res.send({
-      success: true,
-      message: "Successfully Get All Supplier Entry ",
-    });
-  }
-);
-
-ID_Entry.post(
-  "/id-entry-get-client-search",
-  async (req: Request, res: Response) => {
-    try {
-      res.send({
-        success: true,
-        message: "Successfully Search",
-        entry: await searchByClient(req.body.search),
-      });
-    } catch (err: any) {
-      res.send({ success: false, message: err.message, entry: [] });
-    }
-  }
-);
-
-ID_Entry.post("/id-entry-generate-id", async (req: Request, res: Response) => {
-  res.send({
-    success: false,
-    message: "Generate ID Successfully",
-    generateID: await IDGenerator(req.body.sign, req.body.type),
-  });
-});
+})
 
 export default ID_Entry;

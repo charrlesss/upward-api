@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 function generateAccessToken(UserId: string) {
   return jwt.sign({ UserId }, process.env.ACCESS_TOKEN as string, {
-    expiresIn: "30s",
+    expiresIn: "24h",
   });
 }
 

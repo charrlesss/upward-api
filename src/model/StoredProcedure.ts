@@ -62,7 +62,6 @@ export async function createIdSequence (){
 
 export async function IDGenerator(sign:string,type:string) {
     const lastSeq = await prisma.id_Sequence.findFirst({where:{type}})
-    console.log(lastSeq)
     const newCount = incrementLastCount(lastSeq?.last_count as string)
     const newMonth = getMonth()
     const newYear = getYear()
@@ -99,8 +98,6 @@ export function getAcronym(inputText:string) {
   }
   return acronym.toUpperCase();
 }
-
-
 
 export function incrementLastCount(str:string){
     let num = parseInt(str, 10);
