@@ -112,11 +112,10 @@ model Sub_Account {
   Inactive    Boolean
 }
 
-model account {
-  Account_Id  String  @id @db.VarChar(10)
-  Account     String  @db.VarChar(20)
-  Description String  @db.VarChar(100)
-  AccountCode String  @db.VarChar(5)
+model policy_account {
+  Account     String   @unique @db.VarChar(225)
+  Description String   @db.Text
+  AccountCode String   @db.VarChar(225)
   COM         Boolean
   TPL         Boolean
   MAR         Boolean
@@ -128,6 +127,8 @@ model account {
   PA          Boolean
   CGL         Boolean
   Inactive    Boolean
+  createdAt   DateTime @default(now())
+  update      DateTime @default(now())
 }
 
 model bank {

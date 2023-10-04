@@ -10,14 +10,11 @@ import {
   getAllSubAccount,
   searchEntry,
   updateEntry,
-  // getAllClientEntry,
-  // getAllEmployeeEntry,
-  // getAllAgentEntry,
-  // getAllFixedAssetsEntry,
-  // getAllSupplierEntry,
-  // getAllOtherEntry,
-} from "../../model/Reference/IDEntry";
+} from "../../model/Reference/id-entry.model";
 import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
+import excel from "exceljs";
+import fs from "fs";
+import { v4 as uuidV4 } from "uuid";
 
 const ID_Entry = express.Router();
 
@@ -119,8 +116,8 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
 
 ID_Entry.post("/entry-update", async (req, res) => {
   try {
-    await updateEntry(req.query.entry as string,req.body)
-    res.send({message:"Update Successfully",success:true})
+    await updateEntry(req.query.entry as string, req.body);
+    res.send({ message: "Update Successfully", success: true });
   } catch (err: any) {
     res.send({ success: false, message: err.message });
   }
@@ -167,9 +164,80 @@ ID_Entry.get("/search-entry", async (req, res) => {
   }
 });
 
-ID_Entry.post('/entry-delete',async (req,res)=>{
+ID_Entry.get("/export-entry", async (req, res) => {
+  const entryHeaders: any = {
+    Client: {
+      header: [
+        "Entry Client ID",
+        "Company",
+        "Firstname",
+        "Middlename",
+        "Lastname",
+        "Email",
+        "Mobile",
+        "Telephone",
+        "Address",
+        "Sub Account",
+        "Option",
+        "Created At",
+      ],
+      row: [
+        "entry_client_id",
+        "company",
+        "firstname",
+        "middlename",
+        "lastname",
+        "email",
+        "mobile",
+        "telephone",
+        "address",
+        "NewShortName",
+        "option",
+        "createdAt",
+      ],
+    },
+  };
+  const { entry, entrySearch, isAll } = req.query;
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet("Sheet 1");
+  let data = [];
+  if (JSON.parse(isAll as string)) {
+    data = mapDataBasedOnHeaders(
+      (await searchEntry(entry as string, "" , true)) as Array<any>,
+      entryHeaders
+    );
+  } else {
+    data = mapDataBasedOnHeaders(
+      (await searchEntry(entry as string, entrySearch as string)) as Array<any>,
+      entryHeaders
+    );
+  }
+  data.forEach((items: any) => {
+    worksheet.addRow(items);
+  });
+  const name = uuidV4();
+  const excelFilePath = `${name}.xlsx`;
+
+  workbook.xlsx
+    .writeFile(excelFilePath)
+    .then(() => {
+      res.download(excelFilePath, `${name}.xlsx`, (err) => {
+        if (err) {
+          console.error("Error while downloading:", err);
+        } else {
+          fs.unlinkSync(excelFilePath);
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      res.status(500).send("Internal Server Error");
+    });
+});
+
+ID_Entry.post("/entry-delete", async (req, res) => {
   try {
-    await deleteEntry(req.query.entry as string,req.body.id)
+    await deleteEntry(req.query.entry as string, req.body.id);
     res.send({
       success: true,
       message: "Successfully Delete",
@@ -177,6 +245,16 @@ ID_Entry.post('/entry-delete',async (req,res)=>{
   } catch (err: any) {
     res.send({ success: false, message: err.message });
   }
-})
+});
+
+function mapDataBasedOnHeaders(dataArray: Array<any>, entryHeaders: any) {
+  const headerRow = entryHeaders.Client.header;
+  const rowKeys = entryHeaders.Client.row;
+
+  const mappedData = dataArray.map((dataItem) => {
+    return rowKeys.map((key: any) => dataItem[key]);
+  });
+  return [headerRow, ...mappedData];
+}
 
 export default ID_Entry;

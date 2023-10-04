@@ -4,13 +4,14 @@ import cors from "cors";
 import router from "./src/controller";
 import path from "path";
 import cookieParser from "cookie-parser";
+
 import {
   creatSampleUser,
   createIdSequence,
   creatSampleSubAccount,
   getAcronym,
 } from "./src/model/StoredProcedure";
-import { searchEntry } from "./src/model/Reference/IDEntry";
+import { searchEntry } from "./src/model/Reference/id-entry.model";
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
@@ -35,16 +36,29 @@ async function main() {
   app.use(cors(corsOptions));
   app.use(express.static(path.join(__dirname, "/static/image/")));
   app.use(express.static(path.join(__dirname, "/src/view")));
+
   app.get("/test", async (req, res) => {
-    const { entry, entrySearch } = req.query;
-    console.log(entry)
-    res.send({
-      message: 'qweqwe',
-    });
+    // const workbook = new excel.Workbook();
+    // const worksheet = workbook.addWorksheet('Sheet 1');
+    // worksheet.addRow(['Name', 'Age']);
+    // worksheet.addRow(['John Doe', 30]);
+    // worksheet.addRow(['Jane Smith', 25]);
+  
+    // res.setHeader(
+    //   'Content-Type',
+    //   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    // );
+    // res.setHeader(
+    //   'Content-Disposition',
+    //   'attachment; filename=exported-data.xlsx'
+    // );
+  
+    // workbook.xlsx.write(res).then(function () {
+    //   res.end();
+    // });
   });
   executeQuery();
   app.use("/api", router);
-
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
   });

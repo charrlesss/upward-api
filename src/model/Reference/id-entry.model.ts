@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { IDGenerator, UpdateId } from "../StoredProcedure";
 const prisma = new PrismaClient();
 
 interface DataEntryClientTypes {
@@ -65,7 +64,7 @@ interface EntryOthersType {
 
 const queryList: any = {
   Client: {
-    query: (search: string) => `
+    query: (search: string, hasLimit:boolean = false) => `
     SELECT 
             a.entry_client_id,
             a.firstname,
@@ -92,11 +91,11 @@ const queryList: any = {
         OR a.lastname like '%${search}%'
         OR a.company like '%${search}%'
         ORDER BY a.createdAt desc 
-        limit 500
+       ${hasLimit ? "" : "limit 500"}
     `,
   },
   Employee: {
-    query: (search: string) => `
+    query: (search: string,hasLimit:boolean = false) => `
   SELECT 
         a.entry_employee_id,
         a.firstname,
@@ -115,11 +114,11 @@ const queryList: any = {
         OR a.firstname like '%${search}%'
         OR a.lastname like '%${search}%'
         ORDER BY a.createdAt desc 
-        limit 500
+        ${hasLimit ? "" : "limit 500"}
   `,
   },
   Agent: {
-    query: (search: string) => `
+    query: (search: string,hasLimit:boolean = false) => `
       SELECT 
       a.entry_agent_id,
       a.firstname,
@@ -139,11 +138,11 @@ const queryList: any = {
     OR a.firstname like '%${search}%'
     OR a.lastname like '%${search}%'
     ORDER BY a.createdAt desc 
-    limit 500
+    ${hasLimit ? "" : "limit 500"}
   `,
   },
   "Fixed Assets": {
-    query: (search: string) => `
+    query: (search: string,hasLimit:boolean = false) => `
     SELECT 
       a.entry_fixed_assets_id,
       a.fullname,
@@ -156,11 +155,11 @@ const queryList: any = {
     a.entry_fixed_assets_id like '%${search}%'
     OR a.fullname like '%${search}%'
     ORDER BY a.createdAt desc 
-    limit 500
+    ${hasLimit ? "" : "limit 500"}
   `,
   },
   Supplier: {
-    query: (search: string) => `
+    query: (search: string,hasLimit:boolean = false) => `
     SELECT  
       a.entry_supplier_id,
       a.firstname,
@@ -185,11 +184,11 @@ const queryList: any = {
     OR a.lastname like '%${search}%'
     OR a.company like '%${search}%'
     ORDER BY a.createdAt desc 
-    limit 500
+    ${hasLimit ? "" : "limit 500"}
   `,
   },
   Others: {
-    query: (search: string) => `
+    query: (search: string,hasLimit:boolean = false) => `
     SELECT 
       a.entry_others_id,
       a.description,
@@ -200,7 +199,7 @@ const queryList: any = {
     a.entry_others_id like '%${search}%'
     OR a.description like '%${search}%'
     ORDER BY a.createdAt desc 
-    limit 500
+    ${hasLimit ? "" : "limit 500"}
   `,
   },
 };
@@ -451,8 +450,8 @@ async function updateSupplier(data: EntrySupplierType) {
     prisma.$queryRawUnsafe(query2),
   ]);
 }
-export async function searchEntry(entry: string, search: string) {
-  return await prisma.$queryRawUnsafe(queryList[`${entry}`].query(search));
+export async function searchEntry(entry: string, search: string, hasLimit:boolean = false) {
+  return await prisma.$queryRawUnsafe(queryList[`${entry}`].query(search ,hasLimit));
 }
 export async function updateEntry(entry: string, data: any) {
   switch (entry) {
