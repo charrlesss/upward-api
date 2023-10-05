@@ -105,11 +105,12 @@ model Contact_Details {
 }
 
 model Sub_Account {
-  Sub_Acct    String  @id @default(uuid())
-  Description String  @db.Text
-  ShortName   String  @db.VarChar(225)
-  Acronym     String  @db.VarChar(50)
-  Inactive    Boolean
+  Sub_Acct    String   @id @default(uuid())
+  Description String   @db.Text
+  ShortName   String   @db.VarChar(225)
+  Acronym     String   @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  update      DateTime @default(now())
 }
 
 model policy_account {
@@ -135,6 +136,13 @@ model bank {
   Bank_Code String  @id @db.VarChar(10)
   Bank      String  @db.VarChar(50)
   Inactive  Boolean
+}
+
+model mortgagee {
+  Policy    String   @db.VarChar(100)
+  Mortgagee String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+  update    DateTime @default(now())
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -722,12 +730,6 @@ model ledger {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model mortgagee {
-  Policy    String @db.VarChar(50)
-  Mortgagee String @db.VarChar(255)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mpolicy {

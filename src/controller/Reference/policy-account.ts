@@ -6,6 +6,8 @@ import {
   searchPolicy,
   updatePolicyAccount,
 } from "../../model/Reference/policy-account.model";
+import { mapDataBasedOnHeaders } from "../../lib/mapbaseonheader";
+import { ExportToExcel } from "../../lib/exporttoexcel";
 
 const PolicyAccount = express.Router();
 
@@ -51,7 +53,10 @@ PolicyAccount.get(
   "/get-policy-account",
   async (req: Request, res: Response) => {
     const { policySearch } = req.query;
-    const policy = await searchPolicy(policySearch as string);
+    const policy:any = await searchPolicy(policySearch as string) 
+    policy.map((obj:any)=>{
+      return updateValues(obj)
+    })
     res.send({
       message: "Get Policy Account Successfuly",
       success: true,
@@ -64,7 +69,11 @@ PolicyAccount.get(
   "/search-policy-account",
   async (req: Request, res: Response) => {
     const { policySearch } = req.query;
-    const policy = await searchPolicy(policySearch as string);
+    const policy:any = await searchPolicy(policySearch as string);
+
+    policy.map((obj:any)=>{
+      return updateValues(obj)
+    })
     res.send({
       message: "Search Policy Account Successfuly",
       success: true,
@@ -85,4 +94,40 @@ function updateValues(obj: any) {
     }
   }
 }
+PolicyAccount.get("/export-policy-account", async (req, res) => {
+  const entryHeaders: any = {
+    Policy: {
+      header: [
+        "Account",
+        "Account Code",
+        "Description",
+        "Created At"
+      ],
+      row: [
+        "Account",
+        "AccountCode",
+        "Description",
+        "createdAt"
+      ],
+    },
+  };
+  const { policySearch, isAll } = req.query;
+
+  let data = [];
+  if (JSON.parse(isAll as string)) {
+    data = mapDataBasedOnHeaders(
+      (await searchPolicy("", true)) as Array<any>,
+      entryHeaders,
+      'Policy'
+    );
+  } else {
+    data = mapDataBasedOnHeaders(
+      (await searchPolicy(policySearch as string)) as Array<any>,
+      entryHeaders,
+      'Policy'
+    );
+  }
+
+  ExportToExcel(data, res);
+});
 export default PolicyAccount;

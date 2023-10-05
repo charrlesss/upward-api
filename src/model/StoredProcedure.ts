@@ -139,21 +139,21 @@ export async function creatSampleUser (){
 
 export async function creatSampleSubAccount (){
   const data = [
-    {Acronym:"All",Inactive:false,ShortName:"All",Description:"A"},
-   {Acronym:" BO",Inactive:false,ShortName:"Baguio Office",Description:"Baguio Office"},
-   {Acronym:" CO",Inactive:false,ShortName:"Calasiao Office",Description:"Calasiao Office"},
-    {Acronym:"CSB",Inactive:false,ShortName:"CSB",Description:"CASH BOND"},
-   {Acronym:" EO",Inactive:false,ShortName:"Edsa Office",Description:""},
-   {Acronym:" EV",Inactive:false,ShortName:"EV",Description:"EDEN VILLASAN"},
-   {Acronym:" HO",Inactive:false,ShortName:"Head Office",Description:"H"},
-   {Acronym:" IO",Inactive:false,ShortName:"ISABELA OFFICE",Description:""},
-    {Acronym:"MCC",Inactive:false,ShortName:"MACHINE COMPLETE CORP.",Description:"MCC"},
-   {Acronym:" ML",Inactive:false,ShortName:"ML",Description:"MALALALALALALA"},
-   {Acronym:" SC",Inactive:false,ShortName:"SANCARLOS OFFICE",Description:"SANCARLOS OFFICE"},
-    {Acronym:"TAR",Inactive:false,ShortName:"TAR",Description:"TARLAC OFFICE"},
-   {Acronym:" TO",Inactive:false,ShortName:"Tarlac Office",Description:"Tarlac Office"},
-    {Acronym:"UIA",Inactive:false,ShortName:"UPWARD INSURANCE CORP.",Description:"UIA"},
-   {Acronym:" UO",Inactive:false,ShortName:"Urdaneta Office",Description:"Urdaneta Office"},
+    {Acronym:"All",ShortName:"All",Description:"A"},
+   {Acronym:" BO",ShortName:"Baguio Office",Description:"Baguio Office"},
+   {Acronym:" CO",ShortName:"Calasiao Office",Description:"Calasiao Office"},
+    {Acronym:"CSB",ShortName:"CSB",Description:"CASH BOND"},
+   {Acronym:" EO",ShortName:"Edsa Office",Description:""},
+   {Acronym:" EV",ShortName:"EV",Description:"EDEN VILLASAN"},
+   {Acronym:" HO",ShortName:"Head Office",Description:"H"},
+   {Acronym:" IO",ShortName:"ISABELA OFFICE",Description:""},
+    {Acronym:"MCC",ShortName:"MACHINE COMPLETE CORP.",Description:"MCC"},
+   {Acronym:" ML",ShortName:"ML",Description:"MALALALALALALA"},
+   {Acronym:" SC",ShortName:"SANCARLOS OFFICE",Description:"SANCARLOS OFFICE"},
+    {Acronym:"TAR",ShortName:"TAR",Description:"TARLAC OFFICE"},
+   {Acronym:" TO",ShortName:"Tarlac Office",Description:"Tarlac Office"},
+    {Acronym:"UIA",ShortName:"UPWARD INSURANCE CORP.",Description:"UIA"},
+   {Acronym:" UO",ShortName:"Urdaneta Office",Description:"Urdaneta Office"},
 ]
     const subaccount = await prisma.sub_Account.createMany({
         data

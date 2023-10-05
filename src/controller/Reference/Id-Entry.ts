@@ -12,9 +12,8 @@ import {
   updateEntry,
 } from "../../model/Reference/id-entry.model";
 import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
-import excel from "exceljs";
-import fs from "fs";
-import { v4 as uuidV4 } from "uuid";
+import { ExportToExcel } from "../../lib/exporttoexcel";
+import { mapDataBasedOnHeaders } from "../../lib/mapbaseonheader";
 
 const ID_Entry = express.Router();
 
@@ -196,43 +195,129 @@ ID_Entry.get("/export-entry", async (req, res) => {
         "createdAt",
       ],
     },
+    Employee: {
+      header: [
+        "Entry Employee ID",
+        "Firstname",
+        "Middlename",
+        "Lastname",
+        "Sub Account",
+        "Created At",
+        "Address",
+      ],
+      row: [
+        "entry_employee_id",
+        "firstname",
+        "middlename",
+        "lastname",
+        "NewShortName",
+        "createdAt",
+        "address",
+      ],
+    },
+    Agent: {
+      header: [
+        "Entry Agent ID",
+        "Firstname",
+        "Middlename",
+        "Lastname",
+        "Email",
+        "Mobile",
+        "Telephone",
+        "Created At",
+        "Address",
+      ],
+      row: [
+        "entry_agent_id",
+        "firstname",
+        "middlename",
+        "lastname",
+        "email",
+        "mobile",
+        "telephone",
+        "createdAt",
+        "address",
+      ],
+    },
+    'Fixed Assets': {
+      header: [
+        "Entry Fixed Assets ID",
+        "Fullname",
+        "Description",
+        "Remarks",
+        "Created At"
+      ],
+      row: [
+        "entry_fixed_assets_id",
+        "fullname",
+        "description",
+        "remarks",
+        "createdAt"
+      ],
+    },
+    Supplier:{
+      header: [
+        "Entry Supplier ID",
+        "Company",
+        "Firstname",
+        "Middlename",
+        "Lastname",
+        "Email",
+        "Mobile",
+        "Telephone",
+        "Address",
+        "TIN NO",
+        "VAT Type",
+        "Option",
+        "Created At",
+      ],
+      row: [
+        "entry_supplier_id",
+        "company",
+        "firstname",
+        "middlename",
+        "lastname",
+        "email",
+        "mobile",
+        "telephone",
+        "address",
+        "tin_no",
+        "VAT_Type",
+        "option",
+        "createdAt",
+      ],
+    },
+    Others: {
+      header: [
+        "Entry Others ID",
+        "Description",
+        "Created At",
+      ],
+      row: [
+        "entry_others_id",
+        "description",
+        "createdAt",
+      ],
+    },
   };
   const { entry, entrySearch, isAll } = req.query;
-  const workbook = new excel.Workbook();
-  const worksheet = workbook.addWorksheet("Sheet 1");
+
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchEntry(entry as string, "" , true)) as Array<any>,
-      entryHeaders
+      (await searchEntry(entry as string, "", true)) as Array<any>,
+      entryHeaders,
+      entry as string
     );
   } else {
     data = mapDataBasedOnHeaders(
       (await searchEntry(entry as string, entrySearch as string)) as Array<any>,
-      entryHeaders
+      entryHeaders,
+      entry as string
     );
   }
-  data.forEach((items: any) => {
-    worksheet.addRow(items);
-  });
-  const name = uuidV4();
-  const excelFilePath = `${name}.xlsx`;
 
-  workbook.xlsx
-    .writeFile(excelFilePath)
-    .then(() => {
-      res.download(excelFilePath, `${name}.xlsx`, (err) => {
-        if (err) {
-          console.error("Error while downloading:", err);
-        } else {
-          fs.unlinkSync(excelFilePath);
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      res.status(500).send("Internal Server Error");
-    });
+  ExportToExcel(data, res);
 });
 
 ID_Entry.post("/entry-delete", async (req, res) => {
@@ -246,15 +331,5 @@ ID_Entry.post("/entry-delete", async (req, res) => {
     res.send({ success: false, message: err.message });
   }
 });
-
-function mapDataBasedOnHeaders(dataArray: Array<any>, entryHeaders: any) {
-  const headerRow = entryHeaders.Client.header;
-  const rowKeys = entryHeaders.Client.row;
-
-  const mappedData = dataArray.map((dataItem) => {
-    return rowKeys.map((key: any) => dataItem[key]);
-  });
-  return [headerRow, ...mappedData];
-}
 
 export default ID_Entry;
