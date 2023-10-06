@@ -145,6 +145,29 @@ model mortgagee {
   update    DateTime @default(now())
 }
 
+model subline {
+  ID          Int      @id @default(autoincrement())
+  Line        String   @db.Text
+  SublineName String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  update      DateTime @default(now())
+}
+
+model subline_line {
+  LineId String @id @default(uuid())
+  Line   String @db.VarChar(255)
+}
+
+model rates {
+  ID        Int      @id @default(autoincrement())
+  Account   String?  @db.VarChar(20)
+  Line      String?  @db.VarChar(50)
+  Type      String?  @db.VarChar(150)
+  Rate      Decimal? @db.Decimal(18, 4)
+  createdAt DateTime @default(now())
+  update    DateTime @default(now())
+}
+
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
   Account_No   String? @db.VarChar(50)
@@ -963,15 +986,6 @@ model pullout_request_details {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model rates {
-  ID      Int
-  Account String?  @db.VarChar(20)
-  Line    String?  @db.VarChar(50)
-  Type    String?  @db.VarChar(150)
-  Rate    Decimal? @db.Decimal(18, 4)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model reportset {
@@ -1015,13 +1029,6 @@ model return_checks {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model subline {
-  ID          Int
-  Line        String? @db.VarChar(50)
-  SublineName String? @db.VarChar(150)
-
-  @@ignore
-}
 
 model sysdiagrams {
   name         String @db.VarChar(160)

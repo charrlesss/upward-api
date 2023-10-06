@@ -43,7 +43,7 @@ export async function searchPolicy(
   a.G16,
   a.MSPR,
   a.CGL,
-  a.createdAt
+  (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
 FROM
 upward.policy_account a
 where 

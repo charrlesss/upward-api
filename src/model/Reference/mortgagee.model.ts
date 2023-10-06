@@ -35,7 +35,7 @@ export async function getMortgageePolicy() {
     `;
   return await prisma.$queryRawUnsafe(query1);
 }
-export async function getMortgagee(
+export async function searchMortgagee(
   mortgageeSearch: string,
   hasLimit: boolean = false
 ) {
@@ -43,7 +43,7 @@ export async function getMortgagee(
     SELECT 
         a.Mortgagee,
         a.Policy,
-        a.createdAt
+        (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
     FROM
         upward.mortgagee a
         where 
@@ -54,3 +54,5 @@ export async function getMortgagee(
     `;
   return await prisma.$queryRawUnsafe(query2);
 }
+
+

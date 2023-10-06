@@ -5,12 +5,30 @@ import {
   addMortgagee,
   deleteMortgagee,
   findMortgagee,
-  getMortgagee,
   getMortgageePolicy,
-  updateMortgagee
+  updateMortgagee,
+  searchMortgagee,
 } from "../../model/Reference/mortgagee.model";
 
 const Mortgagee = express.Router();
+
+Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
+  const { mortgageeSearch } = req.query;
+  try {
+    const mortgagee = await searchMortgagee(mortgageeSearch as string);
+    const policy = await getMortgageePolicy();
+    res.send({
+      message: "Get Mortgagee Successfully!",
+      success: true,
+      mortgagee: {
+        mortgagee,
+        policy,
+      },
+    });
+  } catch (err: any) {
+    res.send({ message: err.message, success: false });
+  }
+});
 
 Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
   try {
@@ -25,24 +43,6 @@ Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
     return res.send({
       message: "Create Mortgagee Successfully!",
       success: true,
-    });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
-  }
-});
-
-Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
-  const { mortgageeSearch } = req.query;
-  try {
-    const mortgagee = await getMortgagee((mortgageeSearch ?? "") as string);
-    const policy = await getMortgageePolicy();
-    res.send({
-      message: "Get Mortgagee Successfully!",
-      success: true,
-      mortgagee: {
-        mortgagee,
-        policy,
-      },
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -64,7 +64,6 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
 });
 
 Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
-
   try {
     await updateMortgagee(req.body);
     res.send({
@@ -76,33 +75,46 @@ Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
   }
 });
 
+Mortgagee.get("/search-mortgagee", async (req: Request, res: Response) => {
+  const { mortgageeSearch } = req.query;
+  try {
+    const mortgagee: any = await searchMortgagee(mortgageeSearch as string);
+    res.send({
+      message: "Search Policy Account Successfuly",
+      success: true,
+      mortgagee,
+    });
+  } catch (err: any) {
+    res.send({ message: err.message, success: false });
+  }
+});
 
-// Mortgagee.get("/export-sub-account", async (req, res) => {
-//   const subAccountHeaders: any = {
-//     SubAccount: {
-//       header: ["Sub Account ID", "Acronym","Short Name", "Description", "Created At"],
-//       row: ["Sub_Acct", "Acronym", "ShortName","Description", "createdAt"],
-//     },
-//   };
-//   const { policySearch, isAll } = req.query;
+Mortgagee.get("/export-mortgagee", async (req, res) => {
+  const subAccountHeaders: any = {
+    Mortgagee: {
+      header: ["Policy", "Mortgagee", "Created At"],
+      row: ["Policy", "Mortgagee", "createdAt"],
+    },
+  };
+  const { mortgageeSearch, isAll } = req.query;
 
-//   let data = [];
-//   if (JSON.parse(isAll as string)) {
-//     data = mapDataBasedOnHeaders(
-//       (await searchSubAccount("", true)) as Array<any>,
-//       subAccountHeaders,
-//       "SubAccount"
-//     );
-//   } else {
-//     data = mapDataBasedOnHeaders(
-//       (await searchSubAccount(policySearch as string)) as Array<any>,
-//       subAccountHeaders,
-//       "SubAccount"
-//     );
-//   }
+  let data = [];
+  if (JSON.parse(isAll as string)) {
+    data = mapDataBasedOnHeaders(
+      (await searchMortgagee("", true)) as Array<any>,
+      subAccountHeaders,
+      "Mortgagee"
+    );
+  } else {
+    data = mapDataBasedOnHeaders(
+      (await searchMortgagee(mortgageeSearch as string)) as Array<any>,
+      subAccountHeaders,
+      "Mortgagee"
+    );
+  }
 
-//   ExportToExcel(data, res);
-// });
+  ExportToExcel(data, res);
+});
 
 // Policy	        Mortgagee
 // TPL	            N I L - HN

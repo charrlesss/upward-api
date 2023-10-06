@@ -26,7 +26,7 @@ export async function searchSubAccount(
     a.Acronym,
     a.ShortName,
     a.Description,
-    a.createdAt
+    (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
   FROM
   upward.sub_account a
   where 

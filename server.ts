@@ -10,6 +10,7 @@ import {
   createIdSequence,
   creatSampleSubAccount,
   getAcronym,
+  createSublineLine,
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 
@@ -26,6 +27,7 @@ function executeQuery() {
   // creatSampleUser()
   // createIdSequence()
   // creatSampleSubAccount()
+  // createSublineLine()
 }
 
 async function main() {
