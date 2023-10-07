@@ -213,3 +213,23 @@ export async function createSublineLine() {
 
   console.log("new user : ", line);
 }
+
+export async function createPrefix() {
+  await prisma.prefix.createMany({
+    data: [
+      { prefixName: "CV" },
+      { prefixName: "PC" },
+      { prefixName: "MC" },
+      { prefixName: "TRT" },
+      { prefixName: "E" },
+      { prefixName: "F" },
+      { prefixName: "G" },
+    ],
+  });
+}
+
+export async function getUserById(UserId:string) {
+ return await prisma.users.findUnique({
+   where:{UserId}
+  });
+}

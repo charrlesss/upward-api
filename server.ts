@@ -11,6 +11,7 @@ import {
   creatSampleSubAccount,
   getAcronym,
   createSublineLine,
+  createPrefix,
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 
@@ -28,6 +29,7 @@ function executeQuery() {
   // createIdSequence()
   // creatSampleSubAccount()
   // createSublineLine()
+  // createPrefix()
 }
 
 async function main() {
@@ -40,24 +42,7 @@ async function main() {
   app.use(express.static(path.join(__dirname, "/src/view")));
 
   app.get("/test", async (req, res) => {
-    // const workbook = new excel.Workbook();
-    // const worksheet = workbook.addWorksheet('Sheet 1');
-    // worksheet.addRow(['Name', 'Age']);
-    // worksheet.addRow(['John Doe', 30]);
-    // worksheet.addRow(['Jane Smith', 25]);
-  
-    // res.setHeader(
-    //   'Content-Type',
-    //   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    // );
-    // res.setHeader(
-    //   'Content-Disposition',
-    //   'attachment; filename=exported-data.xlsx'
-    // );
-  
-    // workbook.xlsx.write(res).then(function () {
-    //   res.end();
-    // });
+      res.send({data:await prisma.ctplregistration.findMany()})
   });
   executeQuery();
   app.use("/api", router);

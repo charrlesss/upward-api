@@ -116,33 +116,5 @@ Mortgagee.get("/export-mortgagee", async (req, res) => {
   ExportToExcel(data, res);
 });
 
-// Policy	        Mortgagee
-// TPL	            N I L - HN
-// TPL	            AMIFIN
-// TPL         	    N I L
-// Comprehensive	CASH MANAGEMENT FINANCE INC.
-// Comprehensive	CREDIT MASTERS & LENDING INVESTORS CORP.
-// Comprehensive	CAMFIN LENDING, INC.
-// Comprehensive	ASIAN CONSUMERS BANK
-// Comprehensive	ORIX METRO LEASING AND FINANCE CORPORATION
-// Comprehensive	METROPOLITAN BANK & TRUST COMPANY
-// Comprehensive	UNION BANK OF THE PHILIPPINES
-// Comprehensive	BANCO DE ORO UNIBANK, INC.
-// Comprehensive	RADIOWEALTH FINANCE COMPANY, INC.
-// Comprehensive	UCPB LEASING AND FINANCE, CORP.
-// Comprehensive	RURAL BANK
-// Comprehensive	PS BANK
-// Comprehensive	EASTWEST BANK
-// Comprehensive	FILIPINO FINANCIAL CORPORATION
-// Comprehensive	SOUTH ASIALINK CREDIT CORP.
-// Comprehensive	TOYOTA FINANCIAL SERVICES PHILIPPINES CORPORATION
-// Comprehensive	ASIA LINK FINANCE CORP.
-// FIRE	          WATER AND SEWERAGE SECTOR SAVINGS AND LOAN ASSOCIATION, INC. (WASSLAI)
-// Comprehensive	PHILIPPINE SAVINGS BANK
-// Comprehensive	RIZAL COMMERCIAL BANKING CORPORATION
-// Comprehensive	LAND BANK OF THE PHILIPPINES
-// Comprehensive	PRIME AMA LENDING CORP.
-// Comprehensive	INTER-ASIA DEVELOPMENT BANK
-// Comprehensive	SECURITY BANK CORP.
-// TPL	            N I L - ASTRA
+
 export default Mortgagee;

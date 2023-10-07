@@ -163,9 +163,27 @@ model rates {
   Account   String?  @db.VarChar(20)
   Line      String?  @db.VarChar(50)
   Type      String?  @db.VarChar(150)
-  Rate      Decimal? @db.Decimal(18, 4)
+  Rate      String?  @db.VarChar(150)
   createdAt DateTime @default(now())
   update    DateTime @default(now())
+}
+
+model ctplregistration {
+  ctplId        Int      @id @default(autoincrement())
+  Prefix        String?  @db.VarChar(50)
+  NumSeriesFrom Int?
+  NumSeriesTo   Int?
+  Cost          String?  @db.VarChar(1501)
+  CreatedBy     String?  @db.VarChar(50)
+  createdAt     DateTime @default(now())
+  update        DateTime @default(now())
+}
+
+model prefix {
+  prefixId   Int      @id @default(autoincrement())
+  prefixName String   @db.VarChar(50)
+  createdAt  DateTime @default(now())
+  update     DateTime @default(now())
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -391,16 +409,6 @@ model company_list {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model ctplregistration {
-  Prefix        String?   @db.VarChar(50)
-  NumSeriesFrom Int?
-  NumSeriesTo   Int?
-  Cost          Decimal?  @db.Decimal(18, 2)
-  CreatedBy     String?   @db.VarChar(50)
-  CreatedDate   DateTime? @db.DateTime(6)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model deposit {
