@@ -12,6 +12,7 @@ import {
   getAcronym,
   createSublineLine,
   createPrefix,
+  createCTPLType
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 
@@ -30,6 +31,7 @@ function executeQuery() {
   // creatSampleSubAccount()
   // createSublineLine()
   // createPrefix()
+  // createCTPLType()
 }
 
 async function main() {
@@ -60,3 +62,5 @@ main()
     console.error(e);
     await prisma.$disconnect();
   });
+
+

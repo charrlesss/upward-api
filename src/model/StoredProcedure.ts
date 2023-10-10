@@ -215,19 +215,26 @@ export async function createSublineLine() {
 }
 
 export async function createPrefix() {
-  await prisma.prefix.createMany({
+  await prisma.ctplprefix.createMany({
     data: [
       { prefixName: "CV" },
       { prefixName: "PC" },
       { prefixName: "MC" },
       { prefixName: "TRT" },
-      { prefixName: "E" },
-      { prefixName: "F" },
-      { prefixName: "G" },
     ],
   });
 }
+export async function createCTPLType() {
+  await prisma.ctpltype.createMany({
+    data: [
+      { typeName: "ligth" },
+      { typeName: "heavy" },
+      { typeName: "trailer" },
+      { typeName: "motorcycle" },
+    ],
+  });
 
+}
 export async function getUserById(UserId:string) {
  return await prisma.users.findUnique({
    where:{UserId}

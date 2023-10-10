@@ -173,17 +173,25 @@ model ctplregistration {
   Prefix        String?  @db.VarChar(50)
   NumSeriesFrom Int?
   NumSeriesTo   Int?
-  Cost          String?  @db.VarChar(1501)
+  Cost          String?  @db.VarChar(150)
   CreatedBy     String?  @db.VarChar(50)
+  ctplType      String?  @db.VarChar(250)
   createdAt     DateTime @default(now())
   update        DateTime @default(now())
 }
 
-model prefix {
+model ctplprefix {
   prefixId   Int      @id @default(autoincrement())
   prefixName String   @db.VarChar(50)
   createdAt  DateTime @default(now())
   update     DateTime @default(now())
+}
+
+model ctpltype {
+  typeId    Int      @id @default(autoincrement())
+  typeName  String   @db.VarChar(50)
+  createdAt DateTime @default(now())
+  update    DateTime @default(now())
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -1117,7 +1125,7 @@ model transaction_code {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model vpolicy {
-  PolicyNo         String?   @db.VarChar(20)
+  PolicyNo         String    @id @db.VarChar(20)
   Account          String?   @db.VarChar(20)
   PolicyType       String?   @db.VarChar(4)
   CoverNo          String?   @db.VarChar(10)
@@ -1160,8 +1168,6 @@ model vpolicy {
   MortgageeForm    Boolean?
   Mortgagee        String?   @db.VarChar(100)
   Denomination     String?   @db.VarChar(150)
-
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

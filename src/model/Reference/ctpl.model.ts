@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 
 interface CTPLType {
   Prefix: string;
+  Type: string;
   NumSeriesFrom: number;
   NumSeriesTo: number;
   Cost: string;
@@ -17,6 +18,7 @@ export async function searchCTPL(
       SELECT 
           a.ctplId,
           a.Prefix,
+          a.ctplType,
           a.NumSeriesFrom,
           a.CreatedBy,
           CAST( a.Cost AS DECIMAL(10, 2)) as Cost,
@@ -44,7 +46,10 @@ export async function searchCTPL(
   return convertCostToFixed(data);
 }
 export async function getPrefix() {
-  return await prisma.prefix.findMany({ select: { prefixName: true } });
+  return await prisma.ctplprefix.findMany({ select: { prefixName: true } });
+}
+export async function getType() {
+  return await prisma.ctpltype.findMany({ select: { typeName: true } });
 }
 export async function addCTPL(data: CTPLType) {
   return await prisma.ctplregistration.create({ data });

@@ -7,6 +7,7 @@ import {
   addCTPL,
   updateCTPL,
   deleteCTPL,
+  getType,
 } from "../../model/Reference/ctpl.model";
 import { getUserById } from "../../model/StoredProcedure";
 
@@ -17,12 +18,14 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
   try {
     const ctpl = await searchCTPL(ctplSearch as string);
     const prefix = await getPrefix();
+    const type = await getType();
     res.send({
       message: "Get CTPL Successfully!",
       success: true,
       ctpl: {
         ctpl,
         prefix,
+        type,
       },
     });
   } catch (err: any) {
@@ -32,7 +35,6 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
 
 CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
   try {
-    console.log((req.user as any).UserId);
     const user = await getUserById((req.user as any).UserId);
     req.body.NumSeriesFrom = parseInt(req.body.NumSeriesFrom);
     req.body.NumSeriesTo = parseInt(req.body.NumSeriesTo);
