@@ -36,7 +36,7 @@ PolicyAccount.post(
         success: false,
       });
     }
-
+    delete req.body.createdAt 
     updateValues(req.body);
     await updatePolicyAccount(req.body, findAccount.Account);
     res.send({ message: "Update Policy Account Successfuly", success: true });

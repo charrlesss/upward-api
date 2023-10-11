@@ -12,7 +12,9 @@ import {
   getAcronym,
   createSublineLine,
   createPrefix,
-  createCTPLType
+  createCTPLType,
+  createPolicyAccount,
+  creatCTPLRegistration
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 
@@ -32,6 +34,8 @@ function executeQuery() {
   // createSublineLine()
   // createPrefix()
   // createCTPLType()
+  // createPolicyAccount()
+  // creatCTPLRegistration()
 }
 
 async function main() {
