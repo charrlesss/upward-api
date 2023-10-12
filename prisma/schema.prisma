@@ -160,10 +160,10 @@ model subline_line {
 
 model rates {
   ID        Int      @id @default(autoincrement())
-  Account   String?  @db.VarChar(20)
-  Line      String?  @db.VarChar(50)
-  Type      String?  @db.VarChar(150)
-  Rate      String?  @db.VarChar(150)
+  Account   String?  @db.VarChar(250)
+  Line      String?  @db.VarChar(250)
+  Type      String?  @db.VarChar(250)
+  Rate      String?  @db.VarChar(250)
   createdAt DateTime @default(now())
   update    DateTime @default(now())
 }
@@ -193,7 +193,6 @@ model ctpltype {
   createdAt DateTime @default(now())
   update    DateTime @default(now())
 }
-
 
 model vpolicy {
   PolicyNo         String    @id @db.VarChar(20)
@@ -239,6 +238,38 @@ model vpolicy {
   MortgageeForm    Boolean?
   Mortgagee        String?   @db.VarChar(100)
   Denomination     String?   @db.VarChar(150)
+}
+
+model journal {
+  Branch_Code   String?   @db.VarChar(3)
+  Date_Entry    DateTime? 
+  Source_Type   String?   @db.VarChar(3)
+  Source_No     String?   @db.VarChar(50)
+  Explanation   String?   @db.LongText
+  Particulars   String?   @db.LongText
+  Payto         String?   @db.VarChar(500)
+  Address       String?   @db.VarChar(255)
+  Check_Date    DateTime? 
+  Check_No      String?   @db.VarChar(100)
+  Check_Bank    String?   @db.VarChar(100)
+  Check_Return  DateTime? 
+  Check_Collect DateTime? 
+  Check_Deposit DateTime? 
+  Check_Reason  String?   @db.VarChar(255)
+  GL_Acct       String?   @db.VarChar(10)
+  Sub_Acct      String?   @db.VarChar(3)
+  ID_No         String?   @db.VarChar(50)
+  cGL_Acct      String?   @db.VarChar(50)
+  cSub_Acct     String?   @db.VarChar(100)
+  cID_No        String?   @db.VarChar(500)
+  Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  TC            String?   @db.VarChar(3)
+  Remarks       String?   @db.LongText
+  AutoNo        BigInt    @id @default(autoincrement())
+  VAT_Type      String?   @db.VarChar(50)
+  OR_Invoice_No String?   @db.VarChar(100)
+  VATItemNo     Int?
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -606,40 +637,7 @@ model id_entry {
   @@map("id entry")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model journal {
-  Branch_Code   String?   @db.VarChar(3)
-  Date_Entry    DateTime? @db.DateTime(6)
-  Source_Type   String?   @db.VarChar(3)
-  Source_No     String?   @db.VarChar(50)
-  Explanation   String?   @db.LongText
-  Particulars   String?   @db.LongText
-  Payto         String?   @db.VarChar(500)
-  Address       String?   @db.VarChar(255)
-  Check_Date    DateTime? @db.DateTime(6)
-  Check_No      String?   @db.VarChar(100)
-  Check_Bank    String?   @db.VarChar(100)
-  Check_Return  DateTime? @db.DateTime(6)
-  Check_Collect DateTime? @db.DateTime(6)
-  Check_Deposit DateTime? @db.DateTime(6)
-  Check_Reason  String?   @db.VarChar(255)
-  GL_Acct       String?   @db.VarChar(10)
-  Sub_Acct      String?   @db.VarChar(3)
-  ID_No         String?   @db.VarChar(50)
-  cGL_Acct      String?   @db.VarChar(50)
-  cSub_Acct     String?   @db.VarChar(100)
-  cID_No        String?   @db.VarChar(500)
-  Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  TC            String?   @db.VarChar(3)
-  Remarks       String?   @db.LongText
-  AutoNo        BigInt
-  VAT_Type      String?   @db.VarChar(50)
-  OR_Invoice_No String?   @db.VarChar(100)
-  VATItemNo     Int?
 
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal_partial {
@@ -1169,8 +1167,6 @@ model transaction_code {
   @@map("transaction code")
   @@ignore
 }
-
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model words {

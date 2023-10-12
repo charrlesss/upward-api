@@ -1,22 +1,55 @@
 import express, { Request, Response } from "express";
-import { searchEntry } from "../../../model/Reference/id-entry.model";
-import { getAgents, getClients, getPolicyAccount, getSubAccount } from "../../../model/Task/Production/vehicle-policy";
+import {
+  getAgents,
+  getClients,
+  getPolicyAccount,
+  getSubAccount,
+  getRates,
+  getMortgagee,
+} from "../../../model/Task/Production/vehicle-policy";
+import promiseAll from "../../../lib/promise-all";
 const VehiclePolicy = express.Router();
 
 VehiclePolicy.get(
   "/get-vehicle-policy",
   async (req: Request, res: Response) => {
     try {
-      res.send({
-        message: "Successfully get data",
-        success: true,
-        vehiclePolicy: {
-          clients: await getClients(""),
-          agents: await getAgents(""),
-          policy_account:await getPolicyAccount(),
-          sub_account:await getSubAccount(),
-        },
-      });
+      promiseAll([
+        getClients(""),
+        getAgents(""),
+        getSubAccount(),
+        getPolicyAccount("COM"),
+        getPolicyAccount("TPL"),
+        getRates("COM"),
+        getRates("TPL"),
+        getMortgagee("COM"),
+        getMortgagee("TPL"),
+      ]).then(
+        ([clients, agents,sub_account, com, tpl, rateCom, rateTpl,mortCom,mortTpl ]: any) => {
+          res.send({
+            message: "Successfully get data",
+            success: true,
+            vehiclePolicy: {
+              clients,
+              agents,
+              sub_account,
+              policy_account: {
+                com,
+                tpl,
+              },
+              rate: {
+                com: rateCom,
+                tpl: rateTpl,
+              },
+              mortgagee: {
+                com:mortCom,
+                tpl:mortTpl,
+              },
+            
+            },
+          });
+        }
+      );
     } catch (error: any) {
       res.send({ message: error.message, success: false, vehiclePolicy: null });
     }
@@ -31,7 +64,7 @@ VehiclePolicy.get(
         message: "Successfully search data",
         success: true,
         vehiclePolicy: {
-          clients: await getClients(req.query.clientSearch as string,true),
+          clients: await getClients(req.query.clientSearch as string, true),
         },
       });
     } catch (error: any) {

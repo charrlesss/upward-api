@@ -20,7 +20,6 @@ export async function getClients(search: string, hasLimit: boolean = false) {
       `;
   return await prisma.$queryRawUnsafe(query);
 }
-
 export async function getAgents(search: string, hasLimit: boolean = false) {
   const query = `
       SELECT
@@ -38,21 +37,66 @@ export async function getAgents(search: string, hasLimit: boolean = false) {
       `;
   return await prisma.$queryRawUnsafe(query);
 }
+export async function getPolicyAccount(type: string) {
+  if (type === "COM")
+    return await prisma.policy_account.findMany({
+      select: {
+        Account: true,
+      },
+      where: {
+        COM: {
+          equals: true,
+        },
+      },
+    });
 
-export async function getPolicyAccount() {
+  return await prisma.policy_account.findMany({
+    select: {
+      Account: true,
+    },
+    where: {
+      TPL: {
+        equals: true,
+      },
+    },
+  });
+}
+export async function getMortgagee(type: string) {
+  if (type === "COM")
+    return await prisma.mortgagee.findMany({
+      select: {
+        Mortgagee: true,
+      },
+      where: {
+        Policy: {
+          equals: "Comprehensive",
+        },
+      },
+    });
+
+  return await prisma.mortgagee.findMany({
+    select: {
+      Mortgagee: true,
+    },
+    where: {
+      Policy: {
+        equals: type,
+      },
+    },
+  });
+}
+export async function getRates(type: string) {
+  if (type === "COM") {
+    const query = `
+       select distinct type from upward.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
+    `;
+    return await prisma.$queryRawUnsafe(query);
+  }
   const query = `
-  SELECT '' as Account 
-  UNION
-  SELECT 
-      a.Account
-  FROM
-      upward.policy_account a
-  WHERE
-      a.Account IS NOT NULL
-  ORDER BY Account`;
+  select distinct type from upward.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
+`;
   return await prisma.$queryRawUnsafe(query);
 }
-
 export async function getSubAccount() {
   const query = `
   SELECT a.Acronym FROM upward.sub_account a order by Acronym;`;

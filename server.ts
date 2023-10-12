@@ -14,7 +14,9 @@ import {
   createPrefix,
   createCTPLType,
   createPolicyAccount,
-  creatCTPLRegistration
+  creatCTPLRegistration,
+  creatRates,
+  createMortgagee
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 
@@ -36,6 +38,8 @@ function executeQuery() {
   // createCTPLType()
   // createPolicyAccount()
   // creatCTPLRegistration()
+  // creatRates()
+  // createMortgagee()
 }
 
 async function main() {
