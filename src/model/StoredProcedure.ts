@@ -16,7 +16,7 @@ export function getMonth() {
 }
 
 export async function createIdSequence() {
-  const user = await prisma.id_Sequence.createMany({
+  const user = await prisma.id_sequence.createMany({
     data: [
       {
         last_count: "000",
@@ -60,7 +60,7 @@ export async function createIdSequence() {
 }
 
 export async function IDGenerator(sign: string, type: string) {
-  const lastSeq = await prisma.id_Sequence.findFirst({ where: { type } });
+  const lastSeq = await prisma.id_sequence.findFirst({ where: { type } });
   const newCount = incrementLastCount(lastSeq?.last_count as string);
   const newMonth = getMonth();
   const newYear = getYear();
@@ -72,7 +72,7 @@ export async function UpdateId(
   newMonth: string,
   newYear: string
 ) {
-  await prisma.id_Sequence.update({
+  await prisma.id_sequence.update({
     where: {
       type,
     },
@@ -110,7 +110,7 @@ export function incrementLastCount(str: string) {
 }
 
 export async function testJoin() {
-  return await prisma.entry_Client.findMany({
+  return await prisma.entry_client.findMany({
     include: {
       contact_details: true,
     },
@@ -178,7 +178,7 @@ export async function creatSampleSubAccount() {
       Description: "Urdaneta Office",
     },
   ];
-  const subaccount = await prisma.sub_Account.createMany({
+  const subaccount = await prisma.sub_account.createMany({
     data,
   });
   console.log("new subaccount : ", subaccount);

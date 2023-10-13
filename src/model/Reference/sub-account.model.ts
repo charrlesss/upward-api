@@ -7,13 +7,13 @@ interface SubAccountType {
   Description: string;
 }
 export async function createSubAccount(data: SubAccountType) {
-  return await prisma.sub_Account.create({ data });
+  return await prisma.sub_account.create({ data });
 }
 export async function updateSubAccount(data: SubAccountType, Sub_Acct: string) {
-  return await prisma.sub_Account.update({ data, where: { Sub_Acct } });
+  return await prisma.sub_account.update({ data, where: { Sub_Acct } });
 }
 export async function deleteSubAccount(Sub_Acct: string) {
-  return await prisma.sub_Account.delete({ where: { Sub_Acct } });
+  return await prisma.sub_account.delete({ where: { Sub_Acct } });
 }
 
 export async function searchSubAccount(

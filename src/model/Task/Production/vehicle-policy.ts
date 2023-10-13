@@ -97,6 +97,9 @@ export async function getRates(type: string) {
 `;
   return await prisma.$queryRawUnsafe(query);
 }
+export async function getTPL_IDS() {
+  return await prisma.$queryRawUnsafe('call spCTPL_IDS;')
+}
 export async function getSubAccount() {
   const query = `
   SELECT a.Acronym FROM upward.sub_account a order by Acronym;`;

@@ -206,7 +206,7 @@ const queryList: any = {
 
 export async function CreateClientEntry(data: DataEntryClientTypes) {
   const { email, telephone, mobile, ...rest } = data;
-  await prisma.entry_Client.create({
+  await prisma.entry_client.create({
     data: {
       ...rest,
       contact_details: {
@@ -220,14 +220,14 @@ export async function CreateClientEntry(data: DataEntryClientTypes) {
   });
 }
 export async function CreateEmployeeEntry(data: EntryEmployeeType) {
-  await prisma.entry_Employee.create({
+  await prisma.entry_employee.create({
     data,
   });
 }
 export async function CreateAgentEntry(data: EntryAgentType) {
   const { email, telephone, mobile, ...rest } = data;
 
-  await prisma.entry_Agent.create({
+  await prisma.entry_agent.create({
     data: {
       ...rest,
       contact_details: {
@@ -241,14 +241,14 @@ export async function CreateAgentEntry(data: EntryAgentType) {
   });
 }
 export async function CreateFixedAssetstEntry(data: EntryFixedAssetsType) {
-  await prisma.entry_Fixed_Assets.create({
+  await prisma.entry_fixed_assets.create({
     data,
   });
 }
 export async function CreateSupplierEntry(data: EntrySupplierType) {
   const { email, telephone, mobile, ...rest } = data;
 
-  await prisma.entry_Supplier.create({
+  await prisma.entry_supplier.create({
     data: {
       ...rest,
       contact_details: {
@@ -262,7 +262,7 @@ export async function CreateSupplierEntry(data: EntrySupplierType) {
   });
 }
 export async function CreateOtherEntry(data: EntryOthersType) {
-  await prisma.entry_Others.create({
+  await prisma.entry_others.create({
     data,
   });
 }
@@ -278,7 +278,7 @@ export async function getAllSubAccount() {
   return await prisma.$queryRawUnsafe(query);
 }
 async function updateClient(data: DataEntryClientTypes) {
-  const getEntryClient = await prisma.entry_Client.findUnique({
+  const getEntryClient = await prisma.entry_client.findUnique({
     where: { entry_client_id: data.entry_client_id },
   });
   let injectQuery = "";
@@ -343,7 +343,7 @@ async function updateEmployee(data: EntryEmployeeType) {
   await prisma.$queryRawUnsafe(query);
 }
 async function updateAgent(data: EntryAgentType) {
-  const getEntryClient = await prisma.entry_Agent.findUnique({
+  const getEntryClient = await prisma.entry_agent.findUnique({
     where: { entry_agent_id: data.entry_agent_id },
   });
   const query1 = `
@@ -402,7 +402,7 @@ async function updateOthers(data: EntryOthersType) {
   await prisma.$queryRawUnsafe(query);
 }
 async function updateSupplier(data: EntrySupplierType) {
-  const getEntryClient = await prisma.entry_Supplier.findUnique({
+  const getEntryClient = await prisma.entry_supplier.findUnique({
     where: { entry_supplier_id: data.entry_supplier_id },
   });
   let injectQuery = ``;
@@ -478,7 +478,7 @@ export async function updateEntry(entry: string, data: any) {
 export async function deleteEntry(entry: string, id: string) {
   switch (entry) {
     case "Client":
-      await prisma.entry_Client.delete({
+      await prisma.entry_client.delete({
         where: {
           entry_client_id: id,
         },
@@ -489,14 +489,14 @@ export async function deleteEntry(entry: string, id: string) {
 
       break;
     case "Employee":
-      await prisma.entry_Employee.delete({
+      await prisma.entry_employee.delete({
         where: {
           entry_employee_id: id,
         },
       });
       break;
     case "Agent":
-      await prisma.entry_Agent.delete({
+      await prisma.entry_agent.delete({
         where: {
           entry_agent_id: id,
         },
@@ -506,14 +506,14 @@ export async function deleteEntry(entry: string, id: string) {
       });
       break;
     case "Fixed Assets":
-      await prisma.entry_Fixed_Assets.delete({
+      await prisma.entry_fixed_assets.delete({
         where: {
           entry_fixed_assets_id: id,
         },
       });
       break;
     case "Supplier":
-      await prisma.entry_Supplier.delete({
+      await prisma.entry_supplier.delete({
         where: {
           entry_supplier_id: id,
         },
@@ -524,7 +524,7 @@ export async function deleteEntry(entry: string, id: string) {
       break;
     case "Others":
       // await updateOthers(id);
-      await prisma.entry_Others.delete({
+      await prisma.entry_others.delete({
         where: {
           entry_others_id: id,
         },

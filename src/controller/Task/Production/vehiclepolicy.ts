@@ -6,6 +6,7 @@ import {
   getSubAccount,
   getRates,
   getMortgagee,
+  getTPL_IDS,
 } from "../../../model/Task/Production/vehicle-policy";
 import promiseAll from "../../../lib/promise-all";
 const VehiclePolicy = express.Router();
@@ -25,7 +26,17 @@ VehiclePolicy.get(
         getMortgagee("COM"),
         getMortgagee("TPL"),
       ]).then(
-        ([clients, agents,sub_account, com, tpl, rateCom, rateTpl,mortCom,mortTpl ]: any) => {
+        ([
+          clients,
+          agents,
+          sub_account,
+          com,
+          tpl,
+          rateCom,
+          rateTpl,
+          mortCom,
+          mortTpl,
+        ]: any) => {
           res.send({
             message: "Successfully get data",
             success: true,
@@ -42,10 +53,9 @@ VehiclePolicy.get(
                 tpl: rateTpl,
               },
               mortgagee: {
-                com:mortCom,
-                tpl:mortTpl,
+                com: mortCom,
+                tpl: mortTpl,
               },
-            
             },
           });
         }
@@ -65,6 +75,23 @@ VehiclePolicy.get(
         success: true,
         vehiclePolicy: {
           clients: await getClients(req.query.clientSearch as string, true),
+        },
+      });
+    } catch (error: any) {
+      res.send({ message: error.message, success: false, vehiclePolicy: null });
+    }
+  }
+);
+
+VehiclePolicy.get(
+  "/tpl-ids-vehicle-policy",
+  async (req: Request, res: Response) => {
+    try {
+      res.send({
+        message: "Successfully search data",
+        success: true,
+        vehiclePolicy: {
+          tpl: await getTPL_IDS(),
         },
       });
     } catch (error: any) {

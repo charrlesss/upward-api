@@ -135,34 +135,34 @@ model vpolicy {
 }
 
 model journal {
-  Branch_Code   String?   @db.VarChar(3)
-  Date_Entry    DateTime? @db.DateTime(6)
-  Source_Type   String?   @db.VarChar(3)
-  Source_No     String?   @db.VarChar(50)
-  Explanation   String?   @db.LongText
-  Particulars   String?   @db.LongText
-  Payto         String?   @db.VarChar(500)
-  Address       String?   @db.VarChar(255)
-  Check_Date    DateTime? @db.DateTime(6)
-  Check_No      String?   @db.VarChar(100)
-  Check_Bank    String?   @db.VarChar(100)
-  Check_Return  DateTime? @db.DateTime(6)
-  Check_Collect DateTime? @db.DateTime(6)
-  Check_Deposit DateTime? @db.DateTime(6)
-  Check_Reason  String?   @db.VarChar(255)
-  GL_Acct       String?   @db.VarChar(10)
-  Sub_Acct      String?   @db.VarChar(3)
-  ID_No         String?   @db.VarChar(50)
-  cGL_Acct      String?   @db.VarChar(50)
-  cSub_Acct     String?   @db.VarChar(100)
-  cID_No        String?   @db.VarChar(500)
-  Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  TC            String?   @db.VarChar(3)
-  Remarks       String?   @db.LongText
-  AutoNo        BigInt    @id
-  VAT_Type      String?   @db.VarChar(50)
-  OR_Invoice_No String?   @db.VarChar(100)
+  Branch_Code   String? @db.Text
+  Date_Entry    String? @db.Text
+  Source_Type   String? @db.Text
+  Source_No     String? @db.Text
+  Explanation   String? @db.Text
+  Particulars   String? @db.Text
+  Payto         String? @db.Text
+  Address       String? @db.Text
+  Check_Date    String? @db.Text
+  Check_No      String? @db.Text
+  Check_Bank    String? @db.Text
+  Check_Return  String? @db.Text
+  Check_Collect String? @db.Text
+  Check_Deposit String? @db.Text
+  Check_Reason  String? @db.Text
+  GL_Acct       String? @db.Text
+  Sub_Acct      String? @db.Text
+  ID_No         String? @db.Text
+  cGL_Acct      String? @db.Text
+  cSub_Acct     String? @db.Text
+  cID_No        String? @db.Text
+  Debit         Float?
+  Credit        Float?
+  TC            String? @db.Text
+  Remarks       String? @db.Text
+  AutoNo        Int     @unique
+  VAT_Type      String? @db.Text
+  OR_Invoice_No String? @db.Text
   VATItemNo     Int?
 }
 
