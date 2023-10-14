@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE `journal` MODIFY `AutoNo` BIGINT NOT NULL AUTO_INCREMENT,
-    ADD PRIMARY KEY (`AutoNo`);

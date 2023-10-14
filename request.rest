@@ -10,11 +10,40 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:4000/login
+POST http://localhost:4000/api/login
 Content-Type: application/json
 
 {
-    "username":"Buboy",
-    "password":"JEWEL"
+    "username":"charles",
+    "password":"charles"
 }
 
+###
+POST http://localhost:4000/api/reference/add-ctpl
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiJhZjM1ZGE0Yi1jMWI2LTRmMTUtYjY5OS03NGE1YTdiOTY4ZjYiLCJpYXQiOjE2OTcyNjA3MzEsImV4cCI6MTY5NzM0NzEzMX0.Yuf-28WwAvntihJIFRU2deH_Tee6fB9h7r9fnI-KRvc
+Content-Type: application/json
+
+{
+    "Prefix": "",
+    "NumSeriesFrom": "1",
+    "NumSeriesTo": "100",
+    "Cost": "600",
+    "CreatedBy": "charles"
+}
+
+# SELECT 
+#    MIN(b.Source_No)
+# FROM
+#     upward.ctplregistration a
+#         LEFT JOIN
+#     (SELECT 
+#         Explanation, Source_No, Credit, Remarks
+#     FROM
+#         upward.journal
+#  ) b ON b.Explanation = 'CTPL Registration'
+#         AND b.Source_No LIKE CONCAT('%',a.Prefix, '%')
+#         AND b.Credit > 0
+#         AND b.Remarks IS NULL
+# GROUP BY a.Prefix
+ 
+    

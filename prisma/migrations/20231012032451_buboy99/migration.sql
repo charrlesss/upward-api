@@ -1,5 +1,0 @@
--- AlterTable
-ALTER TABLE `rates` MODIFY `Account` VARCHAR(250) NULL,
-    MODIFY `Line` VARCHAR(250) NULL,
-    MODIFY `Type` VARCHAR(250) NULL,
-    MODIFY `Rate` VARCHAR(250) NULL;

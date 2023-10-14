@@ -1,139 +1,4 @@
 -- CreateTable
-CREATE TABLE `Id_Sequence` (
-    `seq_id` VARCHAR(191) NOT NULL,
-    `type` VARCHAR(100) NOT NULL,
-    `last_count` VARCHAR(100) NOT NULL,
-    `year` VARCHAR(2) NOT NULL,
-    `month` VARCHAR(2) NOT NULL,
-
-    UNIQUE INDEX `Id_Sequence_type_key`(`type`),
-    PRIMARY KEY (`seq_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Users` (
-    `UserId` VARCHAR(191) NOT NULL,
-    `Username` VARCHAR(50) NOT NULL,
-    `Password` VARCHAR(500) NOT NULL,
-    `AccountType` ENUM('PRODUCTION', 'ACCOUNTING', 'ADMIN') NOT NULL,
-    `REFRESH_TOKEN` TEXT NULL,
-    `CreatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    UNIQUE INDEX `Users_Username_key`(`Username`),
-    PRIMARY KEY (`UserId`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Client` (
-    `entry_client_id` VARCHAR(191) NOT NULL,
-    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
-    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
-    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
-    `company` VARCHAR(225) NOT NULL DEFAULT '',
-    `address` VARCHAR(225) NOT NULL DEFAULT '',
-    `option` VARCHAR(225) NOT NULL DEFAULT '',
-    `sub_account` VARCHAR(225) NOT NULL DEFAULT '',
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `client_contact_details_id` VARCHAR(191) NOT NULL,
-
-    UNIQUE INDEX `Entry_Client_client_contact_details_id_key`(`client_contact_details_id`),
-    PRIMARY KEY (`entry_client_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Employee` (
-    `entry_employee_id` VARCHAR(191) NOT NULL,
-    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
-    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
-    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
-    `sub_account` VARCHAR(225) NOT NULL DEFAULT '',
-    `address` TEXT NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    PRIMARY KEY (`entry_employee_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Agent` (
-    `entry_agent_id` VARCHAR(191) NOT NULL,
-    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
-    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
-    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
-    `address` TEXT NOT NULL,
-    `agent_contact_details_id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    UNIQUE INDEX `Entry_Agent_agent_contact_details_id_key`(`agent_contact_details_id`),
-    PRIMARY KEY (`entry_agent_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Fixed_Assets` (
-    `entry_fixed_assets_id` VARCHAR(191) NOT NULL,
-    `description` TEXT NOT NULL,
-    `remarks` TEXT NOT NULL,
-    `fullname` VARCHAR(225) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    PRIMARY KEY (`entry_fixed_assets_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Others` (
-    `entry_others_id` VARCHAR(191) NOT NULL,
-    `description` TEXT NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    PRIMARY KEY (`entry_others_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Entry_Supplier` (
-    `entry_supplier_id` VARCHAR(191) NOT NULL,
-    `supplier_contact_details_id` VARCHAR(191) NOT NULL,
-    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
-    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
-    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
-    `company` VARCHAR(225) NOT NULL DEFAULT '',
-    `address` VARCHAR(225) NOT NULL DEFAULT '',
-    `VAT_Type` VARCHAR(225) NOT NULL DEFAULT '',
-    `option` VARCHAR(225) NOT NULL DEFAULT '',
-    `tin_no` TEXT NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    UNIQUE INDEX `Entry_Supplier_supplier_contact_details_id_key`(`supplier_contact_details_id`),
-    PRIMARY KEY (`entry_supplier_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Contact_Details` (
-    `contact_details_id` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(225) NOT NULL DEFAULT '',
-    `mobile` VARCHAR(225) NOT NULL DEFAULT '',
-    `telephone` VARCHAR(225) NOT NULL DEFAULT '',
-
-    PRIMARY KEY (`contact_details_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Sub_Account` (
-    `Sub_Acct` VARCHAR(191) NOT NULL,
-    `Description` TEXT NOT NULL,
-    `ShortName` VARCHAR(225) NOT NULL,
-    `Acronym` VARCHAR(50) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    PRIMARY KEY (`Sub_Acct`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `policy_account` (
     `Account` VARCHAR(225) NOT NULL,
     `Description` TEXT NOT NULL,
@@ -196,10 +61,10 @@ CREATE TABLE `subline_line` (
 -- CreateTable
 CREATE TABLE `rates` (
     `ID` INTEGER NOT NULL AUTO_INCREMENT,
-    `Account` VARCHAR(20) NULL,
-    `Line` VARCHAR(50) NULL,
-    `Type` VARCHAR(150) NULL,
-    `Rate` VARCHAR(150) NULL,
+    `Account` VARCHAR(250) NULL,
+    `Line` VARCHAR(250) NULL,
+    `Type` VARCHAR(250) NULL,
+    `Rate` VARCHAR(250) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
@@ -212,10 +77,11 @@ CREATE TABLE `ctplregistration` (
     `Prefix` VARCHAR(50) NULL,
     `NumSeriesFrom` INTEGER NULL,
     `NumSeriesTo` INTEGER NULL,
-    `Cost` VARCHAR(1501) NULL,
+    `Cost` VARCHAR(150) NULL,
     `CreatedBy` VARCHAR(50) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `ctplType` VARCHAR(250) NULL,
 
     PRIMARY KEY (`ctplId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -238,6 +104,90 @@ CREATE TABLE `ctpltype` (
     `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`typeId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `vpolicy` (
+    `PolicyNo` VARCHAR(20) NOT NULL,
+    `Account` VARCHAR(20) NULL,
+    `PolicyType` VARCHAR(4) NULL,
+    `CoverNo` VARCHAR(10) NULL,
+    `ORNo` VARCHAR(10) NULL,
+    `DateFrom` DATETIME(6) NULL,
+    `DateTo` DATETIME(6) NULL,
+    `Model` VARCHAR(20) NULL,
+    `Make` VARCHAR(100) NULL,
+    `BodyType` VARCHAR(100) NULL,
+    `Color` VARCHAR(20) NULL,
+    `BLTFileNo` VARCHAR(20) NULL,
+    `PlateNo` VARCHAR(10) NULL,
+    `ChassisNo` VARCHAR(20) NULL,
+    `MotorNo` VARCHAR(20) NULL,
+    `AuthorizedCap` VARCHAR(10) NULL,
+    `UnladenWeight` VARCHAR(10) NULL,
+    `TPL` VARCHAR(100) NULL,
+    `TPLLimit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `PremiumPaid` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `EstimatedValue` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Aircon` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Stereo` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Magwheels` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Others` VARCHAR(20) NULL,
+    `OthersAmount` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Deductible` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Towing` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `RepairLimit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `BodilyInjury` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `PropertyDamage` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `PersonalAccident` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `SecI` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `SecIIPercent` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `ODamage` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Theft` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Sec4A` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Sec4B` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Sec4C` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `AOG` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `MortgageeForm` BOOLEAN NULL,
+    `Mortgagee` VARCHAR(100) NULL,
+    `Denomination` VARCHAR(150) NULL,
+
+    PRIMARY KEY (`PolicyNo`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `journal` (
+    `Branch_Code` VARCHAR(3) NULL,
+    `Date_Entry` DATETIME(6) NULL,
+    `Source_Type` VARCHAR(3) NULL,
+    `Source_No` VARCHAR(50) NULL,
+    `Explanation` LONGTEXT NULL,
+    `Particulars` LONGTEXT NULL,
+    `Payto` VARCHAR(500) NULL,
+    `Address` VARCHAR(255) NULL,
+    `Check_Date` DATETIME(6) NULL,
+    `Check_No` VARCHAR(100) NULL,
+    `Check_Bank` VARCHAR(100) NULL,
+    `Check_Return` DATETIME(6) NULL,
+    `Check_Collect` DATETIME(6) NULL,
+    `Check_Deposit` DATETIME(6) NULL,
+    `Check_Reason` VARCHAR(255) NULL,
+    `GL_Acct` VARCHAR(10) NULL,
+    `Sub_Acct` VARCHAR(3) NULL,
+    `ID_No` VARCHAR(50) NULL,
+    `cGL_Acct` VARCHAR(50) NULL,
+    `cSub_Acct` VARCHAR(100) NULL,
+    `cID_No` VARCHAR(500) NULL,
+    `Debit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `Credit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
+    `TC` VARCHAR(3) NULL,
+    `Remarks` LONGTEXT NULL,
+    `AutoNo` BIGINT NOT NULL,
+    `VAT_Type` VARCHAR(50) NULL,
+    `OR_Invoice_No` VARCHAR(100) NULL,
+    `VATItemNo` INTEGER NULL,
+
+    PRIMARY KEY (`AutoNo`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -578,39 +528,6 @@ CREATE TABLE `id entry` (
     `VatType` VARCHAR(50) NULL,
 
     PRIMARY KEY (`IDNo`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `journal` (
-    `Branch_Code` VARCHAR(3) NULL,
-    `Date_Entry` DATETIME(6) NULL,
-    `Source_Type` VARCHAR(3) NULL,
-    `Source_No` VARCHAR(50) NULL,
-    `Explanation` LONGTEXT NULL,
-    `Particulars` LONGTEXT NULL,
-    `Payto` VARCHAR(500) NULL,
-    `Address` VARCHAR(255) NULL,
-    `Check_Date` DATETIME(6) NULL,
-    `Check_No` VARCHAR(100) NULL,
-    `Check_Bank` VARCHAR(100) NULL,
-    `Check_Return` DATETIME(6) NULL,
-    `Check_Collect` DATETIME(6) NULL,
-    `Check_Deposit` DATETIME(6) NULL,
-    `Check_Reason` VARCHAR(255) NULL,
-    `GL_Acct` VARCHAR(10) NULL,
-    `Sub_Acct` VARCHAR(3) NULL,
-    `ID_No` VARCHAR(50) NULL,
-    `cGL_Acct` VARCHAR(50) NULL,
-    `cSub_Acct` VARCHAR(100) NULL,
-    `cID_No` VARCHAR(500) NULL,
-    `Debit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Credit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `TC` VARCHAR(3) NULL,
-    `Remarks` LONGTEXT NULL,
-    `AutoNo` BIGINT NOT NULL,
-    `VAT_Type` VARCHAR(50) NULL,
-    `OR_Invoice_No` VARCHAR(100) NULL,
-    `VATItemNo` INTEGER NULL
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -1097,53 +1014,6 @@ CREATE TABLE `transaction code` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `vpolicy` (
-    `PolicyNo` VARCHAR(20) NULL,
-    `Account` VARCHAR(20) NULL,
-    `PolicyType` VARCHAR(4) NULL,
-    `CoverNo` VARCHAR(10) NULL,
-    `ORNo` VARCHAR(10) NULL,
-    `DateFrom` DATETIME(6) NULL,
-    `DateTo` DATETIME(6) NULL,
-    `Model` VARCHAR(20) NULL,
-    `Make` VARCHAR(100) NULL,
-    `BodyType` VARCHAR(100) NULL,
-    `Color` VARCHAR(20) NULL,
-    `BLTFileNo` VARCHAR(20) NULL,
-    `PlateNo` VARCHAR(10) NULL,
-    `ChassisNo` VARCHAR(20) NULL,
-    `MotorNo` VARCHAR(20) NULL,
-    `AuthorizedCap` VARCHAR(10) NULL,
-    `UnladenWeight` VARCHAR(10) NULL,
-    `TPL` VARCHAR(100) NULL,
-    `TPLLimit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `PremiumPaid` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `EstimatedValue` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Aircon` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Stereo` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Magwheels` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Others` VARCHAR(20) NULL,
-    `OthersAmount` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Deductible` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Towing` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `RepairLimit` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `BodilyInjury` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `PropertyDamage` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `PersonalAccident` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `SecI` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `SecIIPercent` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `ODamage` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Theft` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Sec4A` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Sec4B` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `Sec4C` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `AOG` DECIMAL(19, 4) NULL DEFAULT 0.0000,
-    `MortgageeForm` BOOLEAN NULL,
-    `Mortgagee` VARCHAR(100) NULL,
-    `Denomination` VARCHAR(150) NULL
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `words` (
     `Wordings` VARCHAR(20) NOT NULL,
     `SType` BOOLEAN NOT NULL,
@@ -1184,11 +1054,146 @@ CREATE TABLE `xsubsidiary` (
     `Balance` DECIMAL(19, 4) NULL
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- AddForeignKey
-ALTER TABLE `Entry_Client` ADD CONSTRAINT `Entry_Client_client_contact_details_id_fkey` FOREIGN KEY (`client_contact_details_id`) REFERENCES `Contact_Details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateTable
+CREATE TABLE `contact_details` (
+    `contact_details_id` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(225) NOT NULL DEFAULT '',
+    `mobile` VARCHAR(225) NOT NULL DEFAULT '',
+    `telephone` VARCHAR(225) NOT NULL DEFAULT '',
+
+    PRIMARY KEY (`contact_details_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_agent` (
+    `entry_agent_id` VARCHAR(191) NOT NULL,
+    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
+    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
+    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
+    `address` TEXT NOT NULL,
+    `agent_contact_details_id` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Entry_Agent_agent_contact_details_id_key`(`agent_contact_details_id`),
+    PRIMARY KEY (`entry_agent_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_client` (
+    `entry_client_id` VARCHAR(191) NOT NULL,
+    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
+    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
+    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
+    `company` VARCHAR(225) NOT NULL DEFAULT '',
+    `address` VARCHAR(225) NOT NULL DEFAULT '',
+    `option` VARCHAR(225) NOT NULL DEFAULT '',
+    `sub_account` VARCHAR(225) NOT NULL DEFAULT '',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `client_contact_details_id` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `Entry_Client_client_contact_details_id_key`(`client_contact_details_id`),
+    PRIMARY KEY (`entry_client_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_employee` (
+    `entry_employee_id` VARCHAR(191) NOT NULL,
+    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
+    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
+    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
+    `sub_account` VARCHAR(225) NOT NULL DEFAULT '',
+    `address` TEXT NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`entry_employee_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_fixed_assets` (
+    `entry_fixed_assets_id` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL,
+    `remarks` TEXT NOT NULL,
+    `fullname` VARCHAR(225) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`entry_fixed_assets_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_others` (
+    `entry_others_id` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`entry_others_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `entry_supplier` (
+    `entry_supplier_id` VARCHAR(191) NOT NULL,
+    `supplier_contact_details_id` VARCHAR(191) NOT NULL,
+    `firstname` VARCHAR(225) NOT NULL DEFAULT '',
+    `lastname` VARCHAR(225) NOT NULL DEFAULT '',
+    `middlename` VARCHAR(225) NOT NULL DEFAULT '',
+    `company` VARCHAR(225) NOT NULL DEFAULT '',
+    `address` VARCHAR(225) NOT NULL DEFAULT '',
+    `VAT_Type` VARCHAR(225) NOT NULL DEFAULT '',
+    `option` VARCHAR(225) NOT NULL DEFAULT '',
+    `tin_no` TEXT NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Entry_Supplier_supplier_contact_details_id_key`(`supplier_contact_details_id`),
+    PRIMARY KEY (`entry_supplier_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `id_sequence` (
+    `seq_id` VARCHAR(191) NOT NULL,
+    `type` VARCHAR(100) NOT NULL,
+    `last_count` VARCHAR(100) NOT NULL,
+    `year` VARCHAR(2) NOT NULL,
+    `month` VARCHAR(2) NOT NULL,
+
+    UNIQUE INDEX `Id_Sequence_type_key`(`type`),
+    PRIMARY KEY (`seq_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `sub_account` (
+    `Sub_Acct` VARCHAR(191) NOT NULL,
+    `Description` TEXT NOT NULL,
+    `ShortName` VARCHAR(225) NOT NULL,
+    `Acronym` VARCHAR(50) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `update` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`Sub_Acct`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `users` (
+    `UserId` VARCHAR(191) NOT NULL,
+    `Username` VARCHAR(50) NOT NULL,
+    `Password` VARCHAR(500) NOT NULL,
+    `AccountType` ENUM('PRODUCTION', 'ACCOUNTING', 'ADMIN') NOT NULL,
+    `REFRESH_TOKEN` TEXT NULL,
+    `CreatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Users_Username_key`(`Username`),
+    PRIMARY KEY (`UserId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `Entry_Agent` ADD CONSTRAINT `Entry_Agent_agent_contact_details_id_fkey` FOREIGN KEY (`agent_contact_details_id`) REFERENCES `Contact_Details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `entry_agent` ADD CONSTRAINT `Entry_Agent_agent_contact_details_id_fkey` FOREIGN KEY (`agent_contact_details_id`) REFERENCES `contact_details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Entry_Supplier` ADD CONSTRAINT `Entry_Supplier_supplier_contact_details_id_fkey` FOREIGN KEY (`supplier_contact_details_id`) REFERENCES `Contact_Details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `entry_client` ADD CONSTRAINT `Entry_Client_client_contact_details_id_fkey` FOREIGN KEY (`client_contact_details_id`) REFERENCES `contact_details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `entry_supplier` ADD CONSTRAINT `Entry_Supplier_supplier_contact_details_id_fkey` FOREIGN KEY (`supplier_contact_details_id`) REFERENCES `contact_details`(`contact_details_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
