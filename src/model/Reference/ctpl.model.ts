@@ -4,10 +4,11 @@ const prisma = new PrismaClient();
 interface CTPLType {
   Prefix: string;
   Type: string;
-  NumSeriesFrom: number;
-  NumSeriesTo: number;
+  NumSeriesFrom: string;
+  NumSeriesTo: string;
   Cost: string;
   CreatedBy: string;
+  ctplId: any;
 }
 
 export async function searchCTPL(
@@ -54,9 +55,34 @@ export async function getType() {
 export async function addCTPL(data: CTPLType) {
   return await prisma.ctplregistration.create({ data });
 }
-export async function updateCTPL(data: CTPLType, ctplId: number) {
-  return await prisma.ctplregistration.update({ data, where: { ctplId } });
+export async function updateCTPL(data: CTPLType, ctplId: string) {
+  return await prisma.ctplregistration.update({
+    data: {
+      Prefix: data.Prefix,
+      Cost: data.Cost,
+    },
+    where: { ctplId },
+  });
 }
-export async function deleteCTPL(ctplId: number) {
+export async function deleteCTPL(ctplId: string) {
   return await prisma.ctplregistration.delete({ where: { ctplId } });
+}
+
+export async function findCtplById(ctplId: string) {
+  return await prisma.ctplregistration.findUnique({ where: { ctplId } });
+}
+export async function findCtplfExist(where: {
+  Prefix: string;
+  NumSeriesFrom: string;
+  NumSeriesTo: string;
+}) {
+  return await prisma.$queryRawUnsafe(`
+      SELECT 
+        *
+    FROM
+        upward.ctplregistration a
+    WHERE
+    a.Prefix = '${where.Prefix}'
+        AND a.NumSeriesFrom = '${where.NumSeriesFrom}'
+        AND a.NumSeriesTo = '${where.NumSeriesTo}'`);
 }

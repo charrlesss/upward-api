@@ -8,14 +8,30 @@ import {
   updateCTPL,
   deleteCTPL,
   getType,
+  findCtplById,
+  findCtplfExist,
 } from "../../model/Reference/ctpl.model";
 import { getUserById } from "../../model/StoredProcedure";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
+import {
+  createJournal,
+  deleteJournal,
+  findManyJournal,
+  updateJournal,
+} from "../../model/Task/Production/vehicle-policy";
 
 const CTPL = express.Router();
-
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
+function getZeroFirstInput(data: string) {
+  let addZeroFromSeries = "";
+  for (let i = 0; i < data.length; i++) {
+    if (data.charAt(i) === "0") {
+      addZeroFromSeries += "0";
+    } else {
+      break;
+    }
+  }
+  return addZeroFromSeries;
+}
 CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
   const { ctplSearch } = req.query;
   try {
@@ -39,66 +55,101 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
 
 CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
   try {
+    delete req.body.createdAt;
     const user = await getUserById((req.user as any).UserId);
+    const ctplID = await generateUniqueUUID("ctplregistration", "ctplId");
+    const { Prefix, NumSeriesFrom, NumSeriesTo, Cost } = req.body;
 
-    const { Prefix, NumSeriesFrom, NumSeriesTo, Cost, CreatedBy } = req.body;
-    console.log(NumSeriesFrom);
-    console.log(NumSeriesTo);
-    const N0_ = "0".repeat(NumSeriesFrom.length); // Initialize N0_ with '0's based on the length of txtFrom
-    console.log(req.body);
-
-    for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
-      // DEBIT'
-      const res1 = await prisma.journal.create({
-        data: {
-          Source_No: `${5000 + i}`,
-          AutoNo: `${940000 + i}`,
-          Branch_Code: "HO",
-          Date_Entry: new Date(),
-          Source_Type: "GL",
-          Explanation: "CTPL Registration",
-          GL_Acct: "1.04.01",
-          cGL_Acct: "CTPL Inventory",
-          Debit: parseFloat(Cost),
-          Credit: 0,
-          TC: "CTI",
-        },
+    if (!(req.body.Prefix.match(/^[A-Za-z]+$/))) {
+      return res.send({
+        message: "Invalid Prefix contain number!",
+        success: false,
       });
-      //   // Credit
-      const res2 = await prisma.journal.create({
-        data: {
-          Source_No: `${5000 + i}`,
-          AutoNo: `${4000 + i}`,
-          Branch_Code: "HO",
-          Date_Entry: new Date(),
-          Source_Type: "GL",
-          Explanation: "CTPL Registration",
-          GL_Acct: "1.04.01",
-          cGL_Acct: "Advance Remittance",
-          Debit: 0,
-          Credit: parseFloat(Cost),
-          TC: "ADR",
-        },
-      });
-      console.log(res1);
-      console.log(res2);
     }
 
-    req.body.NumSeriesFrom = parseInt(req.body.NumSeriesFrom);
-    req.body.NumSeriesTo = parseInt(req.body.NumSeriesTo);
-    await addCTPL({ ...req.body, CreatedBy: (user as any)?.Username ?? "charles" });
+    let addZeroFromSeries = getZeroFirstInput(NumSeriesFrom);
+    let addZeroToSeries = getZeroFirstInput(NumSeriesTo);
+
+    if (addZeroToSeries.length !== addZeroFromSeries.length) {
+      return res.send({
+        message: "Invalid Series!",
+        success: false,
+      });
+    }
+    if (parseInt(NumSeriesFrom) > parseInt(NumSeriesTo)) {
+      return res.send({
+        message: "Invalid Series!",
+        success: false,
+      });
+    }
+    if (((await findCtplfExist(req.body)) as any).length > 0) {
+      return res.send({
+        message: "This data is already exist",
+        success: false,
+      });
+    }
+
+    for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
+      const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
+      // DEBIT'
+      const res1 = await createJournal({
+        Source_No: _sourceNo,
+        Branch_Code: "HO",
+        Date_Entry: new Date(),
+        Source_Type: "GL",
+        Explanation: "CTPL Registration",
+        GL_Acct: "1.04.01",
+        cGL_Acct: "CTPL Inventory",
+        Debit: parseFloat(Cost),
+        Credit: 0,
+        TC: "CTI",
+        Source_No_Ref_ID: ctplID,
+      });
+      // Credit
+      const res2 = await createJournal({
+        Source_No: _sourceNo,
+        Branch_Code: "HO",
+        Date_Entry: new Date(),
+        Source_Type: "GL",
+        Explanation: "CTPL Registration",
+        GL_Acct: "1.04.01",
+        cGL_Acct: "Advance Remittance",
+        Debit: 0,
+        Credit: parseFloat(Cost),
+        TC: "ADR",
+        Source_No_Ref_ID: ctplID,
+      });
+    }
+    req.body.NumSeriesFrom = req.body.NumSeriesFrom;
+    req.body.NumSeriesTo = req.body.NumSeriesTo;
+
+    await addCTPL({
+      ...req.body,
+      ctplId: ctplID,
+      CreatedBy: (user as any)?.Username,
+    });
     return res.send({
       message: "Create CTPL Successfully!",
       success: true,
     });
   } catch (err: any) {
+    console.log(err);
     res.send({ message: err.message, success: false });
   }
 });
 
 CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
   try {
-    await deleteCTPL(parseInt(req.body.ctplId));
+    const tpldID = req.body.ctplId;
+    const ctpl = await findCtplById(tpldID);
+    if (ctpl == null) {
+      return res.send({
+        message: "Cannot Find Ctpl ID!",
+        success: false,
+      });
+    }
+    await deleteJournal(tpldID);
+    await deleteCTPL(tpldID);
     res.send({
       message: "Delete CTPL Successfully!",
       success: true,
@@ -114,14 +165,22 @@ CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
     const { ctplId, ...rest } = req.body;
     delete rest.createdAt;
     delete rest.CreatedBy;
-    rest.NumSeriesFrom = parseInt(rest.NumSeriesFrom);
-    rest.NumSeriesTo = parseInt(rest.NumSeriesTo);
-    await updateCTPL(
-      { ...rest, CreatedBy: (user as any).Username },
-      parseInt(ctplId)
-    );
+
+    const journal = await findManyJournal(ctplId);
+    journal.forEach(async (data) => {
+      const sourceCount = (
+        (data.Source_No as string).match(/\d+/) as Array<any>
+      )[0];
+      await updateJournal(
+        `${rest.Prefix}${sourceCount}`,
+        rest.Cost,
+        data.AutoNo
+      );
+    });
+    await updateCTPL({ ...rest, CreatedBy: (user as any).Username }, ctplId);
+
     res.send({
-      message: "Update Mortgagee Successfully!",
+      message: "Update Ctpl Successfully!",
       success: true,
     });
   } catch (err: any) {

@@ -98,10 +98,70 @@ export async function getRates(type: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getTPL_IDS() {
-  return await prisma.$queryRawUnsafe('call spCTPL_IDS;')
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+      MIN(Source_No) AS Source_No,
+      MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost
+  FROM
+      upward.journal
+  WHERE
+      Explanation = 'CTPL Registration'
+          AND Credit > 0
+          AND Remarks IS NULL
+  GROUP BY Source_No_Ref_ID
+  ORDER BY Source_No ASC
+  `);
 }
 export async function getSubAccount() {
   const query = `
   SELECT a.Acronym FROM upward.sub_account a order by Acronym;`;
   return await prisma.$queryRawUnsafe(query);
+}
+interface journalType {
+  Source_No: string;
+  Branch_Code: string;
+  Date_Entry: Date;
+  Source_Type: string;
+  Explanation: string;
+  GL_Acct: string;
+  cGL_Acct: string;
+  Debit: number;
+  Credit: number;
+  TC: string;
+  Source_No_Ref_ID: string;
+}
+export async function createJournal(data: journalType) {
+  return await prisma.journal.create({ data });
+}
+
+export async function deleteJournal(Source_No_Ref_ID: string) {
+  return await prisma.journal.deleteMany({
+    where: {
+      Source_No_Ref_ID,
+    },
+  });
+}
+
+export async function findManyJournal(Source_No_Ref_ID: string) {
+  return await prisma.journal.findMany({
+    where: {
+      Source_No_Ref_ID,
+    },
+  });
+}
+
+export async function updateJournal(
+  Source_No: string,
+  Cost: string,
+  AutoNo: bigint
+) {
+  return await prisma.journal.update({
+    data: {
+      Credit: Cost,
+      Source_No,
+    },
+    where: {
+      AutoNo,
+    },
+  });
 }

@@ -63,10 +63,10 @@ model rates {
 }
 
 model ctplregistration {
-  ctplId        Int      @id @default(autoincrement())
+  ctplId        String   @id
   Prefix        String?  @db.VarChar(50)
-  NumSeriesFrom Int?
-  NumSeriesTo   Int?
+  NumSeriesFrom String   @db.VarChar(450)
+  NumSeriesTo   String   @db.VarChar(450)
   Cost          String?  @db.VarChar(150)
   CreatedBy     String?  @db.VarChar(50)
   createdAt     DateTime @default(now())
@@ -135,35 +135,36 @@ model vpolicy {
 }
 
 model journal {
-  Branch_Code   String?   @db.VarChar(3)
-  Date_Entry    DateTime? @db.DateTime(6)
-  Source_Type   String?   @db.VarChar(3)
-  Source_No     String?   @db.VarChar(50)
-  Explanation   String?   @db.LongText
-  Particulars   String?   @db.LongText
-  Payto         String?   @db.VarChar(500)
-  Address       String?   @db.VarChar(255)
-  Check_Date    DateTime? @db.DateTime(6)
-  Check_No      String?   @db.VarChar(100)
-  Check_Bank    String?   @db.VarChar(100)
-  Check_Return  DateTime? @db.DateTime(6)
-  Check_Collect DateTime? @db.DateTime(6)
-  Check_Deposit DateTime? @db.DateTime(6)
-  Check_Reason  String?   @db.VarChar(255)
-  GL_Acct       String?   @db.VarChar(10)
-  Sub_Acct      String?   @db.VarChar(3)
-  ID_No         String?   @db.VarChar(50)
-  cGL_Acct      String?   @db.VarChar(50)
-  cSub_Acct     String?   @db.VarChar(100)
-  cID_No        String?   @db.VarChar(500)
-  Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  TC            String?   @db.VarChar(3)
-  Remarks       String?   @db.LongText
-  AutoNo        BigInt    @id
-  VAT_Type      String?   @db.VarChar(50)
-  OR_Invoice_No String?   @db.VarChar(100)
-  VATItemNo     Int?
+  Branch_Code      String?   @db.VarChar(3)
+  Date_Entry       DateTime? @db.DateTime(6)
+  Source_Type      String?   @db.VarChar(3)
+  Source_No        String?   @db.VarChar(50)
+  Explanation      String?   @db.LongText
+  Particulars      String?   @db.LongText
+  Payto            String?   @db.VarChar(500)
+  Address          String?   @db.VarChar(255)
+  Check_Date       DateTime? @db.DateTime(6)
+  Check_No         String?   @db.VarChar(100)
+  Check_Bank       String?   @db.VarChar(100)
+  Check_Return     DateTime? @db.DateTime(6)
+  Check_Collect    DateTime? @db.DateTime(6)
+  Check_Deposit    DateTime? @db.DateTime(6)
+  Check_Reason     String?   @db.VarChar(255)
+  GL_Acct          String?   @db.VarChar(10)
+  Sub_Acct         String?   @db.VarChar(3)
+  ID_No            String?   @db.VarChar(50)
+  cGL_Acct         String?   @db.VarChar(50)
+  cSub_Acct        String?   @db.VarChar(100)
+  cID_No           String?   @db.VarChar(500)
+  Debit            Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Credit           Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  TC               String?   @db.VarChar(3)
+  Remarks          String?   @db.LongText
+  AutoNo           BigInt    @id @default(autoincrement())
+  VAT_Type         String?   @db.VarChar(50)
+  OR_Invoice_No    String?   @db.VarChar(100)
+  VATItemNo        Int?
+  Source_No_Ref_ID String
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

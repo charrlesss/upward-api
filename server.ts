@@ -14,7 +14,7 @@ import {
   createPrefix,
   createCTPLType,
   createPolicyAccount,
-  creatCTPLRegistration,
+  // creatCTPLRegistration,
   creatRates,
   createMortgagee
 } from "./src/model/StoredProcedure";
