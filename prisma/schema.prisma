@@ -167,6 +167,36 @@ model journal {
   Source_No_Ref_ID String
 }
 
+model policy {
+  IDNo         String   @db.VarChar(20)
+  Account      String   @db.VarChar(20)
+  SubAcct      String   @default("") @db.VarChar(20)
+  PolicyType   String?  @db.VarChar(20)
+  PolicyNo     String   @id @db.VarChar(20)
+  DateIssued   DateTime @db.DateTime(6)
+  TotalPremium Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Vat          Decimal  @default(0.0000) @db.Decimal(19, 4)
+  DocStamp     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  FireTax      Decimal  @default(0.0000) @db.Decimal(19, 4)
+  LGovTax      Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Notarial     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Misc         Decimal  @default(0.0000) @db.Decimal(19, 4)
+  TotalDue     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  ExtraDebit   Decimal  @default(0.0000) @db.Decimal(19, 4)
+  ExtraCredit  Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Payment1     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Payment2     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Payment3     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  TotalPaid    Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Discount     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Journal      Boolean
+  Cancelled    Boolean  @default(false)
+  Remarks      String   @default("") @db.VarChar(255)
+  AgentID      String?  @db.VarChar(100)
+  AgentCom     Decimal? @db.Decimal(19, 4)
+  Remitted     Boolean  @default(false)
+}
+
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
   Account_No   String? @db.VarChar(50)
@@ -818,35 +848,6 @@ model petty_log {
   @@map("petty log")
 }
 
-model policy {
-  IDNo         String   @db.VarChar(20)
-  Account      String   @db.VarChar(20)
-  SubAcct      String   @default("") @db.VarChar(20)
-  PolicyType   String?  @db.VarChar(20)
-  PolicyNo     String   @id @db.VarChar(20)
-  DateIssued   DateTime @db.DateTime(6)
-  TotalPremium Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Vat          Decimal  @default(0.0000) @db.Decimal(19, 4)
-  DocStamp     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  FireTax      Decimal  @default(0.0000) @db.Decimal(19, 4)
-  LGovTax      Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Notarial     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Misc         Decimal  @default(0.0000) @db.Decimal(19, 4)
-  TotalDue     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  ExtraDebit   Decimal  @default(0.0000) @db.Decimal(19, 4)
-  ExtraCredit  Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Payment1     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Payment2     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Payment3     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  TotalPaid    Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Discount     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Journal      Boolean
-  Cancelled    Boolean  @default(false)
-  Remarks      String   @default("") @db.VarChar(255)
-  AgentID      String?  @db.VarChar(100)
-  AgentCom     Decimal? @db.Decimal(19, 4)
-  Remitted     Boolean  @default(false)
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement {
