@@ -97,7 +97,7 @@ export async function getRates(type: string) {
 `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getTPL_IDS() {
+export async function getTPL_IDS(search:string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
       MIN(Source_No) AS Source_No,
@@ -106,9 +106,10 @@ export async function getTPL_IDS() {
   FROM
       upward.journal
   WHERE
-      Explanation = 'CTPL Registration'
+          Explanation = 'CTPL Registration'
           AND Credit > 0
-          AND Remarks IS NULL
+          AND Remarks IS NULL 
+          AND Source_No like '%${search}%'
   GROUP BY Source_No_Ref_ID
   ORDER BY Source_No ASC
   `);
@@ -320,6 +321,9 @@ export async function createVehiclePolicy(data: {
   MortgageeForm: boolean;
   Mortgagee: string;
   Denomination: string;
+  AOGPercent: string;
+  LocalGovTaxPercent: string;
+  TPLTypeSection_I_II: string;
 }) {
   return await prisma.vpolicy.create({
     data,
@@ -371,11 +375,12 @@ export async function getTempPolicyID() {
   select
   concat(
   'TP-',
-  right('000000',6 - LENGTH(CAST(CAST(substring(a.PolicyNo,4) as SIGNED) + 1 As SIGNED))),
+  right('000000',6 - LENGTH(CAST(CAST(substring(IF(
+      a.PolicyNo = '' OR a.PolicyNo IS NULL,'1',a.PolicyNo), 4) as SIGNED) + 1 As SIGNED))),
   IF(
-      COALESCE(a.PolicyNo, '') = '' OR policyNo IS NULL,
-      '000001',
-    CAST(substring(a.PolicyNo,4) as SIGNED) + 1
+     a.PolicyNo = '' OR a.PolicyNo IS NULL,
+      '1',
+    CAST(substring(a.PolicyNo,4) as SIGNED) +1
     )
   ) AS tempPolicy_No
    from (
@@ -403,79 +408,16 @@ export async function searchDataVPolicy(
         left join upward.entry_agent d on a.AgentID = d.entry_agent_id 
             WHERE 
         a.PolicyType = '${policyType}' and
-       ${isTemp ? "left(a.PolicyNo,3) = 'TP-'and" : "left(a.PolicyNo,3) != 'TP-' and"}
-        a.PolicyNo like '%${search}%' and
-        c.firstname like '%${search}%' and 
-        c.lastname like '%${search}%'
+       ${
+         isTemp
+           ? "left(a.PolicyNo,3) = 'TP-'and"
+           : "left(a.PolicyNo,3) != 'TP-' and"
+       }
+       (a.PolicyNo like '%${search}%' or
+       c.firstname like '%${search}%' or 
+       c.lastname like '%${search}%')
     ORDER BY a.DateIssued desc
     LIMIT 100 
   `);
 }
 
-
-        // //Vehicle policy
-        // PolicyAccount: "",
-        // PolicyNo: "",
-        // CCN: "",
-        // ORN: "",
-        // rateCost: "",
-        // //Period Insurance
-        // DateFrom: new Date(),
-        // DateTo: new Date(),
-        // DateIssued: new Date(),
-        // //Insured Unit
-        // Model: "charles1",
-        // Make: "",
-        // TB: "",
-        // Color: "",
-        // BLTFileNo: "",
-        // PlateNo: "",
-        // ChassisNo: "",
-        // MotorNo: "",
-        // AuthorizedCapacity: "",
-        // UnladenWeigth: "",
-      
-        // //==========================
-        // //tpl
-        // TplType: JSON.stringify({ Account: "", PremuimPaid: "0.00" }),
-        // PremiumPaid: "0.00",
-        // //compre
-        // EVSV: "0.00",
-        // Aircon: "0.00",
-        // Stereo: "0.00",
-        // Magwheels: "0.00",
-        // OthersRate: "0.00",
-        // OthersDesc: "",
-        // CompreType: "",
-      
-        // Deductible: "0.00",
-        // Towing: "0.00",
-        // ARL: "0.00",
-        // BodyInjury: "0.00",
-        // PropertyDamage: "0.00",
-        // PersinalAccident: "0.00",
-        // Denomination: "",
-      
-        // //==========================
-        // //mortgage
-        // Mortgagee: "false",
-        // MortgageeForm: "",
-        // //Premiums
-        // SectionI_II: "0.00",
-        // SectionIII: "0.00",
-        // OwnDamage: "0.00",
-        // Theft: "0.00",
-        // SectionIVA: "0.00",
-        // SectionIVB: "0.00",
-        // PremiumOther: "0.00",
-        // AOG: "0.00",
-        // AOGPercent: "0.00",
-        // TotalPremium: "0.00",
-        // Vat: "0.00",
-        // DocStamp: "0.00",
-        // LocalGovTaxPercent: "0.75",
-        // LocalGovTax: "0.00",
-        // StradCom: "0.00",
-        // TotalDue: "0.00",
-        // Type: "charles1",
-        // Source_No_Ref_ID: "",
