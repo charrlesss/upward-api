@@ -22,7 +22,7 @@ import {
   searchDataVPolicy,
 } from "../../../model/Task/Production/vehicle-policy";
 import promiseAll from "../../../lib/promise-all";
-import { create } from "domain";
+
 const VehiclePolicy = express.Router();
 
 VehiclePolicy.get(

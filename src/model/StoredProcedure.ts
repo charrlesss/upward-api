@@ -185,29 +185,22 @@ export async function creatSampleSubAccount() {
 }
 
 export async function createSublineLine() {
-  const line = await prisma.subline_line.createMany({
+  const line = await prisma.subline.createMany({
     data: [
-      {
-        Line: "Vehicle",
-      },
-      {
-        Line: "Fire",
-      },
-      {
-        Line: "Marine",
-      },
-      {
-        Line: "Bonds",
-      },
-      {
-        Line: "MSPR",
-      },
-      {
-        Line: "PA",
-      },
-      {
-        Line: "CGL",
-      },
+      { Line: "Line", SublineName: "SublineName" },
+      { Line: "Bonds", SublineName: "G02" },
+      { Line: "Bonds", SublineName: "G13" },
+      { Line: "Bonds", SublineName: "G16" },
+      { Line: "Bonds", SublineName: "G41" },
+      { Line: "Bonds", SublineName: "G42" },
+      { Line: "Fire", SublineName: "RESIDENTIAL" },
+      { Line: "Fire", SublineName: "COMMERCIAL" },
+      { Line: "Vehicle", SublineName: "MC" },
+      { Line: "Vehicle", SublineName: "Trailer" },
+      { Line: "Bonds", SublineName: "JCL15" },
+      { Line: "Bonds", SublineName: "G40" },
+      { Line: "Bonds", SublineName: "JCL7" },
+      { Line: "Bonds", SublineName: "C9" },
     ],
   });
 
@@ -950,6 +943,6 @@ export async function createMortgagee() {
   ];
 
   await prisma.mortgagee.createMany({
-    data
+    data,
   });
 }

@@ -89,50 +89,50 @@ model ctpltype {
 }
 
 model vpolicy {
-  PolicyNo         String    @id @db.VarChar(255)
-  Account          String?   @db.VarChar(255)
-  PolicyType       String?   @db.VarChar(255)
-  CoverNo          String?   @db.VarChar(255)
-  ORNo             String?   @db.VarChar(255)
-  DateFrom         DateTime? @db.DateTime(6)
-  DateTo           DateTime? @db.DateTime(6)
-  Model            String?   @db.VarChar(255)
-  Make             String?   @db.VarChar(255)
-  BodyType         String?   @db.VarChar(255)
-  Color            String?   @db.VarChar(255)
-  BLTFileNo        String?   @db.VarChar(255)
-  PlateNo          String?   @db.VarChar(255)
-  ChassisNo        String?   @db.VarChar(255)
-  MotorNo          String?   @db.VarChar(255)
-  AuthorizedCap    String?   @db.VarChar(255)
-  UnladenWeight    String?   @db.VarChar(255)
-  TPL              String?   @db.VarChar(255)
-  TPLLimit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  PremiumPaid      Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  EstimatedValue   Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Aircon           Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Stereo           Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Magwheels        Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Others           String?   @db.VarChar(255)
-  OthersAmount     Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Deductible       Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Towing           Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  RepairLimit      Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  BodilyInjury     Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  PropertyDamage   Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  PersonalAccident Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  SecI             Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  SecIIPercent     Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  ODamage          Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Theft            Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Sec4A            Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Sec4B            Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Sec4C            Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  AOG              Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  MortgageeForm    Boolean?
-  Mortgagee        String?   @db.VarChar(255)
-  Denomination     String?   @db.VarChar(255)
-  AOGPercent        Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  PolicyNo            String    @id @db.VarChar(255)
+  Account             String?   @db.VarChar(255)
+  PolicyType          String?   @db.VarChar(255)
+  CoverNo             String?   @db.VarChar(255)
+  ORNo                String?   @db.VarChar(255)
+  DateFrom            DateTime? @db.DateTime(6)
+  DateTo              DateTime? @db.DateTime(6)
+  Model               String?   @db.VarChar(255)
+  Make                String?   @db.VarChar(255)
+  BodyType            String?   @db.VarChar(255)
+  Color               String?   @db.VarChar(255)
+  BLTFileNo           String?   @db.VarChar(255)
+  PlateNo             String?   @db.VarChar(255)
+  ChassisNo           String?   @db.VarChar(255)
+  MotorNo             String?   @db.VarChar(255)
+  AuthorizedCap       String?   @db.VarChar(255)
+  UnladenWeight       String?   @db.VarChar(255)
+  TPL                 String?   @db.VarChar(255)
+  TPLLimit            Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  PremiumPaid         Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  EstimatedValue      Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Aircon              Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Stereo              Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Magwheels           Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Others              String?   @db.VarChar(255)
+  OthersAmount        Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Deductible          Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Towing              Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  RepairLimit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  BodilyInjury        Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  PropertyDamage      Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  PersonalAccident    Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  SecI                Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  SecIIPercent        Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  ODamage             Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Theft               Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Sec4A               Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Sec4B               Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  Sec4C               Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  AOG                 Decimal?  @default(0.0000) @db.Decimal(19, 4)
+  MortgageeForm       Boolean?
+  Mortgagee           String?   @db.VarChar(255)
+  Denomination        String?   @db.VarChar(255)
+  AOGPercent          Decimal?  @default(0.0000) @db.Decimal(19, 4)
   LocalGovTaxPercent  Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TPLTypeSection_I_II String?
 }
@@ -198,6 +198,22 @@ model policy {
   AgentID      String?  @db.VarChar(100)
   AgentCom     Decimal? @db.Decimal(19, 4)
   Remitted     Boolean  @default(false)
+}
+model fpolicy {
+  PolicyNo        String   @id @db.VarChar(550)
+  Account         String   @db.VarChar(550)
+  DateFrom        DateTime @db.DateTime(6)
+  DateTo          DateTime @db.DateTime(6)
+  BillNo          String   @db.VarChar(550)
+  Percentage      Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Location        String   @db.VarChar(550)
+  InsuredValue    Decimal  @default(0.0000) @db.Decimal(19, 4)
+  PropertyInsured String   @db.VarChar(550)
+  Constraction    String   @db.VarChar(550)
+  Occupancy       String   @db.VarChar(550)
+  Boundaries      String   @db.VarChar(550)
+  Mortgage        String   @db.VarChar(550)
+  Warranties      String   @db.VarChar(550)
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -514,24 +530,6 @@ model endorsement {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model fpolicy {
-  PolicyNo        String   @db.VarChar(20)
-  Account         String   @db.VarChar(20)
-  DateFrom        DateTime @db.DateTime(6)
-  DateTo          DateTime @db.DateTime(6)
-  BillNo          String   @db.VarChar(50)
-  Percentage      Decimal  @default(0.0000) @db.Decimal(19, 4)
-  Location        String   @db.VarChar(100)
-  InsuredValue    Decimal  @default(0.0000) @db.Decimal(19, 4)
-  PropertyInsured String   @db.VarChar(255)
-  Constraction    String   @db.VarChar(3000)
-  Occupancy       String   @db.VarChar(255)
-  Boundaries      String   @db.VarChar(3000)
-  Mortgage        String   @db.VarChar(255)
-  Warranties      String   @db.VarChar(3000)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model holidays {
@@ -850,7 +848,6 @@ model petty_log {
 
   @@map("petty log")
 }
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement {

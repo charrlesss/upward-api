@@ -16,7 +16,7 @@ export async function getClients(search: string, hasLimit: boolean = false) {
       OR a.lastname like '%${search}%'
       OR a.company like '%${search}%'
       ORDER BY a.createdAt desc
-      ${hasLimit ? "" : "limit 250"}
+      limit 250
       `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -33,46 +33,28 @@ export async function getAgents(search: string, hasLimit: boolean = false) {
       OR a.firstname like '%${search}%'
       OR a.lastname like '%${search}%'
       ORDER BY a.createdAt desc
-      ${hasLimit ? "" : "limit 250"}
+      limit 250
       `;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getPolicyAccount(type: string) {
-  if (type === "COM")
-    return await prisma.policy_account.findMany({
-      select: {
-        Account: true,
-      },
-      where: {
-        COM: {
-          equals: true,
-        },
-      },
-    });
-
   return await prisma.policy_account.findMany({
     select: {
       Account: true,
     },
     where: {
-      TPL: {
+      [type]: {
         equals: true,
       },
     },
   });
 }
 export async function getMortgagee(type: string) {
-  if (type === "COM")
-    return await prisma.mortgagee.findMany({
-      select: {
-        Mortgagee: true,
-      },
-      where: {
-        Policy: {
-          equals: "Comprehensive",
-        },
-      },
-    });
+  const equals: any = {
+    COM: "Comprehensive",
+    TPL: "TPL",
+    FIRE: "FIRE",
+  };
 
   return await prisma.mortgagee.findMany({
     select: {
@@ -80,7 +62,7 @@ export async function getMortgagee(type: string) {
     },
     where: {
       Policy: {
-        equals: type,
+        equals: equals[type],
       },
     },
   });
@@ -97,7 +79,7 @@ export async function getRates(type: string) {
 `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getTPL_IDS(search:string) {
+export async function getTPL_IDS(search: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
       MIN(Source_No) AS Source_No,
@@ -119,20 +101,8 @@ export async function getSubAccount() {
   SELECT a.Acronym FROM upward.sub_account a order by Acronym;`;
   return await prisma.$queryRawUnsafe(query);
 }
-interface journalType {
-  Source_No: string;
-  Branch_Code: string;
-  Date_Entry: Date;
-  Source_Type: string;
-  Explanation: string;
-  GL_Acct: string;
-  cGL_Acct: string;
-  Debit: number;
-  Credit: number;
-  TC: string;
-  Source_No_Ref_ID: string;
-}
-export async function createJournal(data: journalType) {
+
+export async function createJournal(data: any) {
   return await prisma.journal.create({ data });
 }
 
@@ -420,4 +390,3 @@ export async function searchDataVPolicy(
     LIMIT 100 
   `);
 }
-
