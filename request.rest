@@ -43,3 +43,13 @@ Content-Type: application/json
 }
 
 
+###
+GET http://localhost:4000/api/reports/report-vehicle-policy
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxNmNmMWQyYy0zN2NmLTQzYzYtODI4Ny1kYzUxNzIwZTE2NDAiLCJpYXQiOjE2OTc4NjYxOTQsImV4cCI6MTY5Nzk1MjU5NH0.F3yz-n2y35DeX4duXUa6kV1Iu-liBD6XhI_7LHgfGzs
+Content-Type: application/json
+
+{
+    "ctplId": "0772af06-4f46-48c6-8c75-50ac310d9c69"
+}
+
+
