@@ -49,6 +49,16 @@ export async function getPolicyAccount(type: string) {
     },
   });
 }
+export async function getPolicyType(Line: string) {
+  return await prisma.subline.findMany({
+    select: {
+      SublineName:true
+    },
+    where: {
+      Line
+    },
+  });
+}
 export async function getMortgagee(type: string) {
   const equals: any = {
     COM: "Comprehensive",

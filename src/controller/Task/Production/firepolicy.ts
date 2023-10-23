@@ -5,19 +5,12 @@ import {
   getPolicyAccount,
   getSubAccount,
   getMortgagee,
-  getTPL_IDS,
   findPolicy,
   getClientById,
   deleteJournalBySource,
-  deleteVehiclePolicy,
   deletePolicy,
   createPolicy,
-  createVehiclePolicy,
   createJournal,
-  createJournalInVP,
-  updateJournalByPolicy,
-  getTempPolicyID,
-  searchDataVPolicy,
   getRate,
 } from "../../../model/Task/Production/vehicle-policy";
 import promiseAll from "../../../lib/promise-all";
@@ -91,7 +84,8 @@ FirePolicy.get("/search-fire-policy", async (req: Request, res: Response) => {
     res.send({ message: error.message, success: false, vehiclePolicy: null });
   }
 });
-async function insertFirePolicy({
+async function insertFirePolicy(
+  {
   sub_account,
   client_id,
   client_name,
@@ -119,7 +113,8 @@ async function insertFirePolicy({
   totalDue,
   strArea,
   cStrArea,
-}: any) {
+}: any
+) {
   await createPolicy({
     IDNo: client_id,
     Account: PolicyAccount,

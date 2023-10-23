@@ -64,8 +64,6 @@ export async function searchFirePolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-      
-  
 export async function deleteFirePolicy(
   subAccount: string,
   policyNo: string
