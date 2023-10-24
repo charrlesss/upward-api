@@ -8,48 +8,38 @@ import {
   findPolicy,
   getClientById,
   getPolicyAccount,
-  getPolicyType,
   getSubAccount,
 } from "../../../model/Task/Production/vehicle-policy";
 import {
-  createBondsPolicy,
-  deleteBondsPolicy,
-  getBondRate,
-  searchBondsPolicy,
-} from "../../../model/Task/Production/bond-policy";
-const BondPolicy = express.Router();
+  createMSPRPolicy,
+  deleteMsprPolicy,
+  getMSPRRate,
+  searchMsprPolicy,
+} from "../../../model/Task/Production/mspr-policy";
 
-BondPolicy.get("/get-bonds-policy", (req, res) => {
+const MSPRPolicy = express.Router();
+
+MSPRPolicy.get("/get-mspr-policy", (req, res) => {
   try {
-    promiseAll([
-      getSubAccount(),
-      getPolicyAccount("G02"),
-      getPolicyAccount("G13"),
-      getPolicyAccount("G16"),
-      getPolicyType("Bonds"),
-    ]).then(([sub_account, g1, g13, g16, policy_type]: any) => {
-      res.send({
-        message: "Successfully get data",
-        success: true,
-        bondsPolicy: {
-          sub_account,
-          policy_account: {
-            G02: g1,
-            G13: g13,
-            G16: g16,
+    promiseAll([getSubAccount(), getPolicyAccount("MSPR")]).then(
+      ([sub_account, policy_account]: any) => {
+        res.send({
+          message: "Successfully get data",
+          success: true,
+          msprPolicy: {
+            sub_account,
+            policy_account,
           },
-          policy_type,
-        },
-      });
-    });
+        });
+      }
+    );
   } catch (error: any) {
     res.send({ message: error.message, success: false, bondsPolicy: null });
   }
 });
 
-BondPolicy.post("/add-bonds-policy", async (req, res) => {
-  const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
-    req.body;
+MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
+  const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (await findPolicy(PolicyNo)) {
       return res.send({
@@ -57,10 +47,8 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
         success: false,
       });
     }
-    //get Commision rate
-    const rate = (
-      (await getBondRate(PolicyAccount, policyType)) as Array<any>
-    )[0];
+    // get Commision rate
+    const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
     if (rate == null) {
       return res.send({
@@ -73,35 +61,32 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-    await insertBondsPolicy({ ...req.body, cStrArea, strArea });
-    res.send({ message: "Create Bonds Policy Successfully", success: true });
+    await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+    res.send({ message: "Create MSPR Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err);
     res.send({ message: err.message, success: false });
   }
 });
 
-BondPolicy.get("/search-bonds-policy", async (req, res) => {
+MSPRPolicy.get("/search-mspr-policy", async (req, res) => {
   try {
     res.send({
       message: "Successfully search data",
       success: true,
-      bondsPolicy: await searchBondsPolicy(
-        req.query.searchBondsPolicy as string
-      ),
+      msprPolicy: await searchMsprPolicy(req.query.searchMsprPolicy as string),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+    res.send({ message: error.message, success: false, msprPolicy: null });
   }
 });
 
-BondPolicy.post("/update-bonds-policy", async (req, res) => {
+MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
     req.body;
   try {
     //get Commision rate
-    const rate = (
-      (await getBondRate(PolicyAccount, policyType)) as Array<any>
-    )[0];
+    const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
     if (rate == null) {
       return res.send({
@@ -116,36 +101,38 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, policyType, PolicyNo);
+    await deletePolicy(PolicyAccount, "MSPR", PolicyNo);
     // //delete v policy
-    await deleteBondsPolicy(PolicyAccount, policyType, PolicyNo);
+    await deleteMsprPolicy(PolicyAccount, PolicyNo);
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
     // insert fire policy
-    await insertBondsPolicy({ ...req.body, cStrArea, strArea });
-    res.send({ message: "Update Bonds Policy Successfully", success: true });
+    await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+    res.send({ message: "Update MSPR Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
 
-BondPolicy.post("/delete-bonds-policy", async (req, res) => {
+MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo, policyType } =
     req.body;
   try {
     //delete policy
     await deletePolicy(PolicyAccount, policyType, PolicyNo);
     //delete v policy
-    await deleteBondsPolicy(PolicyAccount, policyType, PolicyNo);
+    await deleteMsprPolicy(PolicyAccount, PolicyNo);
 
-    res.send({ message: "Delete Bonds Policy Successfully", success: true });
+    res.send({ message: "Delete MSPR Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
 
-async function insertBondsPolicy({
+async function insertMSPRPolicy({
   sub_account,
   client_id,
   client_name,
@@ -153,87 +140,79 @@ async function insertBondsPolicy({
   agent_com,
   PolicyAccount,
   PolicyNo,
-  policyType,
-  biddingDate,
-  time,
+  DateFrom,
+  DateTo,
   DateIssued,
-  validity,
-  officer,
-  position,
-  unit,
-  obligee,
-  officerName,
-  officerTaxCertNo,
-  officerIssuedLoc,
-  officerDateIssued,
-  insuranceCapacity,
-  insuranceOfficerTaxCert,
-  insuranceIssuedLoc,
-  insuranceDateIssued,
-  insuredValue,
-  percentagePremium,
-  totalPremium,
+  pAddress,
+  moneyRoutesFrom,
+  moneyRoutesTo,
+  safeDesc,
+  methodTrans,
+  guardsMinNum,
+  messengerMaxNum,
+  sec1,
+  sec2,
+  sec3,
+  prem1,
+  prem2,
+  prem3,
+  netPremium,
   vat,
   docStamp,
   localGovTax,
-  umis,
-  principal,
   totalDue,
   strArea,
   cStrArea,
 }: any) {
   //create  Policy
-
   await createPolicy({
     IDNo: client_id,
     Account: PolicyAccount,
     SubAcct: sub_account,
-    PolicyType: policyType,
+    PolicyType: "MSPR",
     PolicyNo: PolicyNo,
     DateIssued,
-    TotalPremium: parseFloat(parseFloat(totalPremium).toFixed(2)),
+    TotalPremium: parseFloat(parseFloat(netPremium).toFixed(2)),
     Vat: vat,
     DocStamp: docStamp,
     FireTax: "0",
     LGovTax: localGovTax,
-    Notarial: umis,
-    Misc: principal,
+    Notarial: "0",
+    Misc: "0",
     TotalDue: totalDue,
     TotalPaid: "0",
     Journal: false,
     AgentID: agent_id,
     AgentCom: agent_com,
   });
-  //create bond Policy
-  await createBondsPolicy({
-    PolicyNo: PolicyNo,
+
+  await createMSPRPolicy({
+    PolicyNo,
     Account: PolicyAccount,
-    PolicyType: policyType,
-    UnitDetail: unit,
-    Obligee: obligee,
-    BidDate: biddingDate,
-    BidTime: time,
-    NotaryName: officerName,
-    TaxCerNo: officerTaxCertNo,
-    IssuedLocation: officerIssuedLoc,
-    NIssued: officerDateIssued,
-    CapacityAs: insuranceCapacity,
-    TaxCerNoCorp: insuranceOfficerTaxCert,
-    IssuedLoctCorp: insuranceIssuedLoc,
-    CIssued: insuranceDateIssued,
-    BondValue: insuredValue,
-    Percentage: percentagePremium,
-    Officer: officer,
-    OPosition: position,
-    Validity: validity,
+    Location: pAddress,
+    PeriodFrom: DateFrom,
+    PeriodTo: DateTo,
+    OriginPoint: moneyRoutesFrom,
+    DestinationPoint: moneyRoutesTo,
+    Saferoom: safeDesc,
+    Method: methodTrans,
+    Guard: parseFloat(parseFloat(guardsMinNum).toFixed(2)),
+    Messenger: parseFloat(parseFloat(messengerMaxNum).toFixed(2)),
+    SecI: sec1,
+    SecIPremium: prem1,
+    SecIB: sec2,
+    SecIPremiumB: prem2,
+    SecII: sec3,
+    SecIIPremium: prem3,
   });
+
   //debit
   await createJournal({
     Branch_Code: sub_account,
     Date_Entry: DateIssued,
     Source_Type: "PL",
     Source_No: PolicyNo,
-    Explanation: "Bonds Production",
+    Explanation: "MSPR Production",
     GL_Acct: "1.03.01",
     Sub_Acct: strArea,
     ID_No: PolicyNo,
@@ -244,15 +223,16 @@ async function insertBondsPolicy({
     Credit: "0",
     TC: "P/R",
     Remarks: "",
-    Source_No_Ref_ID: "Bonds",
+    Source_No_Ref_ID: "MSPR",
   });
+
   //credit
   await createJournal({
     Branch_Code: sub_account,
     Date_Entry: DateIssued,
     Source_Type: "PL",
     Source_No: PolicyNo,
-    Explanation: "Bonds Production",
+    Explanation: "MSPR Production",
     GL_Acct: "4.02.01",
     Sub_Acct: strArea,
     ID_No: PolicyNo,
@@ -263,8 +243,8 @@ async function insertBondsPolicy({
     Credit: parseFloat(totalDue).toFixed(2),
     TC: "A/P",
     Remarks: "",
-    Source_No_Ref_ID: "Bonds",
+    Source_No_Ref_ID: "MSPR",
   });
 }
 
-export default BondPolicy;
+export default MSPRPolicy;

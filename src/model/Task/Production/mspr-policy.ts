@@ -1,0 +1,51 @@
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+export async function getMSPRRate(Account: string, Line: string) {
+  return await prisma.rates.findMany({
+    where: {
+      Account,
+      AND: {
+        Line,
+      },
+    },
+  });
+}
+export async function createMSPRPolicy(data: any) {
+  return await prisma.msprpolicy.create({ data });
+}
+
+export async function searchMsprPolicy(search: string) {
+    const query = `
+    select a.*,b.*, 
+    concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
+    concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
+    c.address
+     FROM upward.msprpolicy a
+    left join upward.policy b
+    on a.PolicyNo = b.PolicyNo 
+    left join upward.entry_client c on b.IDNo = c.entry_client_id
+    left join upward.entry_agent d on b.AgentID = d.entry_agent_id
+    where 
+    a.PolicyNo like '%${search}%' or
+    c.firstname like '%${search}%' or
+    c.lastname like '%${search}%' or
+    c.middlename like '%${search}%' 
+    limit 100
+    `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
+
+export async function deleteMsprPolicy(
+  Acount: string,
+  PolicyNo: string
+) {
+  const query = `
+  delete from upward.msprpolicy 
+  where 
+  Account = '${Acount}' 
+  and PolicyNo = '${PolicyNo}'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}

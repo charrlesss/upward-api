@@ -256,6 +256,48 @@ model bpolicy {
   Validity       String   @default("") @db.VarChar(255)
 }
 
+model msprpolicy {
+  PolicyNo         String   @id @db.VarChar(20)
+  Account          String   @db.VarChar(100)
+  PeriodFrom       DateTime @db.DateTime(6)
+  PeriodTo         DateTime @db.DateTime(6)
+  Location         String   @db.VarChar(255)
+  Saferoom         String   @db.VarChar(255)
+  OriginPoint      String   @db.VarChar(255)
+  DestinationPoint String   @db.VarChar(255)
+  Method           String   @db.VarChar(255)
+  Guard            Int      @db.SmallInt
+  Messenger        Int      @db.SmallInt
+  SecI             Decimal  @db.Decimal(19, 4)
+  SecIPremium      Decimal  @db.Decimal(19, 4)
+  SecIB            Decimal  @db.Decimal(19, 4)
+  SecIPremiumB     Decimal  @db.Decimal(19, 4)
+  SecII            Decimal  @db.Decimal(19, 4)
+  SecIIPremium     Decimal  @db.Decimal(19, 4)
+}
+
+model papolicy {
+  PolicyNo   String   @id @db.VarChar(20)
+  Account    String   @db.VarChar(100)
+  PeriodFrom DateTime @db.DateTime(6)
+  PeriodTo   DateTime @db.DateTime(6)
+  Location   String   @db.VarChar(255)
+}
+
+
+model cglpolicy {
+  PolicyNo   String @id   @db.VarChar(20)
+  Account    String   @db.VarChar(100)
+  PeriodFrom DateTime @db.DateTime(6)
+  PeriodTo   DateTime @db.DateTime(6)
+  Location   String   @db.VarChar(255)
+  LimitA     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  LimitB     Decimal  @default(0.0000) @db.Decimal(19, 4)
+
+}
+
+
+
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
   Account_No   String? @db.VarChar(50)
@@ -298,8 +340,6 @@ model books {
   Default    Boolean
   Hide       Boolean
 }
-
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model cash_disbursement {
@@ -360,18 +400,6 @@ model cash_breakdown {
   @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model cglpolicy {
-  PolicyNo   String   @db.VarChar(20)
-  Account    String   @db.VarChar(100)
-  PeriodFrom DateTime @db.DateTime(6)
-  PeriodTo   DateTime @db.DateTime(6)
-  Location   String   @db.VarChar(255)
-  LimitA     Decimal  @default(0.0000) @db.Decimal(19, 4)
-  LimitB     Decimal  @default(0.0000) @db.Decimal(19, 4)
-
-  @@ignore
-}
 
 model chart_account {
   Acct_Code  String  @id @db.VarChar(10)
@@ -544,8 +572,6 @@ model endorsement {
 
   @@ignore
 }
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model holidays {
@@ -754,38 +780,8 @@ model ledger {
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model msprpolicy {
-  PolicyNo         String   @db.VarChar(20)
-  Account          String   @db.VarChar(100)
-  PeriodFrom       DateTime @db.DateTime(6)
-  PeriodTo         DateTime @db.DateTime(6)
-  Location         String   @db.VarChar(255)
-  Saferoom         String   @db.VarChar(255)
-  OriginPoint      String   @db.VarChar(255)
-  DestinationPoint String   @db.VarChar(255)
-  Method           String   @db.VarChar(255)
-  Guard            Int      @db.SmallInt
-  Messenger        Int      @db.SmallInt
-  SecI             Decimal  @db.Decimal(19, 4)
-  SecIPremium      Decimal  @db.Decimal(19, 4)
-  SecIB            Decimal  @db.Decimal(19, 4)
-  SecIPremiumB     Decimal  @db.Decimal(19, 4)
-  SecII            Decimal  @db.Decimal(19, 4)
-  SecIIPremium     Decimal  @db.Decimal(19, 4)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model papolicy {
-  PolicyNo   String   @db.VarChar(20)
-  Account    String   @db.VarChar(100)
-  PeriodFrom DateTime @db.DateTime(6)
-  PeriodTo   DateTime @db.DateTime(6)
-  Location   String   @db.VarChar(255)
-
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pdc {
