@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[2257],{2257:function(u,n,r){r.r(n),r.d(n,{default:function(){return c}});r(2791);var e=r(184);function c(){return(0,e.jsx)("div",{children:"BondsPolicyPremium"})}}}]);
+//# sourceMappingURL=2257.998c712f.chunk.js.map

@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[2815],{2815:function(u,n,r){r.r(n),r.d(n,{default:function(){return c}});r(2791);var e=r(184);function c(){return(0,e.jsx)("div",{children:"PA Policy"})}}}]);
+//# sourceMappingURL=2815.7fbf1c9d.chunk.js.map

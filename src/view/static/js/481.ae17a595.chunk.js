@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[481],{481:function(u,n,r){r.r(n),r.d(n,{default:function(){return i}});r(2791);var e=r(184);function i(){return(0,e.jsx)("div",{children:"MarinePolicyPremium"})}}}]);
+//# sourceMappingURL=481.ae17a595.chunk.js.map
