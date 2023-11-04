@@ -4,7 +4,14 @@ import express from "express";
 const ReportsVehiclePolicy = express.Router();
 const prisma = new PrismaClient();
 
-ReportsVehiclePolicy.get("/report-vehicle-policy", async (req, res) => {
+ReportsVehiclePolicy.post("/report-vehicle-policy", async (req, res) => {
+  console.log(req.body)
+  if(req.body.format1 === 'summary'){
+    return res.send({
+      message:'qweqweqwe',
+      vehiclePolicy:[]
+    })
+  }
   res.send({
     message: "qweqwe",
     vehiclePolicy: await prisma.$queryRawUnsafe(`
