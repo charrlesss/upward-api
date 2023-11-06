@@ -1,10 +1,10 @@
 import express from "express";
-import ReportsVehiclePolicy from "./vehicle-policy.report";
+import ProductionReports from "./production-reports";
 
 
 const Reports = express.Router();
 
-Reports.use('/reports',ReportsVehiclePolicy)
+Reports.use('/reports',ProductionReports)
 
 
 export default Reports
