@@ -80,11 +80,11 @@ const queryList: any = {
             concat(c.Acronym,'-',c.ShortName) as NewShortName,
             c.Sub_Acct as sub_account
         FROM
-        upward.entry_client a
+        upward_insurance.entry_client a
             LEFT JOIN
-        upward.contact_details b ON a.client_contact_details_id = b.contact_details_id
+        upward_insurance.contact_details b ON a.client_contact_details_id = b.contact_details_id
             LEFT JOIN
-        upward.sub_account c ON a.sub_account = c.Sub_Acct
+        upward_insurance.sub_account c ON a.sub_account = c.Sub_Acct
         where 
         a.entry_client_id like '%${search}%'
         OR a.firstname like '%${search}%'
@@ -106,9 +106,9 @@ const queryList: any = {
         (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
         b.Sub_Acct as sub_account
     FROM
-    upward.entry_employee a
+    upward_insurance.entry_employee a
         LEFT JOIN
-    upward.sub_account b ON a.sub_account = b.Sub_Acct
+    upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
     where 
         a.entry_employee_id like '%${search}%'
         OR a.firstname like '%${search}%'
@@ -130,9 +130,9 @@ const queryList: any = {
       b.mobile,
       b.telephone
     FROM
-    upward.entry_agent a
+    upward_insurance.entry_agent a
       LEFT JOIN
-    upward.contact_details b ON a.agent_contact_details_id = b.contact_details_id
+    upward_insurance.contact_details b ON a.agent_contact_details_id = b.contact_details_id
     where 
     a.entry_agent_id like '%${search}%'
     OR a.firstname like '%${search}%'
@@ -150,7 +150,7 @@ const queryList: any = {
       a.remarks,
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
     FROM
-    upward.entry_fixed_assets a 
+    upward_insurance.entry_fixed_assets a 
     where
     a.entry_fixed_assets_id like '%${search}%'
     OR a.fullname like '%${search}%'
@@ -175,9 +175,9 @@ const queryList: any = {
       b.mobile,
       b.telephone
     FROM
-    upward.entry_supplier a
+    upward_insurance.entry_supplier a
       LEFT JOIN
-    upward.contact_details b ON a.supplier_contact_details_id = b.contact_details_id
+    upward_insurance.contact_details b ON a.supplier_contact_details_id = b.contact_details_id
     where 
     a.entry_supplier_id like '%${search}%'
     OR a.firstname like '%${search}%'
@@ -194,7 +194,7 @@ const queryList: any = {
       a.description,
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt
     FROM
-    upward.entry_others a
+    upward_insurance.entry_others a
     where
     a.entry_others_id like '%${search}%'
     OR a.description like '%${search}%'

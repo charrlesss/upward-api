@@ -28,7 +28,7 @@ export async function searchSubAccount(
     a.Description,
     (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
   FROM
-  upward.sub_account a
+  upward_insurance.sub_account a
   where 
   a.Acronym like '%${subaccountSearch}%'
   OR a.ShortName like '%${subaccountSearch}%'

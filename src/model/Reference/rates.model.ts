@@ -24,7 +24,7 @@ export async function searchRate(
     a.Rate,
     (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
   FROM
-  upward.rates a
+  upward_insurance.rates a
     where
         a.ID like '%${mortgageeSearch}%'
         OR a.Account like '%${mortgageeSearch}%'
@@ -41,7 +41,7 @@ export async function getPolicyAccounts() {
     SELECT 
         a.Account
     FROM
-    upward.policy_account a
+    upward_insurance.policy_account a
     `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -50,7 +50,7 @@ export async function getBonds() {
     SELECT 
         a.SublineName
     FROM
-    upward.subline a
+    upward_insurance.subline a
     WHERE
     a.Line = 'Bonds';
     `;
@@ -61,7 +61,7 @@ export async function getFire() {
       SELECT 
           a.SublineName
       FROM
-      upward.subline a
+      upward_insurance.subline a
       WHERE
       a.Line = 'Fire';
       `;

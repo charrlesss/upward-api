@@ -26,7 +26,7 @@ export async function searchCTPL(
           a.NumSeriesTo,
           (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
       FROM
-          upward.ctplregistration a
+          upward_insurance.ctplregistration a
           where 
           a.Prefix like '%${ctplSearch}%'
           OR  a.Cost like '%${ctplSearch}%'
@@ -80,7 +80,7 @@ export async function findCtplfExist(where: {
       SELECT 
         *
     FROM
-        upward.ctplregistration a
+        upward_insurance.ctplregistration a
     WHERE
     a.Prefix = '${where.Prefix}'
         AND a.NumSeriesFrom = '${where.NumSeriesFrom}'

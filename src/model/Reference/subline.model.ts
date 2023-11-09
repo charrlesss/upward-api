@@ -17,7 +17,7 @@ export async function searchSubline(
         a.SublineName,
         (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
     FROM 
-        upward.subline a
+        upward_insurance.subline a
     where 
         a.Line like '%${sublineSearch}%'
         OR a.SublineName like '%${sublineSearch}%'
@@ -35,7 +35,7 @@ export async function getline() {
       SELECT
           a.Line
       FROM
-          upward.subline_line a
+          upward_insurance.subline_line a
       GROUP BY a.Line;
       `;
   return await prisma.$queryRawUnsafe(query1);

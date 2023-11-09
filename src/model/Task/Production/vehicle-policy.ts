@@ -9,7 +9,7 @@ export async function getClients(search: string, hasLimit: boolean = false) {
       IF(a.company = '', concat(a.firstname,' ',a.middlename,' ',a.lastname), a.company) AS fullname,
       'Client' AS entry_type
       FROM
-      upward.entry_client a
+      upward_insurance.entry_client a
       where
       a.entry_client_id like '%${search}%'
       OR a.firstname like '%${search}%'
@@ -27,7 +27,7 @@ export async function getAgents(search: string, hasLimit: boolean = false) {
       concat(a.firstname,' ',a.middlename,' ',a.lastname) as fullname,
       'Agent' AS entry_type
       FROM
-      upward.entry_agent a
+      upward_insurance.entry_agent a
       where
       a.entry_agent_id like '%${search}%'
       OR a.firstname like '%${search}%'
@@ -80,12 +80,12 @@ export async function getMortgagee(type: string) {
 export async function getRates(type: string) {
   if (type === "COM") {
     const query = `
-       select distinct type from upward.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
+       select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
     `;
     return await prisma.$queryRawUnsafe(query);
   }
   const query = `
-  select distinct type from upward.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
+  select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
 `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -96,7 +96,7 @@ export async function getTPL_IDS(search: string) {
       MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
       Source_No_Ref_ID
   FROM
-      upward.journal
+      upward_insurance.journal
   WHERE
           Explanation = 'CTPL Registration'
           AND Credit > 0
@@ -108,7 +108,7 @@ export async function getTPL_IDS(search: string) {
 }
 export async function getSubAccount() {
   const query = `
-  SELECT a.Acronym FROM upward.sub_account a order by Acronym;`;
+  SELECT a.Acronym FROM upward_insurance.sub_account a order by Acronym;`;
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -157,7 +157,7 @@ export async function getPolicy(
   policy_no: string
 ) {
   const query = `
-  SELECT * FROM upward.policy 
+  SELECT * FROM upward_insurance.policy 
   WHERE 
   Account = '${account}'
   AND PolicyType = '${form_type}' 
@@ -181,9 +181,9 @@ export async function getClientById(entry_client_id: string) {
   SELECT 
     b.*
   FROM 
-  upward.entry_client a
+  upward_insurance.entry_client a
     LEFT JOIN
-  upward.sub_account b ON a.sub_account = b.Sub_Acct
+  upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
   where a.entry_client_id ='${entry_client_id}'
   `;
   return await prisma.$queryRawUnsafe(query);
@@ -195,7 +195,7 @@ export async function deletePolicy(
   policyNo: string
 ) {
   const query = `
-  delete from upward.policy 
+  delete from upward_insurance.policy 
   where 
   Account = '${subAccount}' 
   and PolicyType = '${form_type}' 
@@ -210,7 +210,7 @@ export async function deleteVehiclePolicy(
   policyNo: string
 ) {
   const query = `
-  delete from upward.vpolicy 
+  delete from upward_insurance.vpolicy 
   where 
   Account = '${subAccount}' 
   and PolicyType = '${form_type}' 
@@ -224,7 +224,7 @@ export async function deleteJournalBySource(
   source_type: string
 ) {
   const query = `
-  delete from upward.journal 
+  delete from upward_insurance.journal 
   where 
   Source_No = '${source_no}' 
   and Source_Type = '${source_type}'
@@ -364,7 +364,7 @@ export async function getTempPolicyID() {
     )
   ) AS tempPolicy_No
    from (
-    SELECT  MAX(PolicyNo) as PolicyNo FROM upward.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
+    SELECT  MAX(PolicyNo) as PolicyNo FROM upward_insurance.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
   ) a`);
 }
 
@@ -381,11 +381,11 @@ export async function searchDataVPolicy(
       c.address as address,
       concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname
     FROM
-      upward.policy a
+      upward_insurance.policy a
           LEFT JOIN
-        upward.vpolicy b ON a.PolicyNo = b.PolicyNo
-        left join upward.entry_client c on a.IDNo = c.entry_client_id 
-        left join upward.entry_agent d on a.AgentID = d.entry_agent_id 
+        upward_insurance.vpolicy b ON a.PolicyNo = b.PolicyNo
+        left join upward_insurance.entry_client c on a.IDNo = c.entry_client_id 
+        left join upward_insurance.entry_agent d on a.AgentID = d.entry_agent_id 
             WHERE 
         a.PolicyType = '${policyType}' and
        ${

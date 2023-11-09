@@ -45,7 +45,7 @@ export async function searchPolicy(
   a.CGL,
   (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
 FROM
-upward.policy_account a
+upward_insurance.policy_account a
 where 
 a.Account like '%${policySearch}%'
 OR a.Description like '%${policySearch}%'

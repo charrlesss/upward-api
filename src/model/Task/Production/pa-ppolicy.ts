@@ -11,11 +11,11 @@ export async function searchPAPolicy(search:string) {
   concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
   concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
   c.address
-   FROM upward.papolicy a
-  left join upward.policy b
+   FROM upward_insurance.papolicy a
+  left join upward_insurance.policy b
   on a.PolicyNo = b.PolicyNo 
-  left join upward.entry_client c on b.IDNo = c.entry_client_id
-  left join upward.entry_agent d on b.AgentID = d.entry_agent_id
+  left join upward_insurance.entry_client c on b.IDNo = c.entry_client_id
+  left join upward_insurance.entry_agent d on b.AgentID = d.entry_agent_id
   where 
   a.PolicyNo like '%${search}%' or
   c.firstname like '%${search}%' or
@@ -32,7 +32,7 @@ export async function deletePAPolicy(
   PolicyNo: string
 ) {
   const query = `
-  delete from upward.papolicy 
+  delete from upward_insurance.papolicy 
   where 
   Account = '${Acount}' 
   and PolicyNo = '${PolicyNo}'

@@ -284,19 +284,15 @@ model papolicy {
   Location   String   @db.VarChar(255)
 }
 
-
 model cglpolicy {
-  PolicyNo   String @id   @db.VarChar(20)
+  PolicyNo   String   @id @db.VarChar(20)
   Account    String   @db.VarChar(100)
   PeriodFrom DateTime @db.DateTime(6)
   PeriodTo   DateTime @db.DateTime(6)
   Location   String   @db.VarChar(255)
   LimitA     Decimal  @default(0.0000) @db.Decimal(19, 4)
   LimitB     Decimal  @default(0.0000) @db.Decimal(19, 4)
-
 }
-
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
@@ -399,7 +395,6 @@ model cash_breakdown {
 
   @@ignore
 }
-
 
 model chart_account {
   Acct_Code  String  @id @db.VarChar(10)
@@ -778,12 +773,6 @@ model ledger {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pdc {
   Ref_No          String?   @db.VarChar(50)
   PNo             String?   @db.VarChar(50)
@@ -1051,10 +1040,10 @@ model transaction_code {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model words {
-  WORD_ID  Int     @id @default(autoincrement())
   Wordings String  @db.VarChar(20)
   SType    Boolean
   Phrase   String  @db.VarChar(8000)
+  WORD_ID  Int     @id @default(autoincrement())
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

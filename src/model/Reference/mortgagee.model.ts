@@ -30,7 +30,7 @@ export async function getMortgageePolicy() {
     SELECT 
         a.Policy
     FROM
-        upward.mortgagee a
+        upward_insurance.mortgagee a
     GROUP BY a.Policy;
     `;
   return await prisma.$queryRawUnsafe(query1);
@@ -45,7 +45,7 @@ export async function searchMortgagee(
         a.Policy,
         (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
     FROM
-        upward.mortgagee a
+        upward_insurance.mortgagee a
         where 
             a.Mortgagee like '%${mortgageeSearch}%'
             OR a.Policy like '%${mortgageeSearch}%'

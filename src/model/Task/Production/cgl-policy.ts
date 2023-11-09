@@ -12,11 +12,11 @@ export async function createCGLPolicy(data: any) {
     concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
     c.address
-     FROM upward.cglpolicy a
-    left join upward.policy b
+     FROM upward_insurance.cglpolicy a
+    left join upward_insurance.policy b
     on a.PolicyNo = b.PolicyNo 
-    left join upward.entry_client c on b.IDNo = c.entry_client_id
-    left join upward.entry_agent d on b.AgentID = d.entry_agent_id
+    left join upward_insurance.entry_client c on b.IDNo = c.entry_client_id
+    left join upward_insurance.entry_agent d on b.AgentID = d.entry_agent_id
     where 
     a.PolicyNo like '%${search}%' or
     c.firstname like '%${search}%' or
@@ -33,7 +33,7 @@ export async function createCGLPolicy(data: any) {
     PolicyNo: string
   ) {
     const query = `
-    delete from upward.cglpolicy 
+    delete from upward_insurance.cglpolicy 
     where 
     Account = '${Acount}' 
     and PolicyNo = '${PolicyNo}'

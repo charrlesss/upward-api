@@ -14,17 +14,18 @@ import {
   createPrefix,
   createCTPLType,
   createPolicyAccount,
-  // creatCTPLRegistration,
   creatRates,
   createMortgagee
 } from "./src/model/StoredProcedure";
 import { searchEntry } from "./src/model/Reference/id-entry.model";
+import testReport from "./src/controller/Reports/test-report";
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
 
 const corsOptions = {
   origin:[ "http://localhost:3000", "http://localhost:4000","/"],
+  // origin:"*",
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -37,7 +38,6 @@ function executeQuery() {
   // createPrefix()
   // createCTPLType()
   // createPolicyAccount()
-  // creatCTPLRegistration()
   // creatRates()
   // createMortgagee()
 }
@@ -51,6 +51,7 @@ async function main() {
   app.use(express.static(path.join(__dirname, "/static/image/")));
   app.use(express.static(path.join(__dirname, "/src/view")));
 
+  app.use('/testing',testReport)
   app.get("/test", async (req, res) => {
       res.send({data:await prisma.ctplregistration.findMany()})
   });
