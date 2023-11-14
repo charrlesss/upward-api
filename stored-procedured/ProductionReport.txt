@@ -12,13 +12,13 @@ BEGIN
 declare whr_query TEXT;
 SET @sql_query = concat('
 SELECT 
-	VPolicy.Mortgagee,
-	 Policy.IDNo,
+	VPolicy.Mortgagee AS Mortgagee,
+	 Policy.IDNo AS IDNo,
 	 UPPER(Shortname) AS AssuredName,
-	 Policy.Account,
+	 Policy.Account AS Account,
 	 Policy.PolicyType,
 	 Policy.PolicyNo,
-	 Policy.DateIssued,
+	DATE_FORMAT(Policy.DateIssued, "%Y-%m-%d") AS DateIssued,
 	 Policy.TotalPremium,
 	 Policy.Vat,
 	 Policy.DocStamp,
@@ -32,7 +32,7 @@ SELECT
 	 VPolicy.Sec4A,
 	 VPolicy.Sec4B,
 	 VPolicy.Sec4C,
-	IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) AS EffictiveDate,',
+     DATE_FORMAT(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))), "%Y-%m-%d") AS EffictiveDate,',
 	'IF( ',IsFinanced,' = 0, IFNULL(CGLPolicy.LimitB, 0) + IFNULL(CGLPolicy.LimitA, 0) + IFNULL(VPolicy.ODamage, 0) + IFNULL(VPolicy.TPLLimit, 0),IFNULL(ODamage, 0) + IFNULL(TPLLimit, 0)) AS PLimit,',
     'IF(',IsFinanced ,'= 0, IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0) + IFNULL(FPolicy.InsuredValue, 0) + IFNULL(BPolicy.BondValue, 0) + IFNULL(MPolicy.InsuredValue, 0) + IFNULL(MSPRPolicy.SecI, 0) + IFNULL(MSPRPolicy.SecIB, 0) + IFNULL(MSPRPolicy.SecII, 0),IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0))  AS InsuredValue,' ,
     'CoverNo,
@@ -51,7 +51,7 @@ LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo
 LEFT JOIN CGLPolicy ON Policy.PolicyNo = CGLPolicy.PolicyNo 
 LEFT JOIN MSPRPolicy ON Policy.PolicyNo = MSPRPolicy.PolicyNo 
 LEFT JOIN FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo 
-LEFT JOIN `ID Entry` ON Policy.IDNo = `ID Entry`.IDNo');
+LEFT JOIN  `id entry` ON Policy.IDNo = `id entry`.IDNo');
 
 IF (Mortgagee = '') THEN
     IF (PolicyType = 'Bonds') THEN
@@ -81,28 +81,29 @@ IF (Mortgagee = '') THEN
 				SET whr_query = CONCAT( " where date(Policy.DateIssued) <= date('",DateTo,"') and  date(Policy.DateIssued) >= date('",DateFrom,"') AND Policy.PolicyType = '",PolicyType,"'");
             END IF;
 			IF (SortBy = 'Date From') THEN
-					SET @StrWhr = CONCAT('WHERE CAST(
+					SET whr_query = CONCAT(" WHERE date(
 						IFNULL(BPolicy.BidDate, 
 						IFNULL(VPolicy.DateFrom, 
 						IFNULL(MPolicy.DateFrom, 
 						IFNULL(PAPolicy.PeriodFrom, 
 						IFNULL(CGLPolicy.PeriodFrom, 
-						IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) AS DATE) <= CAST(''', DATE(DateTo), ''' AS DATE) AND CAST(
+						IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) <= date('",DateTo, "')
+                        AND date(
 						IFNULL(BPolicy.BidDate, 
 						IFNULL(VPolicy.DateFrom, 
 						IFNULL(MPolicy.DateFrom, 
 						IFNULL(PAPolicy.PeriodFrom, 
 						IFNULL(CGLPolicy.PeriodFrom, 
-						IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) AS DATE) >= CAST(''', DATE(DateFrom), ''' AS DATE) AND Policy.PolicyType = ''', PolicyType);
+						IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) >= date('",DateFrom,"') AND Policy.PolicyType = '",PolicyType,"'");
 			END IF;
 		END IF;
         
 		IF (Account_ <> 'ALL') THEN
 			IF (SortBy <> 'Date From') THEN
-				SET whr_query = concat(  ' WHERE CAST(Policy.DateIssued AS DATE) <= CAST(''' , CAST(DateTo AS CHAR) , ''' AS DATE) AND CAST(Policy.DateIssued AS DATE) >= CAST(''' , CAST(@DateFrom AS CHAR) , ''' AS DATE) AND Policy.Account = ''' , Account_ , ''' AND Policy.PolicyType = ''' , PolicyType , '''');
+				SET whr_query = concat(  "  where date(Policy.DateIssued) <= date('",DateTo,"') and  date(Policy.DateIssued) >= date('",DateFrom,"')  AND Policy.Account = '", Account_ ,"' AND Policy.PolicyType = '", PolicyType , "'");
             END IF;
 			IF (SortBy = 'Date From') THEN
-				SET whr_query =concat(  ' WHERE cast(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) as date) <= CAST(''' + CAST(DateTo AS CHAR) + ''' AS DATE) AND cast(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) as date) >= CAST(''' , CAST(DateFrom AS CHAR) , ''' AS DATE) AND Policy.Account = ''' , Account_ , ''' AND Policy.PolicyType = ''' , PolicyType , '''');
+				SET whr_query =concat(" WHERE date(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) <= date('",DateTo,"') AND date(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) >= date('",DateFrom, "') AND Policy.Account = '" , Account_ , "' AND Policy.PolicyType = '" , PolicyType , "'");
             END IF;
 		END IF;
 			SET whr_query = concat(whr_query , IF(IsFinanced = 0, '', ' AND ((VPolicy.Mortgagee LIKE ''CASH MANAGEMENT%'') OR (VPolicy.Mortgagee LIKE ''CREDIT MASTER%'') OR (VPolicy.Mortgagee LIKE ''CAMFIN%''))'));
@@ -113,20 +114,20 @@ IF Mortgagee <> ''
     THEN 
 		 IF SortBy ='Date From' 
 		 THEN
-			SET whr_query = concat(" WHERE IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) <= CAST(''" + CAST(DateTo AS CHAR) + "' AS DATE) AND IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) >= CAST(''" , CAST(@DateFrom AS CHAR) , " AS DATE) AND Policy.Account = '" , Account_ , " AND VPolicy.Mortgagee = '" , Mortgagee,"'" );
+				SET whr_query = concat(" WHERE IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) <= date('" , DateTo, "') AND IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) >= date('" , DateFrom , "') AND Policy.Account = '" , Account_ , "' AND VPolicy.Mortgagee = '" , Mortgagee,"'" );
 		 END IF;
 		 
 		 IF SortBy <>'Date From' 
 			THEN
-			SET whr_query = concat(" WHERE CAST(Policy.DateIssued AS DATE) <= CAST(", CAST(DateTo AS CHAR) , " AS DATE) AND CAST(Policy.DateIssued AS DATE) >= CAST(" , CAST(DateFrom AS CHAR) , " AS DATE) AND Policy.Account = '" , Account_ , "' AND VPolicy.Mortgagee = '" , Mortgagee , "'");
+            	SET whr_query = concat(  "  where date(Policy.DateIssued) <= date('",DateTo,"') and  date(Policy.DateIssued) >= date('",DateFrom,"')  AND Policy.Account = '", Account_ ,"' AND VPolicy.Mortgagee = '", Mortgagee , "'");
 		 END IF;
 	END IF ;
     
-	IF Policy_Type ='Temporary' THEN SET whr_query = concat(whr_query, 'and Policy.policyno like''%TP-%'''); END IF;     
-	IF Policy_Type ='Regular' THEN SET whr_query = concat(whr_query, 'and Policy.policyno not like''%TP-%'''); END IF;  
+	IF Policy_Type ='Temporary' THEN SET whr_query = concat(whr_query, ' and Policy.policyno like''%TP-%'''); END IF;     
+	IF Policy_Type ='Regular' THEN SET whr_query = concat(whr_query, ' and Policy.policyno not like''%TP-%'''); END IF;  
     
 	IF SortBy ='Date Issued'  THEN
-		set whr_query = concat(whr_query, ' ORDER BY cast( Policy.DateIssued as date) asc');   
+		set whr_query = concat(whr_query, ' ORDER BY date( Policy.DateIssued) asc');   
     END IF;   
     IF SortBy ='Policy No#'  THEN
 		set whr_query = concat(whr_query, ' ORDER BY Policy.policyno asc');   
