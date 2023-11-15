@@ -1,6 +1,4 @@
 import express, { Request, Response } from "express";
-
-
 import {
   addBank,
   findBank,

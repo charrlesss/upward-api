@@ -294,6 +294,33 @@ model cglpolicy {
   LimitB     Decimal  @default(0.0000) @db.Decimal(19, 4)
 }
 
+model chart_account {
+  Acct_Code  String  @id @db.VarChar(10)
+  Acct_Title String  @db.VarChar(100)
+  Short      String  @db.VarChar(50)
+  Account    String  @db.VarChar(20)
+  Acct_Type  String  @db.VarChar(20)
+  IDNo       Boolean
+  SubAccnt   Boolean
+  Inactive   Boolean
+}
+
+model transaction_code {
+  Code        String @id  @db.VarChar(220)
+  Description String  @db.VarChar(220)
+  Acct_Code   String  @db.VarChar(220)
+  Inactive    Boolean
+}
+
+model petty_log {
+  Petty_Log String @id @default(uuid())
+  Purpose   String   @db.VarChar(100)
+  Acct_Code String  @db.VarChar(10)
+  Short     String  @db.VarChar(50)
+  Inactive  Boolean
+}
+
+
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
   Account_No   String? @db.VarChar(50)
@@ -396,18 +423,6 @@ model cash_breakdown {
   @@ignore
 }
 
-model chart_account {
-  Acct_Code  String  @id @db.VarChar(10)
-  Acct_Title String  @db.VarChar(100)
-  Short      String  @db.VarChar(50)
-  Account    String  @db.VarChar(20)
-  Acct_Type  String  @db.VarChar(20)
-  IDNo       Boolean
-  SubAccnt   Boolean
-  Inactive   Boolean
-
-  @@map("chart account")
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model closed {
@@ -824,14 +839,7 @@ model petty_cash {
   @@ignore
 }
 
-model petty_log {
-  Purpose   String  @id @db.VarChar(100)
-  Acct_Code String  @db.VarChar(10)
-  Short     String  @db.VarChar(50)
-  Inactive  Boolean
 
-  @@map("petty log")
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement {
@@ -1028,15 +1036,7 @@ model tbl_accrual_request_income {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model transaction_code {
-  Code        String  @db.VarChar(3)
-  Description String  @db.VarChar(100)
-  Acct_Code   String  @db.VarChar(10)
-  Inactive    Boolean
 
-  @@map("transaction code")
-  @@ignore
-}
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model words {

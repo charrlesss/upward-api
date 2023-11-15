@@ -7,6 +7,9 @@ import Subline from "./subline"
 import Rates from "./rates"
 import CTPL from "./ctpl"
 import Bank from "./bank"
+import ChartAccount from "./chart-account"
+import TransactionCode from "./transaction-code"
+import PettyCashTransaction from "./petty-cash-transaction"
 const Reference = express.Router()
 
 //production
@@ -19,5 +22,8 @@ Reference.use("/reference",Rates)
 Reference.use("/reference",CTPL)
 //accounting
 Reference.use("/reference",Bank)
+Reference.use("/reference",ChartAccount)
+Reference.use("/reference",TransactionCode)
+Reference.use("/reference",PettyCashTransaction)
 
 export default Reference
