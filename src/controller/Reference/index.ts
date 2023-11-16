@@ -10,6 +10,7 @@ import Bank from "./bank"
 import ChartAccount from "./chart-account"
 import TransactionCode from "./transaction-code"
 import PettyCashTransaction from "./petty-cash-transaction"
+import BankAccount from "./bank-account"
 const Reference = express.Router()
 
 //production
@@ -25,5 +26,6 @@ Reference.use("/reference",Bank)
 Reference.use("/reference",ChartAccount)
 Reference.use("/reference",TransactionCode)
 Reference.use("/reference",PettyCashTransaction)
+Reference.use("/reference",BankAccount)
 
 export default Reference

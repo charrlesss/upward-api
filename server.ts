@@ -17,6 +17,7 @@ import {
   creatRates,
   createMortgagee
 } from "./src/model/StoredProcedure";
+
 import { searchEntry } from "./src/model/Reference/id-entry.model";
 import testReport from "./src/controller/Reports/test-report";
 
@@ -64,12 +65,12 @@ async function main() {
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-  });
+.then(async () => {
+  await prisma.$disconnect();
+})
+.catch(async (e) => {
+  console.error(e);
+  await prisma.$disconnect();
+});
 
 

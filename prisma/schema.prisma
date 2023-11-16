@@ -320,21 +320,17 @@ model petty_log {
   Inactive  Boolean
 }
 
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model bankaccounts {
   Account_No   String? @db.VarChar(50)
   Account_Name String? @db.VarChar(50)
   Account_Type String? @db.VarChar(50)
   Desc         String? @db.VarChar(50)
   Option       Int?
-  Account_ID   String? @map("Account ID") @db.VarChar(50)
+  Account_ID   String?  @db.VarChar(50)
   Inactive     Boolean
-  Auto         Int
+  Auto         String @id @default(uuid())
   IDNo         String? @db.VarChar(50)
   Identity     String? @db.VarChar(50)
-
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

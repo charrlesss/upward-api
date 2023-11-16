@@ -94,7 +94,10 @@ Authentication.post("/login", async (req: Request, res: Response) => {
       process.env.REFRESH_TOKEN as string
     );
     updateRefreshToken(findUser.UserId, refreshToken);
+    const userAccess = jwt.sign({userAccess:findUser.AccountType} ,process.env.USER_ACCESS as string);
 
+    
+    res.cookie("up-ac-login", userAccess, { httpOnly: true });
     res.cookie("up-at-login", accessToken, { httpOnly: true });
     res.cookie("up-rt-login", refreshToken, { httpOnly: true });
 
@@ -106,6 +109,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
       user: {
         accessToken,
         refreshToken,
+        userAccess: findUser.AccountType,
       },
     });
   } else {
@@ -119,27 +123,60 @@ Authentication.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-Authentication.get("/token", (req, res) => {
+Authentication.get("/token", async (req, res) => {
   const accessToken = req.cookies["up-at-login"];
   const refreshToken = req.cookies["up-rt-login"];
+  const userAccessToken = req.cookies["up-ac-login"];
+
   if (refreshToken === "" || refreshToken == null) {
     return res.send(null);
   }
-  jwt.verify(
-    refreshToken as string,
-    process.env.REFRESH_TOKEN as string,
-    (err, user) => {
-      if (err) return res.send(null);
-      const getUser: any = user;
-      const newAccessToken = generateAccessToken(getUser.UserId);
-      res.cookie("up-at-login", newAccessToken, { httpOnly: true });
-      req.user = user;
-      res.send({ accessToken, refreshToken });
-    }
-  );
+
+  try {
+    const user:any = await VerifyToken(
+      refreshToken as string,
+      process.env.REFRESH_TOKEN as string
+    );
+
+    const {userAccess}:any = await VerifyToken(
+      userAccessToken as string,
+      process.env.USER_ACCESS as string
+    );
+
+    const newAccessToken = generateAccessToken(user.UserId);
+    res.cookie("up-at-login", newAccessToken, { httpOnly: true });
+    req.user = user;
+    res.send({ accessToken, refreshToken, userAccess });
+  } catch (err: any) {
+    console.log(err.message);
+    return res.send(null);
+  }
+
+  // jwt.verify(
+  //   refreshToken as string,
+  //   process.env.REFRESH_TOKEN as string,
+  //   (err, user) => {
+  //     if (err) return res.send(null);
+  //     const getUser: any = user;
+  //     const newAccessToken = generateAccessToken(getUser.UserId);
+  //     res.cookie("up-at-login", newAccessToken, { httpOnly: true });
+  //     req.user = user;
+  //     res.send({ accessToken, refreshToken, userAccess });
+  //   }
+  // );
 });
 
-
+async function VerifyToken(token: string, secret: string) {
+  return new Promise(function (resolve, reject) {
+    jwt.verify(token, secret, function (err, decode) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(decode);
+    });
+  });
+}
 
 // Authentication.use(ValidateToken);
 
@@ -156,8 +193,9 @@ Authentication.get("/token", (req, res) => {
 //   updateRefreshToken(id, "");
 //   res.send({ message: "Logout Successfully", success: true });
 // });
-export function logout(req: Request, res: Response){
-    res.cookie("up-rt-login", { expires: Date.now() });
+
+export function logout(req: Request, res: Response) {
+  res.cookie("up-rt-login", { expires: Date.now() });
   res.cookie("up-at-login", { expires: Date.now() });
   res.clearCookie("up-rt-login");
   res.clearCookie("up-at-login");
@@ -165,6 +203,5 @@ export function logout(req: Request, res: Response){
   updateRefreshToken(id, "");
   res.send({ message: "Logout Successfully", success: true });
 }
-
 
 export default Authentication;
