@@ -411,95 +411,38 @@ async function insertNewVPolicy({
 }
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   const {
-    form_action,
-    form_type,
     sub_account,
     client_id,
-    client_name,
-    client_address,
-    agent_id,
-    agent_name,
-    agent_com,
     PolicyAccount,
     PolicyNo,
-    CCN,
-    ORN,
-    DateFrom,
-    DateTo,
-    DateIssued,
-    Model,
-    Make,
-    TB,
-    Color,
-    BLTFileNo,
-    PlateNo,
-    ChassisNo,
-    MotorNo,
-    AuthorizedCapacity,
-    UnladenWeigth,
-    TplType,
-    PremiumPaid,
-    EVSV,
-    Aircon,
-    Stereo,
-    Magwheels,
-    OthersRate,
-    OthersDesc,
-    CompreType,
-    Deductible,
-    Towing,
-    ARL,
-    BodyInjury,
-    PropertyDamage,
-    PersinalAccident,
     Denomination,
-    Mortgagee,
-    MortgageeForm,
-    SectionI_II,
-    SectionIII,
-    OwnDamage,
-    Theft,
-    SectionIVA,
-    SectionIVB,
-    PremiumOther,
-    AOG,
-    AOGPercent,
-    TotalPremium,
-    Vat,
-    DocStamp,
-    LocalGovTax,
-    StradCom,
-    TotalDue,
-    Type,
-    LocalGovTaxPercent,
-    rateCost,
-    Source_No_Ref_ID,
   } = req.body;
   try {
-    if (await findPolicy(PolicyNo)) {
-      return res.send({
-        message: "Unable to save! Policy No. already exists!",
-        success: false,
-      });
-    }
+    console.log(req.body)
+    // if (await findPolicy(PolicyNo)) {
+    //   return res.send({
+    //     message: "Unable to save! Policy No. already exists!",
+    //     success: false,
+    //   });
+    // }
 
-    //get Commision rate
-    const rate = (
-      (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
-    )[0];
-    if (rate == null) {
-      return res.send({
-        message: "Please setup commission rate for this account and Line",
-        success: false,
-      });
-    }
+    // //get Commision rate
+    // const rate = (
+    //   (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
+    // )[0];
+    // if (rate == null) {
+    //   return res.send({
+    //     message: "Please setup commission rate for this account and Line",
+    //     success: false,
+    //   });
+    // }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
-    const strArea =
-      subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
-    const cStrArea = subAccount.ShortName;
+    // const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    // const strArea =
+    //   subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
+    // const cStrArea = subAccount.ShortName;
 
-    await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+    // await insertNewVPolicy({ ...req.body, cStrArea, strArea });
     res.send({ message: "Create Journal Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

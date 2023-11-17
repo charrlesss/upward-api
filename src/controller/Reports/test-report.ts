@@ -1,15 +1,166 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import { createJournal } from "../../model/Task/Production/vehicle-policy";
+import { addCTPL } from "../../model/Reference/ctpl.model";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
 
 const testReport = express.Router();
-const prisma = new PrismaClient({datasources:{db:{url:"mysql://root:Upward%232023@localhost:3306/upward"}}});
+const prisma = new PrismaClient();
 
-testReport.get("/test-report", async (req, res) => {
-    
-    res.send({
-      message: "test Report",
-      vehiclePolicy:[]
-    });
+testReport.post("/add-journal", async (req, res) => {
+  const data = JSON.parse(req.body.dataString)[0];
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.journal.create({
+    data: {
+      ...data,
+      Source_No_Ref_ID: "",
+    },
   });
 
-  export default testReport
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
+// update  upward.journal set Payto = 'ss'
+// WHERE Source_No BETWEEN 'G438750' AND 'G438849';
+
+function getZeroFirstInput(data: string) {
+  let addZeroFromSeries = "";
+  for (let i = 0; i < data.length; i++) {
+    if (data.charAt(i) === "0") {
+      addZeroFromSeries += "0";
+    } else {
+      break;
+    }
+  }
+  return addZeroFromSeries;
+}
+testReport.post("/ctpl-registration", async (req, res) => {
+  const data = JSON.parse(req.body.dataString)[0];
+  delete data.CreatedDate;
+  const ctplID = await generateUniqueUUID("ctplregistration", "ctplId");
+  console.log(data);
+
+  await addCTPL({
+    ...data,
+    ctplId: ctplID,
+  });
+
+  res.send({ message: "qweqwe" });
+});
+testReport.post("/add-policy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.policy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-vpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.vpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-fpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.fpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-papolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.papolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-msprpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.msprpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-bpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.bpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-mpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.mpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-cglpolicy", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.cglpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
+export default testReport;

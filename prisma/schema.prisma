@@ -861,12 +861,12 @@ model resavelog {
 
 model return_checks {
   Area         String?   @db.VarChar(255)
-  RC_Date      DateTime? @db.DateTime(255)
+  RC_Date      DateTime? @db.DateTime(6)
   RC_No        String @id   @db.VarChar(255)
   Explanation  String?   @db.VarChar(255)
   Check_No     String?   @map("Check No") @db.VarChar(255)
-  Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(255)
-  Date_Collect DateTime? @map("Date Collect") @db.DateTime(255)
+  Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(6)
+  Date_Collect DateTime? @map("Date Collect") @db.DateTime(6)
   Amount       Decimal?  @db.Decimal(19, 4)
   Reason       String?   @db.VarChar(255)
   Bank         String?   @db.VarChar(255)
@@ -905,8 +905,9 @@ model table1 {
   Inactive   Boolean
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model tbl_accrual_request {
-  ReqId         String   @db.VarChar(50)
+  ReqId         String?   @db.VarChar(50)
   Nature        String?   @db.VarChar(1000)
   Acct_Code     String?   @db.VarChar(500)
   Date_From     DateTime? @db.Date

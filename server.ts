@@ -56,6 +56,8 @@ async function main() {
   app.get("/test", async (req, res) => {
       res.send({data:await prisma.ctplregistration.findMany()})
   });
+
+  
   executeQuery();
   app.use("/api", router);
   app.get("*", (req, res) => {
