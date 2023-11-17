@@ -14,11 +14,11 @@ SET @sql_query = concat('
 SELECT 
 	VPolicy.Mortgagee AS Mortgagee,
 	 Policy.IDNo AS IDNo,
-	 UPPER(Shortname) AS AssuredName,
+	 UPPER(entry_client.firstname,", ",entry_client.lastname) AS AssuredName,
 	 Policy.Account AS Account,
 	 Policy.PolicyType,
 	 Policy.PolicyNo,
-	DATE_FORMAT(Policy.DateIssued, "%Y-%m-%d") AS DateIssued,
+	DATE_FORMAT(Policy.DateIssued, "%m-%d-%Y") AS DateIssued,
 	 Policy.TotalPremium,
 	 Policy.Vat,
 	 Policy.DocStamp,
@@ -32,7 +32,7 @@ SELECT
 	 VPolicy.Sec4A,
 	 VPolicy.Sec4B,
 	 VPolicy.Sec4C,
-     DATE_FORMAT(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))), "%Y-%m-%d") AS EffictiveDate,',
+     DATE_FORMAT(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))), "%m-%d-%Y") AS EffictiveDate,',
 	'IF( ',IsFinanced,' = 0, IFNULL(CGLPolicy.LimitB, 0) + IFNULL(CGLPolicy.LimitA, 0) + IFNULL(VPolicy.ODamage, 0) + IFNULL(VPolicy.TPLLimit, 0),IFNULL(ODamage, 0) + IFNULL(TPLLimit, 0)) AS PLimit,',
     'IF(',IsFinanced ,'= 0, IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0) + IFNULL(FPolicy.InsuredValue, 0) + IFNULL(BPolicy.BondValue, 0) + IFNULL(MPolicy.InsuredValue, 0) + IFNULL(MSPRPolicy.SecI, 0) + IFNULL(MSPRPolicy.SecIB, 0) + IFNULL(MSPRPolicy.SecII, 0),IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0))  AS InsuredValue,' ,
     'CoverNo,
@@ -51,7 +51,7 @@ LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo
 LEFT JOIN CGLPolicy ON Policy.PolicyNo = CGLPolicy.PolicyNo 
 LEFT JOIN MSPRPolicy ON Policy.PolicyNo = MSPRPolicy.PolicyNo 
 LEFT JOIN FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo 
-LEFT JOIN  `id entry` ON Policy.IDNo = `id entry`.IDNo');
+LEFT JOIN  entry_client ON Policy.IDNo = entry_client.entry_client_id');
 
 IF (Mortgagee = '') THEN
     IF (PolicyType = 'Bonds') THEN

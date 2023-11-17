@@ -70,6 +70,8 @@ ProductionReports.post("/production-report", async (req, res) => {
   )} ', '${account}', '${report_type}', ${format2}, '${
     mortgagee === "All" ? "" : mortgagee
   }', '${policy_type}', '${sort}');`;
+  console.log(query)
+  
   const report: any = await prisma.$queryRawUnsafe(query);
   const data = mapColumnsToKeys(tableCol, report);
   res.send({

@@ -1,0 +1,101 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `renewal_report`(
+IN DateFrom VARCHAR(100),
+IN PolicyType VARCHAR(100),  
+IN SortBy VARCHAR(100)
+)
+BEGIN
+
+IF(PolicyType = 'COM') THEN
+	set @select_query = concat("
+    SELECT 
+		concat(a.firstname,', ', a.lastname) as AssuredName,
+        Policy.PolicyNo,
+        DATE_FORMAT(VPolicy.DateTo, '%m-%d-%Y')as Expiration,
+        VPolicy.EstimatedValue as InsuredValue,
+        VPolicy.Make,
+        VPolicy.BodyType,
+		VPolicy.PlateNo,
+        VPolicy.ChassisNo,
+        VPolicy.MotorNo,
+        Policy.TotalPremium,
+        VPolicy.Mortgagee
+		Mortgagee
+    FROM Policy 
+    LEFT JOIN VPolicy ON Policy.PolicyNo = VPolicy.PolicyNo 
+    LEFT JOIN  entry_client a ON Policy.IDNo = a.entry_client_id
+    where 
+    Policy.PolicyType = '",PolicyType,"' AND
+    month(VPolicy.DateTo) = month('",DateFrom,"') AND
+    year(VPolicy.DateTo) = year('",DateFrom,"')
+    ORDER BY date(VPolicy.DateTo) asc
+    "
+    );
+END IF;
+
+IF(PolicyType = 'FIRE') THEN
+	set @select_query = concat("
+    SELECT 
+		concat(a.firstname,', ', a.lastname) as AssuredName,
+		Policy.PolicyNo,
+		DATE_FORMAT(FPolicy.DateTo, '%m-%d-%Y')as Expiration,
+        FPolicy.InsuredValue as InsuredValue,
+        Policy.TotalPremium,
+		FPolicy.Mortgage
+    FROM Policy 
+    LEFT JOIN FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo 
+	LEFT JOIN  entry_client a ON Policy.IDNo = a.entry_client_id
+    where 
+    Policy.PolicyType = '",PolicyType,"' AND
+    month(FPolicy.DateTo) = month('",DateFrom,"') AND
+     year(FPolicy.DateTo) = year('",DateFrom,"')
+     ORDER BY date(FPolicy.DateTo) asc
+     "
+     
+    );
+END IF;
+
+IF(PolicyType = 'MAR') THEN
+	set @select_query = concat("
+    SELECT
+		concat(a.firstname,', ', a.lastname) as AssuredName,
+        Policy.PolicyNo,
+        DATE_FORMAT(MPolicy.DateTo, '%m-%d-%Y')as Expiration,
+        MPolicy.InsuredValue,
+         Policy.TotalPremium
+    FROM Policy 
+    LEFT JOIN MPolicy ON Policy.PolicyNo = MPolicy.PolicyNo 
+      LEFT JOIN  entry_client a ON Policy.IDNo = a.entry_client_id
+    where 
+    Policy.PolicyType = '",PolicyType,"' AND
+    month(MPolicy.DateTo) = month('",DateFrom,"') AND
+     year(MPolicy.DateTo) = year('",DateFrom,"')
+     ORDER BY date(MPolicy.DateTo) asc
+     "
+     
+    );
+END IF;
+
+IF(PolicyType = 'PA') THEN
+	set @select_query = concat("
+    SELECT 
+		concat(a.firstname,', ', a.lastname) as AssuredName,
+        Policy.PolicyNo,
+        DATE_FORMAT(PAPolicy.PeriodTo, '%m-%d-%Y')as Expiration,
+         Policy.TotalPremium
+    FROM Policy 
+    LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo 
+	LEFT JOIN  entry_client a ON Policy.IDNo = a.entry_client_id
+    where 
+    Policy.PolicyType = '",PolicyType,"' AND
+    month(PAPolicy.PeriodTo) = month('",DateFrom,"') AND
+     year(PAPolicy.PeriodTo) = year('",DateFrom,"') 
+     ORDER BY date(PAPolicy.PeriodTo) asc"
+     
+    );
+END IF;
+
+    
+PREPARE dynamic_statement FROM @select_query;
+EXECUTE dynamic_statement;
+DEALLOCATE PREPARE dynamic_statement;
+END

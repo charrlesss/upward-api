@@ -306,15 +306,15 @@ model chart_account {
 }
 
 model transaction_code {
-  Code        String @id  @db.VarChar(220)
+  Code        String  @id @db.VarChar(220)
   Description String  @db.VarChar(220)
   Acct_Code   String  @db.VarChar(220)
   Inactive    Boolean
 }
 
 model petty_log {
-  Petty_Log String @id @default(uuid())
-  Purpose   String   @db.VarChar(100)
+  Petty_Log String  @id @default(uuid())
+  Purpose   String  @db.VarChar(100)
   Acct_Code String  @db.VarChar(10)
   Short     String  @db.VarChar(50)
   Inactive  Boolean
@@ -326,19 +326,19 @@ model bankaccounts {
   Account_Type String? @db.VarChar(50)
   Desc         String? @db.VarChar(50)
   Option       Int?
-  Account_ID   String?  @db.VarChar(50)
+  Account_ID   String? @db.VarChar(50)
   Inactive     Boolean
-  Auto         String @id @default(uuid())
+  Auto         String  @id @default(uuid())
   IDNo         String? @db.VarChar(50)
   Identity     String? @db.VarChar(50)
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+///======================
 model booklet {
   Account       String  @db.VarChar(20)
   DateEntry     String  @db.VarChar(10)
   PolicyType    String  @db.VarChar(4)
-  PolicyBooklet String  @db.VarChar(4)
+  PolicyBooklet String  @id @default(uuid())
   PolicyNoFrom  String  @db.VarChar(20)
   PolicyNoTo    String  @db.VarChar(20)
   COCFrom       String  @db.VarChar(20)
@@ -346,8 +346,6 @@ model booklet {
   ORFrom        String  @db.VarChar(20)
   ORTo          String  @db.VarChar(20)
   Done          Boolean
-
-  @@ignore
 }
 
 model books {
@@ -360,7 +358,6 @@ model books {
   Hide       Boolean
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model cash_disbursement {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -387,18 +384,14 @@ model cash_disbursement {
   Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TC            String?   @db.VarChar(3)
   Remarks       String?   @db.VarChar(255)
-  AutoNo        BigInt
+  AutoNo        BigInt    @id @default(autoincrement())
   VAT_Type      String?   @db.VarChar(50)
   OR_Invoice_No String?   @db.VarChar(100)
   VATItemNo     Int?
-
-  @@map("cash disbursement")
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model cash_breakdown {
-  Slip_Code String? @db.VarChar(50)
+  Slip_Code String @id @db.VarChar(250)
   Pap_1000  Int?
   Pap_500   Int?
   Pap_100   Int?
@@ -415,23 +408,17 @@ model cash_breakdown {
   Cnt_05    Int?
   Cnt_01    Int?
   Pap_200   Int?
-
-  @@ignore
 }
 
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model closed {
+  closedId   Int      @id @default(autoincrement())
   FStatement String   @db.VarChar(20)
   Date_Time  DateTime @db.DateTime(6)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model collection {
   Date             DateTime? @db.DateTime(6)
-  ORNo             String?   @db.VarChar(50)
+  ORNo             String    @id @db.VarChar(50)
   IDNo             String?   @db.VarChar(50)
   Name             String?   @db.VarChar(500)
   Payment          String?   @db.VarChar(50)
@@ -459,13 +446,10 @@ model collection {
   CRRemarks2       String?   @db.LongText
   CRVATType        String?   @db.VarChar(50)
   CRInvoiceNo      String?   @db.VarChar(100)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model company {
-  Branch_Code   String @db.VarChar(3)
+  Branch_Code   String @id @db.VarChar(3)
   Branch_Name   String @db.VarChar(100)
   Location_Code String @db.VarChar(3)
   Location_Name String @db.VarChar(100)
@@ -475,8 +459,6 @@ model company {
   Address       String @db.VarChar(255)
   Contact       String @db.VarChar(20)
   Email         String @db.VarChar(50)
-
-  @@ignore
 }
 
 model company_list {
@@ -488,10 +470,9 @@ model company_list {
   @@map("company list")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model deposit {
   Date_Deposit  DateTime? @db.DateTime(6)
-  Slip_Code     String?   @db.VarChar(50)
+  Slip_Code     String    @id @db.VarChar(50)
   Account_ID    String?   @map("Account ID") @db.VarChar(50)
   Account_Name  String?   @map("Account Name") @db.VarChar(250)
   Debit         Decimal?  @db.Decimal(19, 4)
@@ -507,40 +488,31 @@ model deposit {
   Temp_SlipCode String?   @db.VarChar(50)
   Temp_SlipCntr String?   @db.VarChar(50)
   Temp_SlipDate DateTime? @db.DateTime(6)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model deposit_slip {
   Date         DateTime? @db.DateTime(6)
-  SlipCode     String?   @db.VarChar(50)
+  SlipCode     String    @id @db.VarChar(50)
   Slip         String?   @db.VarChar(250)
   BankAccount  String?   @db.VarChar(250)
   AccountName  String?   @db.VarChar(250)
   CheckDeposit Decimal?  @db.Decimal(19, 4)
   CashDeposit  Decimal?  @db.Decimal(19, 4)
   IDNo         String?   @db.VarChar(250)
-
-  @@map("deposit slip")
-  @@ignore
 }
 
 model dtproperties {
-  id       Int
+  id       Int     @id
   objectid Int?
   property String  @db.VarChar(64)
   value    String? @db.VarChar(255)
   uvalue   String? @db.VarChar(255)
   lvalue   Bytes?
   version  Int     @default(0)
-
-  @@id([id, property])
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model endorsement {
-  EndorseNo        String   @db.VarChar(20)
+  EndorseNo        String   @id @db.VarChar(20)
   PolicyNo         String   @db.VarChar(20)
   DateEndorse      DateTime @db.DateTime(6)
   Title            String   @db.VarChar(50)
@@ -575,17 +547,12 @@ model endorsement {
   UnladenWeight    String   @db.VarChar(50)
   Mortgagee        String   @db.VarChar(100)
   MortgageeClause  String   @db.VarChar(250)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model holidays {
-  ID   Int
+  ID   Int       @id @default(autoincrement())
   Name String?   @db.VarChar(250)
   Date DateTime? @db.Date
-
-  @@ignore
 }
 
 model id_entry {
@@ -609,7 +576,6 @@ model id_entry {
   @@map("id entry")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal_partial {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -641,7 +607,6 @@ model journal_partial {
   @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal_voucher {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -668,16 +633,12 @@ model journal_voucher {
   Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TC            String?   @db.VarChar(3)
   Remarks       String?   @db.VarChar(255)
-  AutoNo        BigInt
+  AutoNo        BigInt    @id @default(autoincrement())
   VAT_Type      String?   @db.VarChar(50)
   OR_Invoice_No String?   @db.VarChar(100)
   VATItemNo     Int?
-
-  @@map("journal voucher")
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal_voucher2 {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -704,13 +665,9 @@ model journal_voucher2 {
   Credit        Decimal?  @db.Decimal(19, 4)
   TC            String?   @db.VarChar(3)
   Remarks       String?   @db.VarChar(255)
-  AutoNo        BigInt
-
-  @@map("journal voucher2")
-  @@ignore
+  AutoNo        BigInt    @id @default(autoincrement())
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal2 {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -737,12 +694,9 @@ model journal2 {
   Credit        Decimal?  @db.Decimal(19, 4)
   TC            String?   @db.VarChar(3)
   Remarks       String?   @db.VarChar(255)
-  AutoNo        BigInt
-
-  @@ignore
+  AutoNo        BigInt    @id @default(autoincrement())
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model journal3 {
   Branch_Code   String?   @db.VarChar(3)
   Date_Entry    DateTime? @db.DateTime(6)
@@ -769,12 +723,10 @@ model journal3 {
   Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TC            String?   @db.VarChar(3)
   Remarks       String?   @db.LongText
-  AutoNo        BigInt
+  AutoNo        BigInt    @id @default(autoincrement())
   VAT_Type      String?   @db.VarChar(50)
   OR_Invoice_No String?   @db.VarChar(100)
   VATItemNo     Int?
-
-  @@ignore
 }
 
 model ledger {
@@ -783,9 +735,8 @@ model ledger {
   Commision Decimal @default(0.0000) @db.Decimal(19, 4)
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pdc {
-  Ref_No          String?   @db.VarChar(50)
+  Ref_No          String    @id @db.VarChar(50)
   PNo             String?   @db.VarChar(50)
   IDNo            String?   @db.VarChar(50)
   Date            DateTime? @db.DateTime(6)
@@ -806,15 +757,12 @@ model pdc {
   Date_Pulled_Out DateTime? @map("Date Pulled Out") @db.DateTime(6)
   PDC_Remarks     String?   @map("PDC Remarks") @db.VarChar(250)
   mark            String?   @db.VarChar(50)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model petty_cash {
   Branch_Code String?   @db.VarChar(3)
   PC_Date     DateTime? @db.DateTime(6)
-  PC_No       String?   @db.VarChar(20)
+  PC_No       String    @id @db.VarChar(20)
   Explanation String?   @db.LongText
   Payee       String?   @db.VarChar(100)
   DRPurpose   String?   @db.LongText
@@ -830,16 +778,10 @@ model petty_cash {
   DRVATType   String?   @db.VarChar(50)
   DRInvoiceNo String?   @db.VarChar(100)
   VATItemNo   Int?
-
-  @@map("petty cash")
-  @@ignore
 }
 
-
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement {
-  RPCDNo        String    @db.VarChar(30)
+  RPCDNo        String    @id @db.VarChar(30)
   PNNo          String?   @db.VarChar(30)
   HoldingFees   Decimal?  @db.Decimal(16, 2)
   PenaltyCharge Decimal?  @db.Decimal(16, 2)
@@ -851,59 +793,44 @@ model postponement {
   Status        String?   @db.VarChar(30)
   Branch        String?   @db.VarChar(30)
   Prepared_by   String?   @db.VarChar(50)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement_auth_codes {
-  RPCD             String?   @db.VarChar(50)
+  RPCD             String    @id @db.VarChar(50)
   For_User         String?   @db.VarChar(500)
   Approved_Code    String?   @db.VarChar(50)
   Disapproved_Code String?   @db.VarChar(50)
   Used_By          String?   @db.VarChar(50)
   Used_DateTime    DateTime? @db.Date
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model postponement_detail {
-  RPCDNo       String    @db.VarChar(30)
+  RPCDNo       String    @id @db.VarChar(30)
   CheckNo      String    @db.VarChar(30)
   OldCheckDate DateTime? @db.Date
   NewCheckDate DateTime? @db.Date
   Reason       String?   @db.VarChar(250)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model production {
-  PNNo          String? @db.VarChar(255)
+  PNNo          String  @id @db.VarChar(255)
   IDNo          String? @db.VarChar(255)
   Short         String? @db.VarChar(100)
   Insurance     String? @db.VarChar(255)
   InsuranceName String? @db.VarChar(255)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pullout_auth_codes {
-  RCPN             String?   @db.VarChar(50)
+  RCPN             String    @id @db.VarChar(50)
   For_User         String?   @db.VarChar(500)
   Approved_Code    String?   @db.VarChar(50)
   Disapproved_Code String?   @db.VarChar(50)
   Used_By          String?   @db.VarChar(50)
   Used_DateTime    DateTime? @db.Date
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pullout_request {
-  RCPNo          String    @db.VarChar(30)
+  RCPNo          String    @id @db.VarChar(30)
   PNNo           String?   @db.VarChar(30)
   Reason         String?   @db.VarChar(100)
   Status         String?   @db.VarChar(30)
@@ -912,57 +839,43 @@ model pullout_request {
   Requested_Date DateTime? @db.DateTime(6)
   Approved_By    String?   @db.VarChar(30)
   Approved_Date  DateTime? @db.DateTime(6)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model pullout_request_details {
-  RCPNo   String? @db.VarChar(30)
+  RCPNo   String @id @db.VarChar(30)
   CheckNo String? @db.VarChar(50)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model reportset {
   Report_Settings String @map("Report Settings") @db.VarChar(50)
   Set_Option      String @map("Set Option") @db.VarChar(50)
-
-  @@ignore
+  reportsetId String @id @default(uuid())
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model resavelog {
-  RecordNo     String   @db.VarChar(500)
+  RecordNo     String @id   @db.VarChar(500)
   RecordTable  String   @db.VarChar(500)
   Username     String   @db.VarChar(200)
   DateModified DateTime @db.DateTime(6)
-
-  @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model return_checks {
   Area         String?   @db.VarChar(255)
-  RC_Date      DateTime? @db.DateTime(6)
-  RC_No        String?   @db.VarChar(50)
+  RC_Date      DateTime? @db.DateTime(255)
+  RC_No        String @id   @db.VarChar(255)
   Explanation  String?   @db.VarChar(255)
   Check_No     String?   @map("Check No") @db.VarChar(255)
-  Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(6)
-  Date_Collect DateTime? @map("Date Collect") @db.DateTime(6)
+  Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(255)
+  Date_Collect DateTime? @map("Date Collect") @db.DateTime(255)
   Amount       Decimal?  @db.Decimal(19, 4)
-  Reason       String?   @db.VarChar(50)
-  Bank         String?   @db.VarChar(50)
-  Check_Date   String?   @map("Check Date") @db.VarChar(50)
-  Date_Return  String?   @map("Date Return") @db.VarChar(50)
-  SlipCode     String?   @db.VarChar(50)
-  ORNum        String?   @db.VarChar(50)
-  BankAccnt    String?   @db.VarChar(50)
-  nSort        String?   @db.VarChar(50)
-
-  @@map("return checks")
-  @@ignore
+  Reason       String?   @db.VarChar(255)
+  Bank         String?   @db.VarChar(255)
+  Check_Date   String?   @map("Check Date") @db.VarChar(255)
+  Date_Return  String?   @map("Date Return") @db.VarChar(255)
+  SlipCode     String?   @db.VarChar(255)
+  ORNum        String?   @db.VarChar(255)
+  BankAccnt    String?   @db.VarChar(255)
+  nSort        String?   @db.VarChar(255)
 }
 
 model sysdiagrams {
@@ -992,9 +905,8 @@ model table1 {
   Inactive   Boolean
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model tbl_accrual_request {
-  ReqId         String?   @db.VarChar(50)
+  ReqId         String   @db.VarChar(50)
   Nature        String?   @db.VarChar(1000)
   Acct_Code     String?   @db.VarChar(500)
   Date_From     DateTime? @db.Date
@@ -1032,7 +944,6 @@ model tbl_accrual_request_income {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model words {
