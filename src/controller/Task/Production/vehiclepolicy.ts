@@ -418,31 +418,30 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     Denomination,
   } = req.body;
   try {
-    console.log(req.body)
-    // if (await findPolicy(PolicyNo)) {
-    //   return res.send({
-    //     message: "Unable to save! Policy No. already exists!",
-    //     success: false,
-    //   });
-    // }
+    if (await findPolicy(PolicyNo)) {
+      return res.send({
+        message: "Unable to save! Policy No. already exists!",
+        success: false,
+      });
+    }
 
-    // //get Commision rate
-    // const rate = (
-    //   (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
-    // )[0];
-    // if (rate == null) {
-    //   return res.send({
-    //     message: "Please setup commission rate for this account and Line",
-    //     success: false,
-    //   });
-    // }
+    //get Commision rate
+    const rate = (
+      (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
+    )[0];
+    if (rate == null) {
+      return res.send({
+        message: "Please setup commission rate for this account and Line",
+        success: false,
+      });
+    }
 
-    // const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
-    // const strArea =
-    //   subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
-    // const cStrArea = subAccount.ShortName;
+    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const strArea =
+      subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
+    const cStrArea = subAccount.ShortName;
 
-    // await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+    await insertNewVPolicy({ ...req.body, cStrArea, strArea });
     res.send({ message: "Create Journal Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

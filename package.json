@@ -4,7 +4,8 @@
   "description": "company system",
   "main": "server.ts",
   "scripts": {
-    "start": "nodemon --exec  ts-node ./server.ts"
+    "start": "nodemon --exec  ts-node ./server.ts",
+    "sub_server": "nodemon --exec  ts-node ./sub-server.ts"
   },
   "author": "",
   "license": "ISC",
@@ -18,7 +19,6 @@
     "@types/uuid": "^9.0.4",
     "nodemon": "^3.0.1",
     "prisma": "^5.2.0",
-    "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
@@ -32,6 +32,7 @@
     "exceljs": "^4.3.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "ts-node": "^10.9.1",
     "uuid": "^9.0.1"
   }
 }

@@ -4,10 +4,25 @@ import cors from "cors";
 import router from "./src/controller";
 import path from "path";
 import cookieParser from "cookie-parser";
+
+import {
+  creatSampleUser,
+  createIdSequence,
+  creatSampleSubAccount,
+  getAcronym,
+  createSublineLine,
+  createPrefix,
+  createCTPLType,
+  createPolicyAccount,
+  creatRates,
+  createMortgagee,
+  createBank
+} from "./src/model/StoredProcedure";
+
 import testReport from "./src/controller/Reports/test-report";
 
 const prisma = new PrismaClient();
-const PORT = process.env.PORT;
+const PORT = 6000;
 
 const corsOptions = {
   origin:[ "http://localhost:3000", "http://localhost:4000","/"],
@@ -16,7 +31,18 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
-
+function executeQuery() {
+  // creatSampleUser()
+  // createIdSequence()
+  // creatSampleSubAccount()
+  // createSublineLine()
+  // createPrefix()
+  // createCTPLType()
+  // createPolicyAccount()
+  // creatRates()
+  // createMortgagee()
+  // createBank()
+}
 
 async function main() {
   const app = express();
@@ -24,12 +50,14 @@ async function main() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(cors(corsOptions));
-  app.use(express.static(path.join(__dirname, "/static/image/")));
-  app.use(express.static(path.join(__dirname, "/src/view")));
-  app.use("/api", router);
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
-  });
+
+
+  app.use('/testing',testReport)
+
+
+  
+  executeQuery();
+
   app.listen(PORT, () => console.log(`Listen in port ${PORT}`));
 }
 

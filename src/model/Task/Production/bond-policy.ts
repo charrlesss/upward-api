@@ -41,7 +41,7 @@ export async function searchBondsPolicy(search: string) {
   c.middlename like '%${search}%' 
   limit 100
   `;
-  return prisma.$queryRawUnsafe(query);
+  return await prisma.$queryRawUnsafe(query);
 }
 
 export async function deleteBondsPolicy(
