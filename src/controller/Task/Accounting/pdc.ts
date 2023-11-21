@@ -108,7 +108,6 @@ PDC.get("/search-pdc-banks", async (req, res) => {
 PDC.get('/search-pdc',async(req,res)=>{
   try{
     const {searchPDCInput} =  req.query
-    
     const searchPDCData = await searchPDC(searchPDCInput as string);
     res.send({message:"Search PDC Successfully",success:true,searchPDC:searchPDCData})
   }catch(error:any){

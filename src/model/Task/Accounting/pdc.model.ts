@@ -50,7 +50,7 @@ export async function searchPDC(search: any) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
         a.Ref_No,
-        DATE_FORMAT(a.Date, '%M %d, %Y') AS Date_Received,
+        DATE_FORMAT(a.Date, '%M %d, %Y') AS Date,
         a.Name
     FROM
         upward_insurance.pdc a
@@ -66,31 +66,25 @@ export async function searchPDC(search: any) {
 export async function getSearchPDCheck(ref_no: any) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
-      a.Ref_No,
+    a.Ref_No,
+    a.Name,
+    a.Date,
+      a.Remarks,
       a.PNo,
       a.IDNo,
-      a.Date,
-      a.Name,
-      a.Remarks,
-      a.Bank,
-      a.Branch,
-      a.Check_Date,
       a.Check_No,
+      a.Check_Date,
       a.Check_Amnt,
+      b.Bank AS BankName,
+      a.Branch,
       a.Check_Remarks,
-      a.SlipCode,
-      a.DateDepo,
-      a.ORNum,
-      a.mark,
-      a.Date_Endorsed,
-      a.Date_Pulled_Out,
-      a.Date_Stored,
-      a.PDC_Status,
-      b.Bank,
-      b.Bank_Code
+      a.SlipCode AS Deposit_Slip,
+      a.DateDepo AS DateDeposit,
+      a.ORNum AS OR_No
     FROM
-        upward_insurance.pdc a
-        left join upward_insurance.bank b on a.Bank = b.Bank_Code
+      upward_insurance.pdc a
+          LEFT JOIN
+      upward_insurance.bank b ON a.Bank = b.Bank_Code
     WHERE
     a.Ref_No = '${ref_no}'
   `);
