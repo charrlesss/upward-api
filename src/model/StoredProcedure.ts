@@ -54,6 +54,12 @@ export async function createIdSequence() {
         type: "entry others",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "pdc",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);

@@ -12,11 +12,6 @@ import {
 } from "../../../model/Task/Production/vehicle-policy";
 import { getMSPRRate } from "../../../model/Task/Production/mspr-policy";
 import {
-  createPAPolicy,
-  searchPAPolicy,
-  deletePAPolicy,
-} from "../../../model/Task/Production/pa-ppolicy";
-import {
   createCGLPolicy,
   deleteCGLPolicy,
   searchCGLPolicy,
@@ -46,12 +41,14 @@ CGLPolicy.get("/get-cgl-policy", (req, res) => {
 CGLPolicy.post("/add-cgl-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
+
     if (await findPolicy(PolicyNo)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
       });
     }
+
     // get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "CGL")) as Array<any>)[0];
 
@@ -67,6 +64,7 @@ CGLPolicy.post("/add-cgl-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
+
     res.send({ message: "Create CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
