@@ -23,9 +23,6 @@ testReport.post("/add-journal", async (req, res) => {
   });
 });
 
-// update  upward.journal set Payto = 'ss'
-// WHERE Source_No BETWEEN 'G438750' AND 'G438849';
-
 function getZeroFirstInput(data: string) {
   let addZeroFromSeries = "";
   for (let i = 0; i < data.length; i++) {
@@ -152,6 +149,33 @@ testReport.post("/add-cglpolicy", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
   console.log(`data :${req.body.count} :`, req.body.dataString);
   await prisma.cglpolicy.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
+testReport.post("/add-chart-account", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  await prisma.chart_account.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-transaction-code", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  await prisma.transaction_code.create({
     data: {
       ...data[0],
     },

@@ -32,7 +32,7 @@ const corsOptions = {
 };
 
 function executeQuery() {
-  creatSampleUser()
+  // creatSampleUser()
   // createIdSequence()
   // creatSampleSubAccount()
   // createSublineLine()
