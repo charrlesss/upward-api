@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-
 export async function getClientCheckedList(search:string,PNo:string){
    const query =  `
    SELECT 
@@ -40,10 +39,14 @@ export async function getTransactionBanksDetails() {
         a.code = 'CHK' OR a.code = 'CSH'`
     return await prisma.$queryRawUnsafe(query)
 }
+
 export async function getTransactionDescription() {
     const query =`
         SELECT 
-            a.Description as label
+            a.Description as label,
+            b.Acct_Code,
+            b.Acct_Title,
+            a.Code
         FROM
             upward_insurance.transaction_code a
                 LEFT JOIN
