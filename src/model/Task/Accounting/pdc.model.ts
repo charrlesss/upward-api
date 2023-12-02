@@ -89,3 +89,24 @@ export async function getSearchPDCheck(ref_no: any) {
     a.Ref_No = '${ref_no}'
   `);
 }
+
+export async function pdcIDGenerator() {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    concat(a.year,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as pdcID
+  FROM
+    upward_insurance.id_sequence a
+  WHERE
+    type = 'pdc';
+;`);
+}
+
+export async function updatePDCIDSequence(data: any) {
+  return await prisma.$queryRawUnsafe(`
+      update upward_insurance.id_sequence a
+      set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
+      where a.type ='pdc'
+    `);
+}
+
+

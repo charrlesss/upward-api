@@ -55,9 +55,21 @@ export async function createIdSequence() {
         year: getYear(),
       },
       {
-        last_count: "000",
+        last_count: "0000",
         month: getMonth(),
         type: "pdc",
+        year: getYear(),
+      },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "pdc-chk",
+        year: getYear(),
+      },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "collection",
         year: getYear(),
       },
     ],

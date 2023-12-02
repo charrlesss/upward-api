@@ -7,6 +7,7 @@ import {
   getPdcPolicyIdAndCLientId,
   searchPDC,
   getSearchPDCheck,
+  pdcIDGenerator,
 } from "../../../model/Task/Accounting/pdc.model";
 import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
 
@@ -20,14 +21,15 @@ PDC.post("/add-pdc", async (req, res) => {
     await deletePdcByRefNo(req.body.Ref_No);
     const checks = JSON.parse(req.body.checks);
     let num = 0;
-    const id = await IDGenerator("pdc", "pdc");
+    const id = await IDGenerator("chk", "pdc-chk");
     const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
     const year = id.split("-")[1].slice(2, id.split("-")[1].length);
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
     checks.forEach(async (check: any, idx: number) => {
-      newId = num.toString().padStart(count.length, "0");
+      newId = "chk-" + num.toString().padStart(count.length, "0");
+      console.log(newId);
       num++;
       if (check.DateDeposit === "") {
         await createPDC({
@@ -69,10 +71,22 @@ PDC.post("/add-pdc", async (req, res) => {
         });
       }
     });
-    await UpdateId("pdc", newId, month, year);
-    res.send({ message: "Create New PDC Successfully.", success: true });
+    await UpdateId("pdc-chk", newId.split('-')[1], month, year);
+
+    await UpdateId(
+      "pdc",
+      req.body.Ref_No.split(".")[1],
+      "",
+      req.body.Ref_No.split(".")[0]
+    );
+    const newPdcId = await pdcIDGenerator();
+    res.send({
+      message: "Create New PDC Successfully.",
+      success: true,
+      PdcId: newPdcId,
+    });
   } catch (error: any) {
-    res.send({ message: error.message, success: false });
+    res.send({ message: error.message, success: false, PdcId: null });
   }
 });
 PDC.post("/update-pdc", async (req, res) => {
@@ -83,7 +97,6 @@ PDC.post("/update-pdc", async (req, res) => {
         success: false,
       });
     }
-
 
     await deletePdcByRefNo(req.body.Ref_No);
     const checks = JSON.parse(req.body.checks);
@@ -161,6 +174,7 @@ PDC.get("/search-pdc-banks", async (req, res) => {
     const { searchPdcBanks } = req.query;
     res.send({
       pdcBanks: await getPdcBanks(searchPdcBanks as string),
+      pdcID: await pdcIDGenerator(),
       success: true,
     });
   } catch (error: any) {
