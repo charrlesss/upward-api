@@ -103,6 +103,46 @@ export async function findORnumber(ORNo: string) {
   });
 }
 
-export async function getCollections(){
-  return await prisma.$queryRawUnsafe('select * from upward_insurance.collection')
+export async function getCollections(searchCollectionInput: string) {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+        FORMAT(MAX(a.Date), 'MMM. dd, yyyy') AS 'Date',
+        a.Official_Receipt AS 'ORNo',
+        MAX(a.Name) AS Name
+    FROM
+        upward_insurance.collection a
+    WHERE
+        LEFT(a.Name, 7) <> '-- Void'
+            AND (a.Official_Receipt LIKE '%${searchCollectionInput}%'
+            OR Name LIKE '%${searchCollectionInput}%')
+    GROUP BY a.Official_Receipt
+    ORDER BY MAX(a.Date) DESC , Name
+    LIMIT 100
+  `);
+}
+export async function getSearchCollection(ORNo: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    a.*, 
+    b.Bank_Code, 
+    b.Bank AS BankName,
+    TRIM(BOTH ' ' FROM SUBSTRING_INDEX(a.Bank, '/', -1)) as Branch
+  FROM
+    upward_insurance.collection a
+        LEFT JOIN
+    upward_insurance.bank b ON b.Bank_Code = TRIM(BOTH ' ' FROM SUBSTRING_INDEX(a.Bank, '/', 1))
+  WHERE
+    a.Official_Receipt = '${ORNo}'
+  ORDER BY a.Temp_OR
+  `);
+}
+
+export async function deleteCollection(Official_Receipt: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE FROM upward_insurance.collection a WHERE a.Official_Receipt ='${Official_Receipt}'
+  `);
+}
+
+export async function updateCollection(data: any, Temp_OR: any) {
+  return await prisma.collection.update({ data: data, where: { Temp_OR } });
 }

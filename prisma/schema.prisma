@@ -283,7 +283,7 @@ model papolicy {
   PeriodTo   DateTime @db.DateTime(6)
   Location   String   @db.VarChar(255)
 }
-  
+
 model cglpolicy {
   PolicyNo   String   @id @db.VarChar(20)
   Account    String   @db.VarChar(100)
@@ -418,7 +418,7 @@ model closed {
 
 model collection {
   Date             DateTime? @db.DateTime(6)
-  ORNo             String    @id @db.VarChar(50)
+  ORNo             String?    @db.VarChar(50)
   IDNo             String?   @db.VarChar(50)
   Name             String?   @db.VarChar(500)
   Payment          String?   @db.VarChar(50)
@@ -436,7 +436,7 @@ model collection {
   CRRemarks        String?   @db.LongText
   ID_No            String?   @db.VarChar(50)
   Official_Receipt String?   @db.VarChar(50)
-  Temp_OR          String?   @db.VarChar(50)
+  Temp_OR          String    @id @db.VarChar(50)
   Date_OR          DateTime? @db.DateTime(6)
   Short            String?   @db.VarChar(500)
   SlipCode         String?   @db.VarChar(50)
@@ -736,7 +736,7 @@ model ledger {
 }
 
 model pdc {
-  PDC_ID          String    @id 
+  PDC_ID          String    @id
   Ref_No          String    @db.VarChar(50)
   PNo             String?   @db.VarChar(50)
   IDNo            String?   @db.VarChar(50)
@@ -752,9 +752,9 @@ model pdc {
   SlipCode        String?   @db.VarChar(50)
   DateDepo        DateTime? @db.DateTime(6)
   ORNum           String?   @db.VarChar(50)
-  PDC_Status      String?    @db.VarChar(150)
+  PDC_Status      String?   @db.VarChar(150)
   Date_Stored     DateTime? @db.DateTime(6)
-  Date_Endorsed   DateTime?  @db.DateTime(6)
+  Date_Endorsed   DateTime? @db.DateTime(6)
   Date_Pulled_Out DateTime? @db.DateTime(6)
   PDC_Remarks     String?   @db.VarChar(250)
   mark            String?   @db.VarChar(50)
@@ -843,18 +843,18 @@ model pullout_request {
 }
 
 model pullout_request_details {
-  RCPNo   String @id @db.VarChar(30)
+  RCPNo   String  @id @db.VarChar(30)
   CheckNo String? @db.VarChar(50)
 }
 
 model reportset {
   Report_Settings String @map("Report Settings") @db.VarChar(50)
   Set_Option      String @map("Set Option") @db.VarChar(50)
-  reportsetId String @id @default(uuid())
+  reportsetId     String @id @default(uuid())
 }
 
 model resavelog {
-  RecordNo     String @id   @db.VarChar(500)
+  RecordNo     String   @id @db.VarChar(500)
   RecordTable  String   @db.VarChar(500)
   Username     String   @db.VarChar(200)
   DateModified DateTime @db.DateTime(6)
@@ -863,7 +863,7 @@ model resavelog {
 model return_checks {
   Area         String?   @db.VarChar(255)
   RC_Date      DateTime? @db.DateTime(6)
-  RC_No        String @id   @db.VarChar(255)
+  RC_No        String    @id @db.VarChar(255)
   Explanation  String?   @db.VarChar(255)
   Check_No     String?   @map("Check No") @db.VarChar(255)
   Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(6)
