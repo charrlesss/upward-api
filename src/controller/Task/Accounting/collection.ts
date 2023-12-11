@@ -14,7 +14,6 @@ import {
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
-import { parse } from "date-fns";
 const Collection = express.Router();
 
 Collection.get("/get-client-checked-by-id", async (req, res) => {
@@ -187,7 +186,7 @@ async function AddCollection(req: any) {
       CRInvoiceNo = credit[i].invoiceNo;
     }
 
-    const ColDate = i === 0 ? new Date(req.body.Date) : null;
+    const ColDate = i === 0 ? req.body.Date : null;
     const OR = i === 0 ? req.body.ORNo : "";
     const PNo = i === 0 ? req.body.PNo : "";
     const Name = i === 0 ? req.body.Name : "";
@@ -200,7 +199,7 @@ async function AddCollection(req: any) {
       Payment: Payment,
       Debit: Debit.replaceAll(",", ""),
       Check_No: CheckNo,
-      Check_Date: new Date(CheckDate),
+      Check_Date: CheckDate,
       Bank: Bank,
       DRCode: DRCode,
       DRTitle: DRTitle,
@@ -217,7 +216,7 @@ async function AddCollection(req: any) {
       Official_Receipt: req.body.ORNo,
       Temp_OR: `${req.body.ORNo}${(i + 1).toString().padStart(2, "0")}`,
       Status: "HO",
-      Date_OR: new Date(req.body.Date),
+      Date_OR: req.body.Date,
       Short: req.body.Name,
       CRVATType: CRVatType,
       CRInvoiceNo: CRInvoiceNo,
@@ -249,12 +248,12 @@ async function AddCollection(req: any) {
     DRRemarks = debit[i].TC;
     await createJournal({
       Branch_Code: "HO",
-      Date_Entry: new Date(req.body.Date),
+      Date_Entry: req.body.Date,
       Source_Type: "OR",
       Source_No: req.body.ORNo.toUpperCase(),
       Explanation: `${Payment} Collection at Head Office`,
       Check_No: CheckNo,
-      Check_Date: new Date(CheckDate),
+      Check_Date: CheckDate,
       Check_Bank: Bank,
       Payto: req.body.Name,
       GL_Acct: DRCode,
@@ -282,7 +281,7 @@ async function AddCollection(req: any) {
 
     await createJournal({
       Branch_Code: "HO",
-      Date_Entry: new Date(req.body.Date),
+      Date_Entry: req.body.Date,
       Source_Type: "OR",
       Source_No: req.body.ORNo.toUpperCase(),
       GL_Acct: CRCode,

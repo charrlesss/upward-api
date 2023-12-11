@@ -37,12 +37,12 @@ PDC.post("/add-pdc", async (req, res) => {
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
           IDNo: req.body.Ref_No,
-          Date: req.body.Date,
+          Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
           Bank: req.body.BankCode,
           Branch: check.Branch,
-          Check_Date: check.Check_Date,
+          Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
           Check_Amnt: check.Check_Amnt,
           Check_Remarks: check.Check_Remarks,
@@ -55,12 +55,12 @@ PDC.post("/add-pdc", async (req, res) => {
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
           IDNo: req.body.Ref_No,
-          Date: req.body.Date,
+          Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
           Bank: req.body.BankCode,
           Branch: check.Branch,
-          Check_Date: check.Check_Date,
+          Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
           Check_Amnt: check.Check_Amnt,
           Check_Remarks: check.Check_Remarks,
@@ -71,7 +71,7 @@ PDC.post("/add-pdc", async (req, res) => {
         });
       }
     });
-    await UpdateId("pdc-chk", newId.split('-')[1], month, year);
+    await UpdateId("pdc-chk", newId.split("-")[1], month, year);
 
     await UpdateId(
       "pdc",
@@ -107,23 +107,25 @@ PDC.post("/update-pdc", async (req, res) => {
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
+    console.log("qweqwe", req.body.DateDeposit);
     checks.forEach(async (check: any) => {
       newId = num.toString().padStart(count.length, "0");
       num++;
+
       if (check.DateDeposit === "") {
         await createPDC({
           PDC_ID: newId,
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
           IDNo: req.body.Ref_No,
-          Date: req.body.Date,
+          Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
           Bank: req.body.BankCode,
           Branch: check.Branch,
-          Check_Date: check.Check_Date,
+          Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt,
+          Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
           Check_Remarks: check.Check_Remarks,
           ORNum: check.OR_No,
           PDC_Status: "Received",
@@ -134,24 +136,27 @@ PDC.post("/update-pdc", async (req, res) => {
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
           IDNo: req.body.Ref_No,
-          Date: req.body.Date,
+          Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
           Bank: req.body.BankCode,
           Branch: check.Branch,
-          Check_Date: check.Check_Date,
+          Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt,
+          Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
           Check_Remarks: check.Check_Remarks,
           SlipCode: req.body.Deposit_Slip,
-          DateDepo: req.body.DateDeposit === "" ? "" : req.body.DateDeposit,
+          DateDepo:
+            req.body.DateDeposit && req.body.DateDeposit !== ""
+              ? new Date(req.body.DateDeposit)
+              : undefined,
           ORNum: check.OR_No,
           PDC_Status: "Received",
         });
       }
     });
     await UpdateId("pdc", newId, month, year);
-    res.send({ message: "Create New PDC Successfully.", success: true });
+    res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
     res.send({ message: error.message, success: false });
   }

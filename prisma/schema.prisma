@@ -138,34 +138,34 @@ model vpolicy {
 }
 
 model journal {
-  Branch_Code      String?   @db.VarChar(255)
-  Date_Entry       DateTime? @db.DateTime(6)
-  Source_Type      String?   @db.VarChar(255)
-  Source_No        String?   @db.VarChar(255)
-  Explanation      String?   @db.LongText
-  Particulars      String?   @db.LongText
-  Payto            String?   @db.VarChar(500)
-  Address          String?   @db.VarChar(255)
-  Check_Date       DateTime? @db.DateTime(6)
-  Check_No         String?   @db.VarChar(255)
-  Check_Bank       String?   @db.VarChar(255)
-  Check_Return     DateTime? @db.DateTime(6)
-  Check_Collect    DateTime? @db.DateTime(6)
-  Check_Deposit    DateTime? @db.DateTime(6)
-  Check_Reason     String?   @db.VarChar(255)
-  GL_Acct          String?   @db.VarChar(255)
-  Sub_Acct         String?   @db.VarChar(255)
-  ID_No            String?   @db.VarChar(255)
-  cGL_Acct         String?   @db.VarChar(255)
-  cSub_Acct        String?   @db.VarChar(255)
-  cID_No           String?   @db.VarChar(500)
-  Debit            Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Credit           Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  TC               String?   @db.VarChar(255)
-  Remarks          String?   @db.LongText
-  AutoNo           BigInt    @id @default(autoincrement())
-  VAT_Type         String?   @db.VarChar(255)
-  OR_Invoice_No    String?   @db.VarChar(255)
+  Branch_Code      String?  @db.VarChar(255)
+  Date_Entry       String?  @db.VarChar(255)
+  Source_Type      String?  @db.VarChar(255)
+  Source_No        String?  @db.VarChar(255)
+  Explanation      String?  @db.LongText
+  Particulars      String?  @db.LongText
+  Payto            String?  @db.VarChar(500)
+  Address          String?  @db.VarChar(255)
+  Check_Date       String?  @db.VarChar(255)
+  Check_No         String?  @db.VarChar(255)
+  Check_Bank       String?  @db.VarChar(255)
+  Check_Return     String?  @db.VarChar(255)
+  Check_Collect    String?  @db.VarChar(255)
+  Check_Deposit    String?  @db.VarChar(255)
+  Check_Reason     String?  @db.VarChar(255)
+  GL_Acct          String?  @db.VarChar(255)
+  Sub_Acct         String?  @db.VarChar(255)
+  ID_No            String?  @db.VarChar(255)
+  cGL_Acct         String?  @db.VarChar(255)
+  cSub_Acct        String?  @db.VarChar(255)
+  cID_No           String?  @db.VarChar(500)
+  Debit            Decimal? @default(0.0000) @db.Decimal(19, 4)
+  Credit           Decimal? @default(0.0000) @db.Decimal(19, 4)
+  TC               String?  @db.VarChar(255)
+  Remarks          String?  @db.LongText
+  AutoNo           BigInt   @id @default(autoincrement())
+  VAT_Type         String?  @db.VarChar(255)
+  OR_Invoice_No    String?  @db.VarChar(255)
   VATItemNo        Int?
   Source_No_Ref_ID String
 }
@@ -417,35 +417,35 @@ model closed {
 }
 
 model collection {
-  Date             DateTime? @db.DateTime(6)
-  ORNo             String?    @db.VarChar(50)
-  IDNo             String?   @db.VarChar(50)
-  Name             String?   @db.VarChar(500)
-  Payment          String?   @db.VarChar(50)
-  Bank             String?   @db.VarChar(150)
-  Check_Date       DateTime? @db.DateTime(6)
-  Check_No         String?   @db.VarChar(50)
-  DRCode           String?   @db.VarChar(50)
-  DRTitle          String?   @db.VarChar(50)
-  DRRemarks        String?   @db.LongText
-  Debit            Decimal?  @db.Decimal(19, 4)
-  Purpose          String?   @db.LongText
-  CRCode           String?   @db.VarChar(50)
-  CRTitle          String?   @db.VarChar(50)
-  Credit           Decimal?  @db.Decimal(19, 4)
-  CRRemarks        String?   @db.LongText
-  ID_No            String?   @db.VarChar(50)
-  Official_Receipt String?   @db.VarChar(50)
-  Temp_OR          String    @id @db.VarChar(50)
-  Date_OR          DateTime? @db.DateTime(6)
-  Short            String?   @db.VarChar(500)
-  SlipCode         String?   @db.VarChar(50)
-  Status           String?   @db.VarChar(50)
-  CRLoanID         String?   @db.VarChar(50)
-  CRLoanName       String?   @db.VarChar(150)
-  CRRemarks2       String?   @db.LongText
-  CRVATType        String?   @db.VarChar(50)
-  CRInvoiceNo      String?   @db.VarChar(100)
+  Date             String? @db.VarChar(250)
+  ORNo             String? @db.VarChar(250)
+  IDNo             String? @db.VarChar(250)
+  Name             String? @db.VarChar(500)
+  Payment          String? @db.VarChar(250)
+  Bank             String? @db.VarChar(250)
+  Check_Date       String? @db.VarChar(250)
+  Check_No         String? @db.VarChar(250)
+  DRCode           String? @db.VarChar(250)
+  DRTitle          String? @db.VarChar(250)
+  DRRemarks        String? @db.LongText
+  Debit            String? @db.VarChar(250)
+  Purpose          String? @db.LongText
+  CRCode           String? @db.VarChar(250)
+  CRTitle          String? @db.VarChar(250)
+  Credit           String? @db.VarChar(250)
+  CRRemarks        String? @db.LongText
+  ID_No            String? @db.VarChar(250)
+  Official_Receipt String? @db.VarChar(250)
+  Temp_OR          String  @id @db.VarChar(250)
+  Date_OR          String? @db.VarChar(250)
+  Short            String? @db.VarChar(500)
+  SlipCode         String? @db.VarChar(250)
+  Status           String? @db.VarChar(250)
+  CRLoanID         String? @db.VarChar(250)
+  CRLoanName       String? @db.VarChar(250)
+  CRRemarks2       String? @db.LongText
+  CRVATType        String? @db.VarChar(250)
+  CRInvoiceNo      String? @db.VarChar(250)
 }
 
 model company {
@@ -747,7 +747,7 @@ model pdc {
   Branch          String?   @db.VarChar(50)
   Check_Date      DateTime? @db.DateTime(6)
   Check_No        String?   @db.VarChar(50)
-  Check_Amnt      Decimal?  @db.Decimal(19, 4)
+  Check_Amnt      String?   @db.VarChar(250)
   Check_Remarks   String?   @db.VarChar(50)
   SlipCode        String?   @db.VarChar(50)
   DateDepo        DateTime? @db.DateTime(6)

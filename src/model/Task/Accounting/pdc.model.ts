@@ -3,26 +3,32 @@ const prisma = new PrismaClient();
 
 export async function getPdcPolicyIdAndCLientId(search: String) {
   const query = ` 
-    SELECT 
-        'Client ID' AS Type,
-        a.entry_client_id AS IDNo,
-        concat(a.firstname,', ', a.lastname) AS Name,
-        a.entry_client_id as ID 
-    FROM upward_insurance.entry_client a  WHERE a.entry_client_id NOT IN (SELECT IDNo FROM upward_insurance.policy)
-    union all
-    SELECT 
-        'Policy ID' AS Type,
-        a.PolicyNo AS IDNo,
-        concat(b.firstname,', ', b.lastname) AS Name,
-        a.IDNo  as ID 
-    FROM upward_insurance.policy a
-    left join upward_insurance.entry_client b on b.entry_client_id = a.IDNo 
-    where 
-    a.policyNo like '%${search}%' OR  
-    b.firstname like '%${search}%' OR 
-    b.lastname like '%${search}%' OR
-    a.IDNo  like '%${search}%' 
-    limit 100
+  SELECT 
+  'Client ID' AS Type,
+  a.entry_client_id AS IDNo,
+  concat(a.firstname,', ', a.lastname) AS Name,
+  a.entry_client_id as ID 
+FROM upward_insurance.entry_client a  WHERE 
+a.entry_client_id NOT IN (SELECT IDNo FROM upward_insurance.policy) AND 
+(
+a.entry_client_id like '%${search}%' OR  
+a.firstname like '%${search}%' OR 
+a.lastname like '%${search}%' 
+)
+union all
+SELECT 
+  'Policy ID' AS Type,
+  a.PolicyNo AS IDNo,
+  concat(b.firstname,', ', b.lastname) AS Name,
+  a.IDNo  as ID 
+FROM upward_insurance.policy a
+left join upward_insurance.entry_client b on b.entry_client_id = a.IDNo 
+where 
+a.policyNo like '%${search}%' OR  
+b.firstname like '%${search}%' OR 
+b.lastname like '%${search}%' OR
+a.IDNo  like '%${search}%' 
+limit 100
     `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -108,5 +114,3 @@ export async function updatePDCIDSequence(data: any) {
       where a.type ='pdc'
     `);
 }
-
-
