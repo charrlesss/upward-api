@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  TransactionAndChartAccount,
   collectionIDGenerator,
   createCollection,
   createJournal,
@@ -14,6 +15,7 @@ import {
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
+import { getPdcBanks } from "../../../model/Task/Accounting/pdc.model";
 const Collection = express.Router();
 
 Collection.get("/get-client-checked-by-id", async (req, res) => {
@@ -175,11 +177,15 @@ async function AddCollection(req: any) {
       DRRemarks = debit[i].Remarks;
     }
     if (i <= credit.length - 1) {
+      const { Acct_Code, Acct_Title } = (
+        (await TransactionAndChartAccount(credit[i].transaction)) as Array<any>
+      )[0];
+
       Purpose = credit[i].transaction;
       Credit = credit[i].amount;
       CRRemarks = credit[i].Remarks;
-      CRCode = credit[i].Title;
-      CRTitle = credit[i].TC;
+      CRCode = Acct_Code;
+      CRTitle = Acct_Title;
       CRLoanID = credit[i].Account_No;
       CRLoanName = credit[i].Name;
       CRVatType = credit[i].VATType;

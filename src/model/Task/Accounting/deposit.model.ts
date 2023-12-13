@@ -5,7 +5,7 @@ export async function getCashCollection(SlipCode: string) {
   const sql = `
     SELECT 
         a.Official_Receipt AS OR_No,
-        FORMAT(a.Date_OR, 'MM/dd/yyyy') AS OR_Date,
+        DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
         FORMAT(a.Debit, '#,##0.00') AS Amount,
         a.Short AS Client_Name,
         a.DRCode,
@@ -21,17 +21,15 @@ export async function getCashCollection(SlipCode: string) {
         Payment = 'Cash'
             AND (a.SlipCode = '' OR a.SlipCode = '${SlipCode}')
     ORDER BY a.Date_OR DESC , a.Check_Date 
-    limit 500
     `;
 
   return await prisma.$queryRawUnsafe(sql);
 }
-
 export async function getCheckCollection(SlipCode: string) {
   const sql = `
   SELECT 
   a.Official_Receipt AS OR_No,
-   FORMAT(a.Date_OR,'MM/dd/yyyy') AS OR_Date,
+   DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
    a.Check_No AS Check_No, 
    FORMAT(a.Check_Date,'MM/dd/yyyy') AS Check_Date,
    FORMAT(a.Debit, '#,##0.00') AS Amount,
@@ -48,7 +46,7 @@ export async function getCheckCollection(SlipCode: string) {
    ON a.DRCode = b.Acct_Code 
    WHERE a.Payment = 'Check' 
    AND (a.SlipCode IS NULL OR a.SlipCode = '${SlipCode}') ORDER BY a.Date_OR DESC, a.Check_Date
-   limit 500
+
     `;
 
   return await prisma.$queryRawUnsafe(sql);

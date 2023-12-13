@@ -146,3 +146,16 @@ export async function deleteCollection(Official_Receipt: string) {
 export async function updateCollection(data: any, Temp_OR: any) {
   return await prisma.collection.update({ data: data, where: { Temp_OR } });
 }
+
+export async function TransactionAndChartAccount(search: string) {
+  const query = `
+  SELECT 
+  b.Acct_Code, b.Acct_Title
+FROM
+  upward_insurance.transaction_code a
+      LEFT JOIN
+  upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+WHERE
+  a.Description = '${search}'    `;
+  return await prisma.$queryRawUnsafe(query);
+}
