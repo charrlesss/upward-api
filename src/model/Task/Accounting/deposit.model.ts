@@ -51,8 +51,44 @@ export async function getCheckCollection(SlipCode: string) {
 
   return await prisma.$queryRawUnsafe(sql);
 }
+
+export async function getBanksFromDeposit(search: string) {
+  const sql = `
+  SELECT 
+    a.Account_Type, a.Account_No, a.Account_Name
+  FROM
+    upward_insurance.bankaccounts a
+  WHERE
+    Inactive = 0
+        AND (a.Account_Type LIKE '%${search}%'
+        OR a.Account_No LIKE '%${search}%'
+        OR a.Account_Name LIKE '%${search}%')
+  ORDER BY a.Account_Name
+  LIMIT 100;
+  `;
+  return await prisma.$queryRawUnsafe(sql);
+}
+
 async function getDepositSlip() {
   const sql = `
     SELECT concat()FROM upward_insurance.deposit_slip;
   `;
+}
+
+export async function depositIDGenerator() {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+      concat(a.year,a.month,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as collectionID
+    FROM
+      upward_insurance.id_sequence a
+    WHERE
+      type = 'deposit';`);
+}
+
+export async function findDepositBySlipCode(Slip_Code: string) {
+  return await prisma.deposit.findMany({
+    where: {
+      Slip_Code,
+    },
+  });
 }

@@ -159,7 +159,6 @@ testReport.post("/add-cglpolicy", async (req, res) => {
     vehiclePolicy: [],
   });
 });
-
 testReport.post("/add-chart-account", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
   await prisma.chart_account.create({
@@ -176,6 +175,19 @@ testReport.post("/add-chart-account", async (req, res) => {
 testReport.post("/add-transaction-code", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
   await prisma.transaction_code.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+testReport.post("/add-bankaccounts", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  await prisma.bankaccounts.create({
     data: {
       ...data[0],
     },
