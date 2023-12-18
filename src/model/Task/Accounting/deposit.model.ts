@@ -58,6 +58,7 @@ export async function getBanksFromDeposit(search: string) {
     a.Account_Type, a.Account_No, a.Account_Name
   FROM
     upward_insurance.bankaccounts a
+    left join cli
   WHERE
     Inactive = 0
         AND (a.Account_Type LIKE '%${search}%'
@@ -67,12 +68,6 @@ export async function getBanksFromDeposit(search: string) {
   LIMIT 100;
   `;
   return await prisma.$queryRawUnsafe(sql);
-}
-
-async function getDepositSlip() {
-  const sql = `
-    SELECT concat()FROM upward_insurance.deposit_slip;
-  `;
 }
 
 export async function depositIDGenerator() {
@@ -91,4 +86,8 @@ export async function findDepositBySlipCode(Slip_Code: string) {
       Slip_Code,
     },
   });
+}
+
+export async function addDepositSlip(data: any) {
+  return await prisma.deposit_slip.create({ data });
 }

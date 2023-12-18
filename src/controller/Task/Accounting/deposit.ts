@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  addDepositSlip,
   depositIDGenerator,
   findDepositBySlipCode,
   getBanksFromDeposit,
@@ -64,15 +65,47 @@ Deposit.post("/add-deposit", async (req, res) => {
         success: false,
       });
     }
-
-
-
+    console.log(req.body)
+    const selectedCollection = JSON.parse(req.body.selectedCollection);
+    await addDepositSlip({
+      Date: req.body.depositdate,
+      SlipCode: req.body.depositSlip,
+      Slip: req.body.bankAccountNo,
+      BankAccount: req.body.bankName,
+      AccountName: req.body.bankName,
+      CheckDeposit: selectedCollection
+        .reduce((accumulator: number, currentValue: any) => {
+          const dd =
+            currentValue.Check_No || currentValue.Check_No !== ""
+              ? parseFloat(currentValue.Amount.replace(/,/g, ""))
+              : 0;
+          return accumulator + dd;
+        }, 0.0)
+        .toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      CashDeposit: selectedCollection
+        .reduce((accumulator: number, currentValue: any) => {
+          const dd =
+            currentValue.Check_No || currentValue.Check_No !== ""
+              ? 0
+              : parseFloat(currentValue.Amount.replace(/,/g, ""));
+          return accumulator + dd;
+        }, 0.0)
+        .toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      IDNo: req.body.bankAccountNo,
+    });
 
     res.send({
       message: "Successfully Create New Deposit.",
       success: true,
     });
   } catch (error: any) {
+    console.log(error)
     res.send({ message: error.message, success: false });
   }
 });

@@ -64,7 +64,7 @@ interface EntryOthersType {
 
 const queryList: any = {
   Client: {
-    query: (search: string, hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
     SELECT 
             a.entry_client_id,
             a.firstname,
@@ -95,7 +95,7 @@ const queryList: any = {
     `,
   },
   Employee: {
-    query: (search: string,hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
   SELECT 
         a.entry_employee_id,
         a.firstname,
@@ -118,7 +118,7 @@ const queryList: any = {
   `,
   },
   Agent: {
-    query: (search: string,hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
       SELECT 
       a.entry_agent_id,
       a.firstname,
@@ -142,7 +142,7 @@ const queryList: any = {
   `,
   },
   "Fixed Assets": {
-    query: (search: string,hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
     SELECT 
       a.entry_fixed_assets_id,
       a.fullname,
@@ -159,7 +159,7 @@ const queryList: any = {
   `,
   },
   Supplier: {
-    query: (search: string,hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
     SELECT  
       a.entry_supplier_id,
       a.firstname,
@@ -188,7 +188,7 @@ const queryList: any = {
   `,
   },
   Others: {
-    query: (search: string,hasLimit:boolean = false) => `
+    query: (search: string, hasLimit: boolean = false) => `
     SELECT 
       a.entry_others_id,
       a.description,
@@ -450,8 +450,14 @@ async function updateSupplier(data: EntrySupplierType) {
     prisma.$queryRawUnsafe(query2),
   ]);
 }
-export async function searchEntry(entry: string, search: string, hasLimit:boolean = false) {
-  return await prisma.$queryRawUnsafe(queryList[`${entry}`].query(search ,hasLimit));
+export async function searchEntry(
+  entry: string,
+  search: string,
+  hasLimit: boolean = false
+) {
+  return await prisma.$queryRawUnsafe(
+    queryList[`${entry}`].query(search, hasLimit)
+  );
 }
 export async function updateEntry(entry: string, data: any) {
   switch (entry) {
@@ -531,4 +537,7 @@ export async function deleteEntry(entry: string, id: string) {
       });
       break;
   }
+}
+export async function getClientInIdEntry(where: string) {
+  return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
 }
