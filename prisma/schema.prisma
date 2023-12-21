@@ -321,16 +321,16 @@ model petty_log {
 }
 
 model bankaccounts {
-  Account_No   String? @db.VarChar(50)
-  Account_Name String? @db.VarChar(50)
-  Account_Type String? @db.VarChar(50)
-  Desc         String? @db.VarChar(50)
+  Account_No   String? @db.VarChar(250)
+  Account_Name String? @db.VarChar(250)
+  Account_Type String? @db.VarChar(250)
+  Desc         String? @db.VarChar(250)
   Option       Int?
-  Account_ID   String? @db.VarChar(50)
+  Account_ID   String? @db.VarChar(250)
   Inactive     Boolean
   Auto         String  @id @default(uuid())
-  IDNo         String? @db.VarChar(50)
-  Identity     String? @db.VarChar(50)
+  IDNo         String? @db.VarChar(250)
+  Identity     String? @db.Text
 }
 
 ///======================
@@ -392,22 +392,22 @@ model cash_disbursement {
 
 model cash_breakdown {
   Slip_Code String @id @db.VarChar(250)
-  Pap_1000  Int?
-  Pap_500   Int?
-  Pap_100   Int?
-  Pap_50    Int?
-  Pap_20    Int?
-  Pap_10    Int?
-  Pap_5     Int?
-  Coin_5    Int?
-  Coin_2    Int?
-  Coin_1    Int?
-  Cnt_50    Int?
-  Cnt_25    Int?
-  Cnt_10    Int?
-  Cnt_05    Int?
-  Cnt_01    Int?
-  Pap_200   Int?
+  Pap_1000  String?
+  Pap_500   String?
+  Pap_100   String?
+  Pap_50    String?
+  Pap_20    String?
+  Pap_10    String?
+  Pap_5     String?
+  Coin_5    String?
+  Coin_2    String?
+  Coin_1    String?
+  Cnt_50    String?
+  Cnt_25    String?
+  Cnt_10    String?
+  Cnt_05    String?
+  Cnt_01    String?
+  Pap_200   String?
 }
 
 model closed {
@@ -472,7 +472,7 @@ model company_list {
 
 model deposit {
   Date_Deposit  DateTime? @db.DateTime(6)
-  Slip_Code     String    @id @db.VarChar(250)
+  Slip_Code     String?   @db.VarChar(250)
   Account_ID    String?   @db.VarChar(250)
   Account_Name  String?   @db.VarChar(250)
   Debit         String?   @db.VarChar(250)
@@ -488,6 +488,7 @@ model deposit {
   Temp_SlipCode String?   @db.VarChar(250)
   Temp_SlipCntr String?   @db.VarChar(250)
   Temp_SlipDate DateTime? @db.DateTime(6)
+  Deposit_ID    Int    @id @default(autoincrement())
 }
 
 model deposit_slip {

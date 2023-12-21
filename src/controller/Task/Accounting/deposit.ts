@@ -1,11 +1,14 @@
 import express from "express";
 import {
   addDepositSlip,
-  depositIDGenerator,
   findDepositBySlipCode,
   getBanksFromDeposit,
   getCashCollection,
   getCheckCollection,
+  addCashCheckInDeposit,
+  depositIDSlipCodeGenerator,
+  addCashBreakDown,
+  addJournal,
 } from "../../../model/Task/Accounting/deposit.model";
 const Deposit = express.Router();
 
@@ -20,7 +23,6 @@ Deposit.get("/getCashCollection", async (req, res) => {
     res.send({ message: error.message, success: false, cash: [] });
   }
 });
-
 Deposit.get("/getCheckCollection", async (req, res) => {
   try {
     res.send({
@@ -32,7 +34,6 @@ Deposit.get("/getCheckCollection", async (req, res) => {
     res.send({ message: error.message, success: false, check: [] });
   }
 });
-
 Deposit.get("/getBanks", async (req, res) => {
   const { bankDepositSearch } = req.query;
   try {
@@ -50,14 +51,14 @@ Deposit.get("/get-deposit-slipcode", async (req, res) => {
     res.send({
       message: "Successfully Get Deposit Slipcode Successfully.",
       success: true,
-      slipcode: await depositIDGenerator(),
+      slipcode: await depositIDSlipCodeGenerator(),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, slipcode: [] });
   }
 });
-
 Deposit.post("/add-deposit", async (req, res) => {
+  console.log(req.body)
   try {
     if ((await findDepositBySlipCode(req.body.depositSlip)).length > 0) {
       return res.send({
@@ -65,47 +66,214 @@ Deposit.post("/add-deposit", async (req, res) => {
         success: false,
       });
     }
-    console.log(req.body)
+
     const selectedCollection = JSON.parse(req.body.selectedCollection);
+    const tableRowsInputValue = JSON.parse(req.body.tableRowsInputValue);
+    const cashTotal = selectedCollection.reduce(
+      (accumulator: number, currentValue: any) => {
+        const dd =
+          currentValue.Check_No || currentValue.Check_No !== ""
+            ? 0
+            : parseFloat(currentValue.Amount.replace(/,/g, ""));
+        return accumulator + dd;
+      },
+      0.0
+    );
+    const checkTotal = selectedCollection.reduce(
+      (accumulator: number, currentValue: any) => {
+        const dd =
+          currentValue.Check_No || currentValue.Check_No !== ""
+            ? parseFloat(currentValue.Amount.replace(/,/g, ""))
+            : 0;
+        return accumulator + dd;
+      },
+      0.0
+    );
+
     await addDepositSlip({
       Date: req.body.depositdate,
       SlipCode: req.body.depositSlip,
-      Slip: req.body.bankAccountNo,
-      BankAccount: req.body.bankName,
-      AccountName: req.body.bankName,
-      CheckDeposit: selectedCollection
-        .reduce((accumulator: number, currentValue: any) => {
-          const dd =
-            currentValue.Check_No || currentValue.Check_No !== ""
-              ? parseFloat(currentValue.Amount.replace(/,/g, ""))
-              : 0;
-          return accumulator + dd;
-        }, 0.0)
-        .toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-      CashDeposit: selectedCollection
-        .reduce((accumulator: number, currentValue: any) => {
-          const dd =
-            currentValue.Check_No || currentValue.Check_No !== ""
-              ? 0
-              : parseFloat(currentValue.Amount.replace(/,/g, ""));
-          return accumulator + dd;
-        }, 0.0)
-        .toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-      IDNo: req.body.bankAccountNo,
+      Slip: req.body.Desc,
+      BankAccount: req.body.Account_No,
+      AccountName: req.body.Account_Name,
+      CheckDeposit: checkTotal.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      CashDeposit: cashTotal.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      IDNo: req.body.IDNo,
     });
+
+    let Cnt = 0;
+    const Amount = [checkTotal, cashTotal];
+    for (let i = 0; i < 2; i++) {
+      if (Amount[i] !== 0) {
+        Cnt++;
+        await addCashCheckInDeposit({
+          Date_Deposit: Cnt > 1 ? null : req.body.depositdate,
+          Slip_Code: Cnt > 1 ? null : req.body.depositSlip,
+          Account_ID: req.body.Account_No,
+          Account_Name: req.body.Account_Name,
+          Debit: Amount[i].toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+          Temp_SlipCode: req.body.depositSlip,
+          Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
+          Temp_SlipDate: req.body.depositdate,
+          Type: "HO",
+          IDNo: req.body.ShortName,
+        });
+      }
+    }
+    for (let i = 0; i < selectedCollection.length; i++) {
+      const selectedCollectionValue = selectedCollection[i];
+      await addCashCheckInDeposit({
+        Account_ID: selectedCollectionValue.DRCode,
+        Account_Name: selectedCollectionValue.Short,
+        Credit: selectedCollectionValue.Amount,
+        Check_Date: selectedCollectionValue.Check_Date,
+        Check_No: selectedCollectionValue.Check_No,
+        Bank: selectedCollectionValue.Bank,
+        Temp_SlipCode: req.body.depositSlip,
+        Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
+        Temp_SlipDate: req.body.depositdate,
+        IDNo: selectedCollectionValue.Name,
+        Type: "HO",
+        Ref_No: selectedCollectionValue.ORNo,
+      });
+    }
+    await addCashBreakDown({
+      Slip_Code: req.body.depositSlip,
+      Pap_1000: tableRowsInputValue[0].value2,
+      Pap_500: tableRowsInputValue[1].value2,
+      Pap_200: tableRowsInputValue[2].value2,
+      Pap_100: tableRowsInputValue[3].value2,
+      Pap_50: tableRowsInputValue[4].value2,
+      Pap_20: tableRowsInputValue[5].value2,
+      Pap_10: tableRowsInputValue[6].value2,
+      Pap_5: tableRowsInputValue[7].value2,
+      Coin_5: tableRowsInputValue[7].value2,
+      Coin_2: tableRowsInputValue[8].value2,
+      Coin_1: tableRowsInputValue[9].value2,
+      Cnt_50: tableRowsInputValue[10].value2,
+      Cnt_25: tableRowsInputValue[11].value2,
+      Cnt_10: tableRowsInputValue[12].value2,
+      Cnt_05: tableRowsInputValue[13].value2,
+      Cnt_01: tableRowsInputValue[14].value2,
+    });
+
+    for (let i = 0; i < 2; i++) {
+      if (Amount[i] !== 0) {
+        addJournal({
+          Branch_Code: "HO",
+          Date_Entry: req.body.depositdate,
+          Source_Type: "DC",
+          Source_No: req.body.depositSlip,
+          Particulars: i === 0 ? req.body.ShortName : "",
+
+          Payto: i === 1 ? req.body.ShortName : "",
+          GL_Acct: req.body.Account_ID,
+          cGL_Acct: req.body.Short,
+          Sub_Acct: req.body.Sub_Acct,
+          cSub_Acct: req.body.Sub_ShortName,
+
+          ID_No: req.body.IDNo,
+          cID_No: req.body.ShortName,
+          Debit:
+            i == 0
+              ? checkTotal.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : cashTotal.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+          Source_No_Ref_ID: "",
+        });
+      }
+    }
+
+
+    for (let i = 0; i < selectedCollection.length; i++) {
+      // const IsCheck = dgvSelectedColl[i][1] !==                                                                                                                                                                                                                                                                                                                                                                                 90lkj,m bn                                                                                                                                                                                      "";
+
+      // const journalResult = await prisma.journal.create({
+      //   data: {
+      //     Branch_Code: BranchCode,
+      //     Date_Entry: dtpDate,
+      //     Source_Type: 'DC',
+      //     Source_No: txtDepCode.trim(),
+      //     Explanation: '',
+      //     Check_Date: IsCheck ? new Date(dgvSelectedColl[i][2]) : null,
+      //     Check_No: IsCheck ? dgvSelectedColl[i][1] : null,
+      //     Check_Bank: IsCheck ? dgvSelectedColl[i][3] : null,
+      //     Remarks: IsCheck ? dgvSelectedColl[i][9] : null,
+      //     Payto: dgvSelectedColl[i][5],
+      //     GL_Acct: dgvSelectedColl[i][7],
+      //     cGL_Acct: dgvSelectedColl[i][12],
+      //     Sub_Acct: BranchCode,
+      //     cSub_Acct: BranchName,
+      //     ID_No: dgvSelectedColl[i][10],
+      //     cID_No: dgvSelectedColl[i][5],
+      //     Credit: parseFloat(dgvSelectedColl[i][4]),
+      //   },
+      // });
+
+      // if (!journalResult) {
+      //   await prisma.$executeRaw`ROLLBACK TRAN`;
+      //   console.log('Rollback transaction');
+      //   clsProcedure.ImLoading(MyText, false);
+      //   return;
+      // }
+
+      // const updateCollectionResult = await prisma.collection.update({
+      //   where: { Temp_OR: dgvSelectedColl[i][11] },
+      //   data: { SlipCode: txtDepCode.trim() },
+      // });
+
+      // if (!updateCollectionResult) {
+      //   await prisma.$executeRaw`ROLLBACK TRAN`;
+      //   console.log('Rollback transaction');
+      //   clsProcedure.ImLoading(MyText, false);
+      //   return;
+      // }
+
+      // if (IsCheck) {
+      //   const updatePDCResult = await prisma.pDC.update({
+      //     where: {
+      //       PNo: dgvSelectedColl[i][10],
+      //       Check_No: dgvSelectedColl[i][1],
+      //     },
+      //     data: {
+      //       DateDepo: dtpDate,
+      //       SlipCode: txtDepCode.trim(),
+      //     },
+      //   });
+
+      //   if (!updatePDCResult) {
+      //     await prisma.$executeRaw`ROLLBACK TRAN`;
+      //     console.log('Rollback transaction');
+      //     clsProcedure.ImLoading(MyText, false);
+      //     return;
+      //   }
+      // }
+    }
+
+
+
+
 
     res.send({
       message: "Successfully Create New Deposit.",
       success: true,
     });
   } catch (error: any) {
-    console.log(error)
+    console.log(error);
     res.send({ message: error.message, success: false });
   }
 });
