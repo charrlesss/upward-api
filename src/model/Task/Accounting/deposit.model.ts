@@ -155,5 +155,36 @@ export async function addCashBreakDown(data: any) {
 export async function addJournal(data: any) {
   return await prisma.journal.create({ data });
 }
+export async function updateCollectioSlipCode(
+  SlipCode: string,
+  Temp_OR: string
+) {
+  return await prisma.collection.update({
+    data: {
+      SlipCode,
+    },
+    where: {
+      Temp_OR,
+    },
+  });
+}
 
-
+export async function updatePDCSlipCode(
+  SlipCode: string,
+  DateDepo: string,
+  PNo: string,
+  Check_No: string
+) {
+  return await prisma.pdc.updateMany({
+    data: {
+      SlipCode,
+      DateDepo,
+    },
+    where: {
+      Check_No,
+      AND: {
+        PNo,
+      },
+    },
+  });
+}

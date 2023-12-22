@@ -9,6 +9,8 @@ import {
   depositIDSlipCodeGenerator,
   addCashBreakDown,
   addJournal,
+  updateCollectioSlipCode,
+  updatePDCSlipCode,
 } from "../../../model/Task/Accounting/deposit.model";
 const Deposit = express.Router();
 
@@ -58,7 +60,7 @@ Deposit.get("/get-deposit-slipcode", async (req, res) => {
   }
 });
 Deposit.post("/add-deposit", async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   try {
     if ((await findDepositBySlipCode(req.body.depositSlip)).length > 0) {
       return res.send({
@@ -169,7 +171,7 @@ Deposit.post("/add-deposit", async (req, res) => {
     for (let i = 0; i < 2; i++) {
       if (Amount[i] !== 0) {
         addJournal({
-          Branch_Code: "HO",
+          Branch_Code: req.body.Sub_Acct,
           Date_Entry: req.body.depositdate,
           Source_Type: "DC",
           Source_No: req.body.depositSlip,
@@ -180,7 +182,6 @@ Deposit.post("/add-deposit", async (req, res) => {
           cGL_Acct: req.body.Short,
           Sub_Acct: req.body.Sub_Acct,
           cSub_Acct: req.body.Sub_ShortName,
-
           ID_No: req.body.IDNo,
           cID_No: req.body.ShortName,
           Debit:
@@ -197,76 +198,42 @@ Deposit.post("/add-deposit", async (req, res) => {
         });
       }
     }
-
-
     for (let i = 0; i < selectedCollection.length; i++) {
-      // const IsCheck = dgvSelectedColl[i][1] !==                                                                                                                                                                                                                                                                                                                                                                                 90lkj,m bn                                                                                                                                                                                      "";
+      const selectedCollectionValue = selectedCollection[i];
+      const IsCheck = selectedCollectionValue.Check_No !== "";
 
-      // const journalResult = await prisma.journal.create({
-      //   data: {
-      //     Branch_Code: BranchCode,
-      //     Date_Entry: dtpDate,
-      //     Source_Type: 'DC',
-      //     Source_No: txtDepCode.trim(),
-      //     Explanation: '',
-      //     Check_Date: IsCheck ? new Date(dgvSelectedColl[i][2]) : null,
-      //     Check_No: IsCheck ? dgvSelectedColl[i][1] : null,
-      //     Check_Bank: IsCheck ? dgvSelectedColl[i][3] : null,
-      //     Remarks: IsCheck ? dgvSelectedColl[i][9] : null,
-      //     Payto: dgvSelectedColl[i][5],
-      //     GL_Acct: dgvSelectedColl[i][7],
-      //     cGL_Acct: dgvSelectedColl[i][12],
-      //     Sub_Acct: BranchCode,
-      //     cSub_Acct: BranchName,
-      //     ID_No: dgvSelectedColl[i][10],
-      //     cID_No: dgvSelectedColl[i][5],
-      //     Credit: parseFloat(dgvSelectedColl[i][4]),
-      //   },
-      // });
-
-      // if (!journalResult) {
-      //   await prisma.$executeRaw`ROLLBACK TRAN`;
-      //   console.log('Rollback transaction');
-      //   clsProcedure.ImLoading(MyText, false);
-      //   return;
-      // }
-
-      // const updateCollectionResult = await prisma.collection.update({
-      //   where: { Temp_OR: dgvSelectedColl[i][11] },
-      //   data: { SlipCode: txtDepCode.trim() },
-      // });
-
-      // if (!updateCollectionResult) {
-      //   await prisma.$executeRaw`ROLLBACK TRAN`;
-      //   console.log('Rollback transaction');
-      //   clsProcedure.ImLoading(MyText, false);
-      //   return;
-      // }
-
-      // if (IsCheck) {
-      //   const updatePDCResult = await prisma.pDC.update({
-      //     where: {
-      //       PNo: dgvSelectedColl[i][10],
-      //       Check_No: dgvSelectedColl[i][1],
-      //     },
-      //     data: {
-      //       DateDepo: dtpDate,
-      //       SlipCode: txtDepCode.trim(),
-      //     },
-      //   });
-
-      //   if (!updatePDCResult) {
-      //     await prisma.$executeRaw`ROLLBACK TRAN`;
-      //     console.log('Rollback transaction');
-      //     clsProcedure.ImLoading(MyText, false);
-      //     return;
-      //   }
-      // }
+      addJournal({
+        Branch_Code: req.body.Sub_Acct,
+        Date_Entry: req.body.depositdate,
+        Source_Type: "DC",
+        Source_No: req.body.depositSlip,
+        Explanation: "",
+        Check_Date: IsCheck ? selectedCollectionValue.Check_Date : "",
+        Check_No: IsCheck ? selectedCollectionValue.Check_No : "",
+        Check_Bank: IsCheck ? selectedCollectionValue.Bank : "",
+        Remarks: IsCheck ? selectedCollectionValue.DRRemarks : "",
+        Payto: selectedCollectionValue.Name,
+        GL_Acct: selectedCollectionValue.DRCode,
+        cGL_Acct: selectedCollectionValue.Short,
+        Sub_Acct: "HO",
+        cSub_Acct: req.body.Sub_ShortName,
+        ID_No: selectedCollectionValue.IDNo,
+        cID_No: selectedCollectionValue.Name,
+        Credit: selectedCollectionValue.Amount,
+        Source_No_Ref_ID: "",
+      });
+      await updateCollectioSlipCode(
+        req.body.depositSlip,
+        selectedCollectionValue.TempOR
+      );
+      if (IsCheck)
+        await updatePDCSlipCode(
+          req.body.depositSlip,
+          req.body.depositdate,
+          selectedCollectionValue.IDNo,
+          selectedCollectionValue.Check_No
+        );
     }
-
-
-
-
 
     res.send({
       message: "Successfully Create New Deposit.",
