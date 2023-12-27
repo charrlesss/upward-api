@@ -6,7 +6,7 @@ export async function getCashCollection(SlipCode: string) {
     SELECT 
         a.Official_Receipt AS OR_No,
         DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
-        FORMAT(a.Debit, '#,##0.00') AS Amount,
+        a.Debit AS Amount,
         a.Short AS Client_Name,
         a.DRCode,
         a.ID_No,
@@ -32,7 +32,7 @@ export async function getCheckCollection(SlipCode: string) {
    DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
    a.Check_No AS Check_No, 
    a.Check_Date,
-   FORMAT(a.Debit, '#,##0.00') AS Amount,
+   a.Debit AS Amount,
    a.Bank AS Bank_Branch,
    a.Short AS Client_Name,
   a.DRCode,
@@ -159,7 +159,7 @@ export async function updateCollectioSlipCode(
   SlipCode: string,
   Temp_OR: string
 ) {
-  return await prisma.collection.update({
+  return await prisma.collection.updateMany({
     data: {
       SlipCode,
     },
@@ -168,7 +168,6 @@ export async function updateCollectioSlipCode(
     },
   });
 }
-
 export async function updatePDCSlipCode(
   SlipCode: string,
   DateDepo: string,
@@ -187,4 +186,204 @@ export async function updatePDCSlipCode(
       },
     },
   });
+}
+export async function updateDepositIDSequence(data: any) {
+  return await prisma.$queryRawUnsafe(`
+      update upward_insurance.id_sequence a
+      set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
+      where a.type ='deposit'
+    `);
+}
+export async function searchDeposit(searchDeposit: string) {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+    DATE_FORMAT(a.Date, '%m/%d/%Y') as Date, 
+      a.SlipCode,
+      a.BankAccount,
+      a.AccountName,
+      a.BankAccount
+    FROM
+      upward_insurance.deposit_slip a 
+    LEFT JOIN 
+      upward_insurance.deposit b 
+        on a.SlipCode =  b.Slip_Code
+    WHERE
+    LEFT(AccountName, 7) <> '-- Void'
+        AND (a.SlipCode LIKE '%${searchDeposit}%'
+        OR a.BankAccount LIKE '%${searchDeposit}%'
+        OR a.AccountName LIKE '%${searchDeposit}%')
+    ORDER BY Date DESC
+`);
+}
+export async function getCashDeposit(SlipCode: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    a.Payment as  Deposit,
+    a.Check_No,
+    a.Check_Date,
+    a.Bank ,
+    a.Short as Name,
+    a.Temp_OR as  RowIndex,
+    a.DRCode,
+    a.Official_Receipt as ORNo,
+    a.DRRemarks, 
+    a.Temp_OR as  TempOR,
+    a.Official_Receipt AS OR_No,
+    DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
+    a.Debit as Amount,
+    a.Short AS Client_Name,
+    a.DRCode,
+    a.ID_No,
+    a.Temp_OR,
+    a.SlipCode,
+    b.Short
+  FROM
+    upward_insurance.collection a
+        LEFT JOIN
+    upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
+  WHERE
+    a.Payment = 'Cash'
+        AND a.SlipCode = '${SlipCode}'
+  ORDER BY a.Date_OR DESC , a.Check_Date
+  `);
+}
+export async function getCheckDeposit(SlipCode: string) {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+      a.Payment as  Deposit,
+      a.Bank ,
+      a.Short as Name,
+      a.Official_Receipt as  RowIndex,
+      a.ORNo as ORNo,
+      a.Official_Receipt as  TempOR,
+      a.ORNo AS OR_No,
+      a.Official_Receipt AS Temp_OR,
+      DATE_FORMAT( a.Date_OR,'%m/%d/%Y') AS OR_Date,
+      a.Check_No,
+      a.Check_Date,
+      a.Debit AS Amount,
+      a.Bank AS Bank_Branch,
+      a.Short AS Client_Name, 
+      a.DRCode,
+      a.DRRemarks,
+      a.ID_No,
+      a.Temp_OR,
+      a.SlipCode,
+      b.Short 
+  FROM upward_insurance.collection a
+  LEFT JOIN upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
+  WHERE a.Payment = 'Check' AND  a.SlipCode = '${SlipCode}'
+  ORDER BY a.Date_OR DESC, a.Check_Date
+  `);
+}
+export async function getCashBreakDown(SlipCode: string) {
+  return await prisma.$queryRawUnsafe(`
+    select 
+    Pap_1000,
+    Pap_500,
+    Pap_200,
+    Pap_100,
+    Pap_50,
+    Pap_20,
+    Pap_10,
+    Coin_5,
+    Coin_2,
+    Coin_1,
+    Cnt_50,
+    Cnt_25,
+    Cnt_10,
+    Cnt_05,
+    Cnt_01
+    FROM upward_insurance.cash_breakdown  where Slip_Code = '${SlipCode}'
+  `);
+}
+export async function getBanksFromDepositByAccountNo(AccountNo: string) {
+  const sql = `
+      SELECT 
+      a.Account_Type,
+      a.Account_No,
+      a.IDNo,
+      a.Account_Name,
+      a.Desc,
+      a.Account_ID,
+      b.Short,
+      c.Shortname as ShortName,
+      d.ShortName as Sub_ShortName,
+      d.Acronym as Sub_Acct
+    FROM
+      upward_insurance.bankaccounts a
+          LEFT JOIN
+      upward_insurance.chart_account b ON a.Account_ID = b.Acct_Code
+          LEFT JOIN
+      (
+        SELECT 
+            aa.entry_client_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_client aa
+            union all
+      SELECT 
+            aa.entry_agent_id AS IDNo,
+        Null as sub_account,
+        CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_agent aa
+            union all
+      SELECT 
+            aa.entry_employee_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_employee aa
+      union all
+      SELECT 
+            aa.entry_supplier_id AS IDNo,
+        null as sub_account,
+        CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_supplier aa
+            union all
+      SELECT 
+            aa.entry_fixed_assets_id AS IDNo,
+        null as sub_account,
+        aa.fullname AS Shortname
+        FROM
+            upward_insurance.entry_fixed_assets aa
+            union all
+      SELECT 
+            aa.entry_others_id AS IDNo,
+        null as sub_account,
+        aa.description AS Shortname
+        FROM
+            upward_insurance.entry_others aa
+            ) c ON c.IDNo = a.IDNo
+            LEFT JOIN
+        upward_insurance.sub_account d ON c.sub_account = d.Sub_Acct
+        WHERE
+            a.Inactive = 0 AND a.Account_No = '${AccountNo}'
+      ORDER BY a.Account_Name
+      LIMIT 100;
+      `;
+  return await prisma.$queryRawUnsafe(sql);
+}
+export async function deleteSlipCode(Slipcode: string) {
+  return await prisma.$queryRawUnsafe(`
+  DELETE FROM upward_insurance.deposit_slip WHERE Slipcode = '${Slipcode}'
+  `);
+}
+export async function deleteDeposit(Slipcode: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE FROM upward_insurance.deposit WHERE Temp_Slipcode = '${Slipcode}'
+  `);
+}
+export async function deleteCashBreakDown(Slipcode: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE FROM upward_insurance.cash_breakdown WHERE Slip_code = '${Slipcode}'
+  `);
+}
+export async function deleteJournalFromDeposit(Slipcode: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE FROM upward_insurance.journal WHERE Source_Type='DC' and Source_No = '${Slipcode}'
+  `);
 }

@@ -7,7 +7,7 @@ export async function getClientCheckedList(search: string, PNo: string) {
         CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
         a.Check_No,
         DATE_FORMAT(a.Check_Date, '%M %d %Y') as Check_Date,
-        FORMAT(a.Check_Amnt, '#,##0.00') AS Amount,
+        a.Check_Amnt as  Amount,
         CONCAT(a.Bank, ' / ', a.Branch) as Bank_Branch,
         a.Remarks,
         a.Bank,

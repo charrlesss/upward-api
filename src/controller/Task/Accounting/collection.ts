@@ -203,7 +203,7 @@ async function AddCollection(req: any) {
       IDNo: PNo,
       Name: Name,
       Payment: Payment,
-      Debit: Debit.replaceAll(",", ""),
+      Debit: Debit,
       Check_No: CheckNo,
       Check_Date: CheckDate,
       Bank: Bank,
