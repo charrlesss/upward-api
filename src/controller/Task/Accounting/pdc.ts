@@ -186,6 +186,17 @@ PDC.get("/search-pdc-banks", async (req, res) => {
     res.send({ message: error.message, success: false, bondsPolicy: null });
   }
 });
+
+PDC.get("/pdc-new-ref-number", async (req, res) => {
+  try {
+    res.send({
+      RefNo: await pdcIDGenerator(),
+      success: true,
+    });
+  } catch (error: any) {
+    res.send({ message: error.message, success: false, RefNo: [] });
+  }
+});
 PDC.get("/search-pdc", async (req, res) => {
   try {
     const { searchPDCInput } = req.query;

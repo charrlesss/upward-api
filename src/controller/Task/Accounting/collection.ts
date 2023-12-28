@@ -15,7 +15,7 @@ import {
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
-import { getPdcBanks } from "../../../model/Task/Accounting/pdc.model";
+
 const Collection = express.Router();
 
 Collection.get("/get-client-checked-by-id", async (req, res) => {
@@ -47,7 +47,6 @@ Collection.get("/get-transaction-code-title", async (req, res) => {
       success: true,
       banktransaction: await getTransactionBanksDetails(),
       transactionDesc: await getTransactionDescription(),
-      collectionID: await collectionIDGenerator(),
     });
   } catch (error: any) {
     res.send({
@@ -55,7 +54,22 @@ Collection.get("/get-transaction-code-title", async (req, res) => {
       success: false,
       banktransaction: [],
       transactionDesc: [],
-      collectionID: [],
+    });
+  }
+});
+
+Collection.get("/get-new-or-number", async (req, res) => {
+  try {
+    res.send({
+      message: "Get New OR Number Successfully",
+      success: true,
+      ORNo: await collectionIDGenerator(),
+    });
+  } catch (error: any) {
+    res.send({
+      message: error.message,
+      success: false,
+      ORNo: [],
     });
   }
 });

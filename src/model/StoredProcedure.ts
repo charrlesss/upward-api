@@ -78,6 +78,12 @@ export async function createIdSequence() {
         type: "deposit",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "return-check",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);

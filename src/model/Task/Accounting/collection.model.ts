@@ -106,7 +106,7 @@ export async function findORnumber(ORNo: string) {
 export async function getCollections(searchCollectionInput: string) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
-        FORMAT(MAX(a.Date), 'MMM. dd, yyyy') AS 'Date',
+    DATE_FORMAT(MAX(a.Date), '%m/%d/%Y') AS 'Date',
         a.Official_Receipt AS 'ORNo',
         MAX(a.Name) AS Name
     FROM

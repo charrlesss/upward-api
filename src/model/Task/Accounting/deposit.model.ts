@@ -255,7 +255,7 @@ export async function getCheckDeposit(SlipCode: string) {
       a.Short as Name,
       a.Official_Receipt as  RowIndex,
       a.ORNo as ORNo,
-      a.Official_Receipt as  TempOR,
+      a.Temp_OR as  TempOR,
       a.ORNo AS OR_No,
       a.Official_Receipt AS Temp_OR,
       DATE_FORMAT( a.Date_OR,'%m/%d/%Y') AS OR_Date,
