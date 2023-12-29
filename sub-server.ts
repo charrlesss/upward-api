@@ -34,7 +34,7 @@ const corsOptions = {
 function executeQuery() {
   // creatSampleUser()
   // createIdSequence()
-  // creatSampleSubAccount()
+  //creatSampleSubAccount()
   // createSublineLine()
   // createPrefix()
   // createCTPLType()
