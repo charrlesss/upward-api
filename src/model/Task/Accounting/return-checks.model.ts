@@ -10,7 +10,6 @@ export async function GenerateReturnCheckID() {
     WHERE
       a.type = 'return-check'`);
 }
-
 export async function getCheckList(search: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -22,7 +21,8 @@ export async function getCheckList(search: string) {
       a.Bank, 
       c.Official_Receipt, 
       DATE_FORMAT(c.Date_OR, '%m/%d/%Y') AS Date_OR, 
-      b.BankAccount
+      b.BankAccount,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM 
       upward_insurance.deposit a 
       LEFT JOIN upward_insurance.deposit_slip b ON a.Temp_SlipCode = b.SlipCode
@@ -73,9 +73,6 @@ export async function getDebitOnSelectedCheck(Official_Receipt: string) {
       AND a.Payment = 'Check'
   `);
 }
-
-
-
 export async function getBranchName() {
   return await prisma.$queryRawUnsafe(
     `SELECT a.ShortName FROM upward_insurance.sub_account a where a.Acronym = 'HO'`
