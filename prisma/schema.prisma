@@ -864,7 +864,7 @@ model resavelog {
 model return_checks {
   Area         String?   @db.VarChar(255)
   RC_Date      DateTime? @db.DateTime(6)
-  RC_No        String    @id @db.VarChar(255)
+  RC_No        String    @db.VarChar(255)
   Explanation  String?   @db.VarChar(255)
   Check_No     String?   @map("Check No") @db.VarChar(255)
   Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(6)
@@ -878,6 +878,7 @@ model return_checks {
   ORNum        String?   @db.VarChar(255)
   BankAccnt    String?   @db.VarChar(255)
   nSort        String?   @db.VarChar(255)
+  Temp_RCNo   String  @id @db.VarChar(255)
 }
 
 model sysdiagrams {
