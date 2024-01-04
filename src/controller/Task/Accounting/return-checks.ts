@@ -12,6 +12,10 @@ import {
   updateJournalFromReturnCheck,
   deleteJournalFromReturnCheck,
   addJournalFromReturnCheck,
+  searchReturnChecks,
+  getReturnCheckSearchFromJournal,
+  getReturnCheckSearch,
+  findReturnCheck,
 } from "../../../model/Task/Accounting/return-checks.model";
 const ReturnCheck = express.Router();
 
@@ -38,6 +42,7 @@ ReturnCheck.get("/get-check-list", async (req, res) => {
   }
 });
 ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
+  console.log(req.body);
   try {
     res.send({
       message: "Successfully Get Modal Data",
@@ -52,6 +57,17 @@ ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
 });
 ReturnCheck.post("/add-return-check", async (req, res) => {
   try {
+    if (
+      !req.body.isUpdated &&
+      ((await findReturnCheck(req.body.RefNo)) as Array<any>).length > 0
+    ) {
+      return res.send({
+        message: `${req.body.RefNo} already exists!`,
+        success: false,
+        credit: [],
+        debit: [],
+      });
+    }
     await deleteReturnCheck(req.body.RefNo);
     req.body.selected.forEach(async (items: any, index: number) => {
       await addNewReturnCheck({
@@ -60,14 +76,14 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         RC_No: req.body.RefNo,
         Explanation: req.body.Explanation,
         Check_No: items.Check_No,
-        Date_Deposit: new Date(items.Check_Date),
+        Date_Deposit: new Date(items.DepoDate),
         Amount: parseFloat(items.Amount.replace(/,/g, "")).toFixed(2),
         Reason: items.Reason,
         Bank: items.Bank,
         Check_Date: items.Check_Date,
         Date_Return: items.Return_Date,
         SlipCode: items.DepoSlip,
-        ORNum: items.Temp_OR,
+        ORNum: items.OR_NO,
         BankAccnt: items.Bank_Account,
         nSort: (index + 1).toString().padStart(2, "00"),
         Date_Collect: new Date(items.OR_Date),
@@ -95,7 +111,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         Sub_Acct: items.SubAcct,
         cSub_Acct: items.SubAcctName,
         ID_No: items.IDNo,
-        cID_No: items.IDNo,
+        cID_No: items.Identity,
         Debit: parseFloat(items.Debit.replace(/,/g, "")).toFixed(2),
         Credit: parseFloat(items.Credit.replace(/,/g, "")).toFixed(2),
         Check_Date: items.Check_Date,
@@ -112,7 +128,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
     await updateRCID(req.body.RefNo.split("-")[1]);
 
     res.send({
-      message: "Successfully add return check",
+      message:req.body.isUpdated ? "Successfully update return check": "Successfully add return check",
       success: true,
     });
   } catch (error: any) {
@@ -120,4 +136,35 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
     res.send({ message: error.message, success: false, credit: [], debit: [] });
   }
 });
+ReturnCheck.get("/search-return-checks", async (req, res) => {
+  const { searchReturnChecks: search } = req.query;
+  try {
+    res.send({
+      message: "Successfully search return check",
+      success: true,
+      returnCheckSearch: await searchReturnChecks(search as string),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: error.message, success: false, returnCheckSearch: [] });
+  }
+});
+
+ReturnCheck.post(
+  "/get-search-selected-checks-information",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully search return check",
+        success: true,
+        accountingEntry: await getReturnCheckSearchFromJournal(req.body.RC_No),
+        selected: await getReturnCheckSearch(req.body.RC_No),
+      });
+    } catch (error: any) {
+      console.log(error.message);
+      res.send({ message: error.message, success: false });
+    }
+  }
+);
+
 export default ReturnCheck;

@@ -391,7 +391,7 @@ model cash_disbursement {
 }
 
 model cash_breakdown {
-  Slip_Code String @id @db.VarChar(250)
+  Slip_Code String  @id @db.VarChar(250)
   Pap_1000  String?
   Pap_500   String?
   Pap_100   String?
@@ -488,7 +488,7 @@ model deposit {
   Temp_SlipCode String?   @db.VarChar(250)
   Temp_SlipCntr String?   @db.VarChar(250)
   Temp_SlipDate DateTime? @db.DateTime(6)
-  Deposit_ID    Int    @id @default(autoincrement())
+  Deposit_ID    Int       @id @default(autoincrement())
 }
 
 model deposit_slip {
@@ -866,19 +866,19 @@ model return_checks {
   RC_Date      DateTime? @db.DateTime(6)
   RC_No        String    @db.VarChar(255)
   Explanation  String?   @db.VarChar(255)
-  Check_No     String?   @map("Check No") @db.VarChar(255)
-  Date_Deposit DateTime? @map("Date Deposit") @db.DateTime(6)
-  Date_Collect DateTime? @map("Date Collect") @db.DateTime(6)
+  Check_No     String?   @db.VarChar(255)
+  Date_Deposit DateTime? @db.DateTime(6)
+  Date_Collect DateTime? @db.DateTime(6)
   Amount       Decimal?  @db.Decimal(19, 4)
   Reason       String?   @db.VarChar(255)
   Bank         String?   @db.VarChar(255)
-  Check_Date   String?   @map("Check Date") @db.VarChar(255)
-  Date_Return  String?   @map("Date Return") @db.VarChar(255)
+  Check_Date   String?   @db.VarChar(255)
+  Date_Return  String?   @db.VarChar(255)
   SlipCode     String?   @db.VarChar(255)
   ORNum        String?   @db.VarChar(255)
   BankAccnt    String?   @db.VarChar(255)
   nSort        String?   @db.VarChar(255)
-  Temp_RCNo   String  @id @db.VarChar(255)
+  Temp_RCNo    String    @id @db.VarChar(255)
 }
 
 model sysdiagrams {

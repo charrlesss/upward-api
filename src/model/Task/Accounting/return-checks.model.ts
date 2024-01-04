@@ -32,7 +32,7 @@ export async function getCheckList(search: string) {
           GROUP BY Official_Receipt, Date_OR
       ) c ON a.Ref_No = c.Official_Receipt
   WHERE 
-      c.Date_OR IS NOT NULL 
+      c.Date_OR <> ''
       AND a.Check_No <> '' 
       AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
   ORDER BY 
@@ -123,6 +123,89 @@ export async function updateRCID(last_count: string) {
         month = DATE_FORMAT(NOW(), '%m')
     WHERE
         a.type = 'return-check'
-  
+  `);
+}
+export async function searchReturnChecks(search: string) {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+      DATE_FORMAT(RC_Date, '%m/%d/%Y') AS RC_Date,
+      RC_No,
+      Explanation
+    FROM
+      upward_insurance.return_checks
+    WHERE
+      LEFT(Explanation, 7) <> '-- Void'
+          AND (RC_No LIKE '%${search}%'
+          OR Explanation LIKE '%${search}%')
+    GROUP BY RC_Date , RC_No , Explanation
+    ORDER BY RC_Date
+    LIMIT 500;
+  `);
+}
+
+export async function getReturnCheckSearchFromJournal(RC_No: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    a.Branch_Code  as BranchCode,
+    date_format(a.Date_Entry ,'%m/%d/%y') as DateReturn,
+    a.Source_Type, 
+    a.Source_No, 
+    a.Explanation,
+    a.GL_Acct as Code,
+    a.cGL_Acct as AccountName,
+    a.Sub_Acct as SubAcct,
+    a.cSub_Acct as SubAcctName,
+    a.ID_No as IDNo,
+    a.cID_No as IDNo,
+    a.Debit,
+    a.Credit,
+    date_format(date(str_to_date(a.Check_Date,'%m/%d/%Y')), '%m/%d/%y') as Check_Date,
+    a.Check_No Check_No,
+    a.Check_Bank as Bank,
+    date_format(date(str_to_date(a.Check_Return,'%m/%d/%Y')), '%m/%d/%y')  as Check_Return,
+    a.Check_Deposit as DepoDate,
+    a.Check_Collect  as Date_Collection,
+    a.Check_Reason,
+    a.TC,
+    LPAD(ROW_NUMBER() OVER (), 3, '0') as TempID
+  FROM
+    upward_insurance.journal a
+  WHERE
+    a.Source_Type = 'RC' AND
+    a.Source_No = '${RC_No}'
+      `);
+}
+
+export async function getReturnCheckSearch(RC_No: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    a.Area as BranchCode, 
+    a.RC_Date,
+    a.RC_No,
+    a.Explanation, 
+    a.Check_No, 
+    DATE_FORMAT(a.Date_Deposit ,'%m/%d/%y')  AS DepoDate,
+    a.Amount,
+    a.Reason, 
+    a.Bank, 
+    date_format(date(str_to_date(a.Check_Date,'%m/%d/%Y')), '%m/%d/%y') as Check_Date, 
+    DATE_FORMAT(a.Date_Return ,'%m/%d/%y')  AS Return_Date,
+    a.SlipCode AS DepoSlip, 
+    a.ORNum AS OR_NO, 
+    a.BankAccnt AS Bank_Account,
+    a.nSort,
+    DATE_FORMAT(a.Date_Collect ,'%m/%d/%y')  AS OR_Date,
+    a.Temp_RCNo,
+    a.Temp_RCNo as TempID
+  FROM
+    upward_insurance.return_checks a
+  WHERE
+    a.RC_No = '${RC_No}'
+      `);
+}
+
+export async function findReturnCheck(RC_No: string) {
+  return await prisma.$queryRawUnsafe(`
+    select * from upward_insurance.return_checks where RC_NO='${RC_No}'
   `);
 }
