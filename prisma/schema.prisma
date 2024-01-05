@@ -314,9 +314,9 @@ model transaction_code {
 
 model petty_log {
   Petty_Log String  @id @default(uuid())
-  Purpose   String  @db.VarChar(100)
-  Acct_Code String  @db.VarChar(10)
-  Short     String  @db.VarChar(50)
+  Purpose   String  @db.VarChar(250)
+  Acct_Code String  @db.VarChar(250)
+  Short     String  @db.VarChar(250)
   Inactive  Boolean
 }
 
@@ -762,24 +762,24 @@ model pdc {
 }
 
 model petty_cash {
-  Branch_Code String?   @db.VarChar(3)
+  Branch_Code String?   @db.VarChar(250)
   PC_Date     DateTime? @db.DateTime(6)
-  PC_No       String    @id @db.VarChar(20)
+  PC_No       String    @db.VarChar(250)
   Explanation String?   @db.LongText
-  Payee       String?   @db.VarChar(100)
+  Payee       String?   @db.VarChar(250)
   DRPurpose   String?   @db.LongText
-  DRAcct_Code String?   @db.VarChar(10)
-  DRShort     String?   @db.VarChar(50)
+  DRAcct_Code String?   @db.VarChar(250)
+  DRShort     String?   @db.VarChar(250)
   Debit       Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  Sub_Acct    String?   @db.VarChar(3)
-  IDNo        String?   @db.VarChar(20)
-  ShortName   String?   @db.VarChar(50)
-  CRAcct_Code String?   @db.VarChar(10)
-  CRShort     String?   @db.VarChar(50)
+  Sub_Acct    String?   @db.VarChar(250)
+  IDNo        String?   @db.VarChar(250)
+  ShortName   String?   @db.VarChar(250)
+  CRAcct_Code String?   @db.VarChar(250)
+  CRShort     String?   @db.VarChar(250)
   Credit      Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  DRVATType   String?   @db.VarChar(50)
-  DRInvoiceNo String?   @db.VarChar(100)
-  VATItemNo   Int?
+  DRVATType   String?   @db.VarChar(250)
+  DRInvoiceNo String?   @db.VarChar(250)
+  VATItemNo   String    @id @db.VarChar(250)
 }
 
 model postponement {

@@ -84,6 +84,12 @@ export async function createIdSequence() {
         type: "return-check",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "petty-cash",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);
@@ -1063,7 +1069,11 @@ export async function createBank() {
     },
     { Bank_Code: "PNB", Bank: "Philippine National Bank", Inactive: false },
     { Bank_Code: "PSB", Bank: "PSBANK", Inactive: false },
-    { Bank_Code: "PSBC", Bank: "Producers Savings Bank Corp.", Inactive: false },
+    {
+      Bank_Code: "PSBC",
+      Bank: "Producers Savings Bank Corp.",
+      Inactive: false,
+    },
     {
       Bank_Code: "QUEENBANK",
       Bank: "Queen City Development Bank",
@@ -1087,11 +1097,15 @@ export async function createBank() {
     { Bank_Code: "SECB", Bank: "Security Bank", Inactive: false },
     { Bank_Code: "TRB", Bank: "TANAY RURAL BANK", Inactive: false },
     { Bank_Code: "UB", Bank: "UNIONBANK", Inactive: false },
-    { Bank_Code: "UCPB", Bank: "UNITED COCONUT PLANTERS BANK", Inactive: false },
+    {
+      Bank_Code: "UCPB",
+      Bank: "UNITED COCONUT PLANTERS BANK",
+      Inactive: false,
+    },
     { Bank_Code: "VB", Bank: "VETERANS BANK", Inactive: false },
     { Bank_Code: "WPB", Bank: "World Partners Bank", Inactive: false },
   ];
   return await prisma.bank.createMany({
-    data:banks
-  })
+    data: banks,
+  });
 }

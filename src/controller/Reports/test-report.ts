@@ -199,4 +199,18 @@ testReport.post("/add-bankaccounts", async (req, res) => {
   });
 });
 
+testReport.post("/add-pettycash", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  await prisma.petty_log.create({
+    data: {
+      ...data[0],
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
 export default testReport;
