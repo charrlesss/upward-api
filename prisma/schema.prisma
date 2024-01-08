@@ -1015,6 +1015,7 @@ model entry_agent {
   createdAt                DateTime        @default(now())
   update                   DateTime        @default(now())
   contact_details          contact_details @relation(fields: [agent_contact_details_id], references: [contact_details_id], map: "Entry_Agent_agent_contact_details_id_fkey")
+  sub_account              String          @db.VarChar(500)
 }
 
 model entry_client {

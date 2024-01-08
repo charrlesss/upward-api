@@ -33,6 +33,7 @@ interface EntryAgentType {
   mobile: string;
   telephone: string;
   address: string;
+  sub_account: string;
 }
 
 interface EntryFixedAssetsType {
@@ -91,7 +92,7 @@ const queryList: any = {
         OR a.lastname like '%${search}%'
         OR a.company like '%${search}%'
         ORDER BY a.createdAt desc 
-       ${hasLimit ? "" : "limit 500"}
+       limit 500
     `,
   },
   Employee: {
@@ -114,7 +115,7 @@ const queryList: any = {
         OR a.firstname like '%${search}%'
         OR a.lastname like '%${search}%'
         ORDER BY a.createdAt desc 
-        ${hasLimit ? "" : "limit 500"}
+        limit 500
   `,
   },
   Agent: {
@@ -128,7 +129,8 @@ const queryList: any = {
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
       b.email,
       b.mobile,
-      b.telephone
+      b.telephone,
+      a.sub_account
     FROM
     upward_insurance.entry_agent a
       LEFT JOIN
@@ -138,7 +140,7 @@ const queryList: any = {
     OR a.firstname like '%${search}%'
     OR a.lastname like '%${search}%'
     ORDER BY a.createdAt desc 
-    ${hasLimit ? "" : "limit 500"}
+    limit 500
   `,
   },
   "Fixed Assets": {
@@ -155,7 +157,7 @@ const queryList: any = {
     a.entry_fixed_assets_id like '%${search}%'
     OR a.fullname like '%${search}%'
     ORDER BY a.createdAt desc 
-    ${hasLimit ? "" : "limit 500"}
+   limit 500
   `,
   },
   Supplier: {
@@ -184,7 +186,7 @@ const queryList: any = {
     OR a.lastname like '%${search}%'
     OR a.company like '%${search}%'
     ORDER BY a.createdAt desc 
-    ${hasLimit ? "" : "limit 500"}
+   limit 500
   `,
   },
   Others: {
@@ -199,7 +201,7 @@ const queryList: any = {
     a.entry_others_id like '%${search}%'
     OR a.description like '%${search}%'
     ORDER BY a.createdAt desc 
-    ${hasLimit ? "" : "limit 500"}
+    limit 500
   `,
   },
 };
@@ -354,6 +356,7 @@ async function updateAgent(data: EntryAgentType) {
     \`lastname\`='${data.lastname}',
     \`middlename\`='${data.middlename}',
     \`address\`='${data.address}',
+    \`sub_account\`='${data.sub_account}',
     \`update\`=NOW()
     where 
       \`entry_agent_id\`= '${data.entry_agent_id}'
@@ -540,4 +543,14 @@ export async function deleteEntry(entry: string, id: string) {
 }
 export async function getClientInIdEntry(where: string) {
   return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
+}
+
+export async function getSubAccounts() {
+  return await prisma.$queryRawUnsafe(` 
+  SELECT 
+    a.Sub_Acct,
+    a.Acronym,
+  CONCAT(a.Acronym, '-', a.ShortName) AS NewShortName
+  FROM
+  upward_insurance.sub_account a`);
 }

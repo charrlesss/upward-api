@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { createJournal } from "../../model/Task/Production/vehicle-policy";
 import { addCTPL } from "../../model/Reference/ctpl.model";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
 
@@ -173,17 +172,26 @@ testReport.post("/add-chart-account", async (req, res) => {
   });
 });
 testReport.post("/add-transaction-code", async (req, res) => {
-  const data = JSON.parse(req.body.dataString);
-  await prisma.transaction_code.create({
-    data: {
-      ...data[0],
-    },
-  });
+  try {
+    const data = JSON.parse(req.body.dataString);
 
-  res.send({
-    message: "test Report",
-    vehiclePolicy: [],
-  });
+    await prisma.transaction_code.create({
+      data: {
+        ...data[0],
+      },
+    });
+
+    res.send({
+      message: "test Report",
+      vehiclePolicy: [],
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      vehiclePolicy: [],
+    });
+  }
 });
 testReport.post("/add-bankaccounts", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
@@ -211,6 +219,29 @@ testReport.post("/add-pettycash", async (req, res) => {
     message: "test Report",
     vehiclePolicy: [],
   });
+});
+
+testReport.post("/add-policy-account", async (req, res) => {
+  try {
+    const data = JSON.parse(req.body.dataString);
+
+    await prisma.policy_account.create({
+      data: {
+        ...data[0],
+      },
+    });
+
+    res.send({
+      message: "test Report",
+      vehiclePolicy: [],
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      vehiclePolicy: [],
+    });
+  }
 });
 
 export default testReport;

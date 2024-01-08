@@ -22,10 +22,10 @@ import {
 import testReport from "./src/controller/Reports/test-report";
 
 const prisma = new PrismaClient();
-const PORT = 6000;
+const PORT = 5500;
 
 const corsOptions = {
-  origin:[ "http://localhost:3000", "http://localhost:4000","/"],
+  origin:[ "http://localhost:3000", "http://localhost:4000","/","http://localhost:9000"],
   // origin:"*",
   credentials: true,
   optionSuccessStatus: 200,
@@ -34,11 +34,10 @@ const corsOptions = {
 function executeQuery() {
   // creatSampleUser()
   // createIdSequence()
-  //creatSampleSubAccount()
+  // creatSampleSubAccount()
   // createSublineLine()
   // createPrefix()
   // createCTPLType()
-  // createPolicyAccount()
   // creatRates()
   // createMortgagee()
   // createBank()

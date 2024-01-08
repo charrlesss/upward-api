@@ -8,6 +8,7 @@ import {
   CreateSupplierEntry,
   deleteEntry,
   getAllSubAccount,
+  getSubAccounts,
   searchEntry,
   updateEntry,
 } from "../../model/Reference/id-entry.model";
@@ -326,6 +327,21 @@ ID_Entry.post("/entry-delete", async (req, res) => {
     res.send({
       success: true,
       message: "Successfully Delete",
+    });
+  } catch (err: any) {
+    res.send({ success: false, message: err.message });
+  }
+});
+
+
+
+ID_Entry.get("/sub-account", async (req: Request, res: Response) => {
+  try {
+   
+    res.send({
+      message: "Successfully get sub accounts",
+      success: true,
+      subAccount:await getSubAccounts()
     });
   } catch (err: any) {
     res.send({ success: false, message: err.message });
