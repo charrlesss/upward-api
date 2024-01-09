@@ -11,6 +11,7 @@ import {
   getSubAccounts,
   searchEntry,
   updateEntry,
+  
 } from "../../model/Reference/id-entry.model";
 import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
 import { ExportToExcel } from "../../lib/exporttoexcel";
@@ -332,8 +333,6 @@ ID_Entry.post("/entry-delete", async (req, res) => {
     res.send({ success: false, message: err.message });
   }
 });
-
-
 
 ID_Entry.get("/sub-account", async (req: Request, res: Response) => {
   try {

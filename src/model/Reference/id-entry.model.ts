@@ -41,6 +41,7 @@ interface EntryFixedAssetsType {
   description: string;
   remarks: string;
   fullname: string;
+  sub_account: string;
 }
 
 interface EntrySupplierType {
@@ -56,11 +57,13 @@ interface EntrySupplierType {
   email: string;
   telephone: string;
   mobile: string;
+  sub_account: string;
 }
 
 interface EntryOthersType {
   entry_others_id: string;
   description: string;
+  sub_account: string;
 }
 
 const queryList: any = {
@@ -150,7 +153,8 @@ const queryList: any = {
       a.fullname,
       a.description,
       a.remarks,
-      (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
+      (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
+      a.sub_account
     FROM
     upward_insurance.entry_fixed_assets a 
     where
@@ -175,7 +179,8 @@ const queryList: any = {
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt,
       b.email,
       b.mobile,
-      b.telephone
+      b.telephone,
+      a.sub_account
     FROM
     upward_insurance.entry_supplier a
       LEFT JOIN
@@ -194,7 +199,8 @@ const queryList: any = {
     SELECT 
       a.entry_others_id,
       a.description,
-      (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt
+      (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt,
+      a.sub_account
     FROM
     upward_insurance.entry_others a
     where
@@ -385,6 +391,7 @@ async function updateFixedAssets(data: EntryFixedAssetsType) {
     \`description\`='${data.description}',
     \`remarks\`='${data.remarks}',
     \`fullname\`='${data.fullname}',
+    \`sub_account\`='${data.sub_account}',
     \`update\`=NOW()
     where 
       \`entry_fixed_assets_id\`= '${data.entry_fixed_assets_id}'
@@ -398,6 +405,7 @@ async function updateOthers(data: EntryOthersType) {
       \`entry_others\`
    set 
     \`description\`='${data.description}',
+    \`sub_account\`='${data.sub_account}',
     \`update\`=NOW()
     where 
       \`entry_others_id\`= '${data.entry_others_id}'
@@ -433,6 +441,7 @@ async function updateSupplier(data: EntrySupplierType) {
     \`option\`='${data.option}',
     \`tin_no\`='${data.tin_no}',
     \`VAT_Type\`='${data.VAT_Type}',
+    \`sub_account\`='${data.sub_account}',
     \`update\`=NOW()
     where 
       \`entry_supplier_id\`= '${data.entry_supplier_id}'

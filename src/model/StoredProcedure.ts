@@ -90,6 +90,12 @@ export async function createIdSequence() {
         type: "petty-cash",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "general-journal",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);
