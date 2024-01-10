@@ -9,6 +9,12 @@ import {
   updatePettyCashID,
   searchGeneralJournal,
   getSelectedSearchGeneralJournal,
+  deleteGeneralJournal,
+  deleteJournalFromGeneralJournal,
+  voidGeneralJournal,
+  insertVoidGeneralJournal,
+  voidJournalFromGeneralJournal,
+  insertVoidJournalFromGeneralJournal,
 } from "../../../model/Task/Accounting/general-journal.model";
 const GeneralJournal = express.Router();
 
@@ -16,6 +22,9 @@ GeneralJournal.post(
   "/general-journal/add-general-journal",
   async (req, res) => {
     try {
+      await deleteGeneralJournal(req.body.refNo);
+      await deleteJournalFromGeneralJournal(req.body.refNo);
+
       req.body.generalJournal.forEach(async (item: any) => {
         await addJournalVoucher({
           Branch_Code: item.BranchCode,
@@ -61,15 +70,39 @@ GeneralJournal.post(
       });
       await updatePettyCashID(req.body.refNo.split("-")[1]);
       res.send({
-        message: "Successfully add new general journal",
+        message: req.body.hasSelected
+          ? `Successfully update ${req.body.refNo}  in general journal`
+          : `Successfully add new ${req.body.refNo} in general journal`,
         success: true,
-        generateGeneralJournalID: await GenerateGeneralJournalID(),
       });
     } catch (error: any) {
       res.send({
         message: error.message,
         success: false,
-        generateGeneralJournalID: [],
+      });
+    }
+  }
+);
+GeneralJournal.post(
+  "/general-journal/void-general-journal",
+  async (req, res) => {
+    try {
+      await voidGeneralJournal(req.body.refNo);
+      await insertVoidGeneralJournal(req.body.refNo, req.body.dateEntry);
+      await voidJournalFromGeneralJournal(req.body.refNo);
+      await insertVoidJournalFromGeneralJournal(
+        req.body.refNo,
+        req.body.dateEntry
+      );
+      res.send({
+        message: `Successfully void ${req.body.refNo} in general journal`,
+        success: true,
+      });
+    } catch (error: any) {
+      console.log(error.message);
+      res.send({
+        message: error.message,
+        success: false,
       });
     }
   }
@@ -171,7 +204,7 @@ GeneralJournal.post(
       res.send({
         message: "Successfully get selected  general journal ",
         success: true,
-        getSelectedSearchGeneralJournal: await   getSelectedSearchGeneralJournal(
+        getSelectedSearchGeneralJournal: await getSelectedSearchGeneralJournal(
           req.body.Source_No
         ),
       });

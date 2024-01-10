@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-
+import { format } from "date-fns";
 export async function GenerateGeneralJournalID() {
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -148,6 +148,87 @@ export async function updatePettyCashID(last_count: string) {
             a.type = 'general-journal'
       `);
 }
+export async function deleteGeneralJournal(Source_No: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE
+    FROM
+        upward_insurance.journal_voucher a
+    WHERE
+      a.Source_No = '${Source_No}'
+          AND a.Source_Type = 'GL'
+      `);
+}
+
+export async function deleteJournalFromGeneralJournal(Source_No: string) {
+  return await prisma.$queryRawUnsafe(`
+      DELETE
+      FROM
+          upward_insurance.journal a
+      WHERE
+        a.Source_No = '${Source_No}'
+            AND a.Source_Type = 'GL'
+        `);
+}
+
+export async function voidGeneralJournal(Source_No: string) {
+  return await prisma.$queryRawUnsafe(`
+        DELETE
+        FROM
+            upward_insurance.journal_voucher a
+        WHERE
+          a.Source_No = '${Source_No}'
+              AND a.Source_Type = 'GL'
+          `);
+}
+export async function insertVoidGeneralJournal(
+  refNo: string,
+  dateEntry: string
+) {
+  console.log(`
+    INSERT INTO
+    upward_insurance.journal_voucher 
+    (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
+    VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
+    new Date(dateEntry),
+    "MM/dd/yyyy"
+  )}) --')
+    `);
+  return await prisma.$queryRawUnsafe(`
+  INSERT INTO
+  upward_insurance.journal_voucher 
+  (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
+  VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
+    new Date(dateEntry),
+    "MM/dd/yyyy"
+  )}) --')
+  `);
+}
+
+export async function voidJournalFromGeneralJournal(Source_No: string) {
+  return await prisma.$queryRawUnsafe(`
+    DELETE
+    FROM
+        upward_insurance.journal a
+    WHERE
+      a.Source_No = '${Source_No}'
+          AND a.Source_Type = 'GL'
+      `);
+}
+
+export async function insertVoidJournalFromGeneralJournal(
+  refNo: string,
+  dateEntry: string
+) {
+  return await prisma.$queryRawUnsafe(`
+  INSERT INTO
+  upward_insurance.journal 
+  (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation,Source_No_Ref_ID)
+  VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
+    new Date(dateEntry),
+    "MM/dd/yyyy"
+  )}) --','')
+  `);
+}
 
 export async function searchGeneralJournal(search: string) {
   return await prisma.$queryRawUnsafe(`
@@ -187,4 +268,39 @@ export async function getSelectedSearchGeneralJournal(Source_No: string) {
     FROM
     upward_insurance.journal_voucher a where a.Source_No ='${Source_No}' order by a.VATItemNo
       `);
+}
+
+export async function doRPTTransaction
+
+(
+  from: string,
+  to: string,
+  Mortgagee: string
+) {
+  // AMIFIN
+  // N I L - HN
+  return prisma.$queryRawUnsafe(`
+    SELECT 
+        a.PolicyNo,
+        a.IDNo,
+        (TotalDue - ifnull(b.TotalPaid, 0)) AS 'Amount',
+        c.Mortgagee
+    FROM
+        upward_insurance.policy a
+            LEFT JOIN
+        (SELECT 
+            IDNo, SUM(Debit) AS 'TotalPaid'
+        FROM
+            upward_insurance.collection
+        GROUP BY IDNo) b ON b.IDNo = a.PolicyNo
+            INNER JOIN
+        upward_insurance.vpolicy c ON c.PolicyNo = a.PolicyNo
+    WHERE
+        (TotalDue - ifnull(b.TotalPaid, 0)) <> 0
+            AND a.PolicyType = 'TPL'
+            AND c.Mortgagee = '${Mortgagee}'
+            AND (CAST(a.DateIssued AS DATE) >= STR_TO_DATE('${from}', '%m-%d-%Y') 
+            AND CAST(a.DateIssued AS DATE) <= STR_TO_DATE('${to}', '%m-%d-%Y') )
+    ORDER BY a.DateIssued
+    `);
 }

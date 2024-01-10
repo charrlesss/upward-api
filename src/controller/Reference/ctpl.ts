@@ -95,7 +95,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
       const res1 = await createJournal({
         Source_No: _sourceNo,
         Branch_Code: "HO",
-        Date_Entry: new Date(),
+        Date_Entry: new Date().toLocaleDateString(),
         Source_Type: "GL",
         Explanation: "CTPL Registration",
         GL_Acct: "1.04.01",
@@ -109,7 +109,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
       const res2 = await createJournal({
         Source_No: _sourceNo,
         Branch_Code: "HO",
-        Date_Entry: new Date(),
+        Date_Entry: new Date().toLocaleDateString(),
         Source_Type: "GL",
         Explanation: "CTPL Registration",
         GL_Acct: "1.04.01",
