@@ -271,8 +271,8 @@ export async function getSelectedSearchGeneralJournal(Source_No: string) {
 }
 
 export async function doRPTTransaction
-
 (
+  setSelected:string,
   from: string,
   to: string,
   Mortgagee: string
@@ -281,26 +281,78 @@ export async function doRPTTransaction
   // N I L - HN
   return prisma.$queryRawUnsafe(`
     SELECT 
-        a.PolicyNo,
-        a.IDNo,
-        (TotalDue - ifnull(b.TotalPaid, 0)) AS 'Amount',
-        c.Mortgagee
-    FROM
-        upward_insurance.policy a
-            LEFT JOIN
-        (SELECT 
-            IDNo, SUM(Debit) AS 'TotalPaid'
-        FROM
-            upward_insurance.collection
-        GROUP BY IDNo) b ON b.IDNo = a.PolicyNo
-            INNER JOIN
-        upward_insurance.vpolicy c ON c.PolicyNo = a.PolicyNo
-    WHERE
-        (TotalDue - ifnull(b.TotalPaid, 0)) <> 0
-            AND a.PolicyType = 'TPL'
-            AND c.Mortgagee = '${Mortgagee}'
-            AND (CAST(a.DateIssued AS DATE) >= STR_TO_DATE('${from}', '%m-%d-%Y') 
-            AND CAST(a.DateIssued AS DATE) <= STR_TO_DATE('${to}', '%m-%d-%Y') )
-    ORDER BY a.DateIssued
+      ${setSelected}
+      FROM
+          upward_insurance.policy a
+              LEFT JOIN
+          (SELECT 
+              IDNo,
+              SUM(CONVERT(REPLACE(debit, ',', ''),DECIMAL(10,2)) ) AS 'TotalPaid'
+          FROM
+              upward_insurance.collection
+          GROUP BY IDNo) b ON b.IDNo = a.PolicyNo
+        left join  (
+          SELECT a.IDNo,a.Shortname as ClientName,a.sub_account , b.ShortName , b.Acronym from (
+          SELECT 
+              'Client' AS Type,
+                aa.entry_client_id AS IDNo,
+                aa.sub_account,
+                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+            FROM
+              upward_insurance.entry_client aa
+              UNION ALL
+              SELECT 
+              'Agent' AS Type,
+                aa.entry_agent_id AS IDNo,
+                aa.sub_account,
+                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+            FROM
+              upward_insurance.entry_agent aa UNION ALL SELECT 
+              'Employee' AS Type,
+                aa.entry_employee_id AS IDNo,
+                aa.sub_account,
+                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+            FROM
+              upward_insurance.entry_employee aa UNION ALL SELECT 
+              'Supplier' AS Type,
+                aa.entry_supplier_id AS IDNo,
+                aa.sub_account,
+                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
+            FROM
+              upward_insurance.entry_supplier aa UNION ALL SELECT 
+              'Fixed Assets' AS Type,
+                aa.entry_fixed_assets_id AS IDNo,
+                aa.sub_account,
+                aa.fullname AS Shortname
+            FROM
+              upward_insurance.entry_fixed_assets aa 
+            UNION ALL 
+            SELECT 
+              'Others' AS Type,
+                aa.entry_others_id AS IDNo,
+                aa.sub_account,
+                aa.description AS Shortname
+            FROM
+              upward_insurance.entry_others aa
+
+          ) a
+          left join upward_insurance.sub_account b on a.sub_account = b.Sub_Acct
+          ) d on a.IDNo = d.IDNo
+              INNER JOIN
+          upward_insurance.vpolicy c ON c.PolicyNo = a.PolicyNo
+          
+      WHERE
+          (
+              TotalDue - ifnull(b.TotalPaid, 0)) <> 0
+              AND a.PolicyType = 'TPL'
+              AND c.Mortgagee = '${Mortgagee}'
+              AND (CAST(a.DateIssued AS DATE) >= STR_TO_DATE('${from}', '%m-%d-%Y') 
+              AND CAST(a.DateIssued AS DATE) <= STR_TO_DATE('${to}', '%m-%d-%Y')
+          )
+      ORDER BY a.DateIssued
+
+
     `);
 }
+// doMonthlyProduction
+

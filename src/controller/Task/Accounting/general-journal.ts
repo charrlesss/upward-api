@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import {
   getTransactionAccount,
   getPolicyIdClientIdRefId,
@@ -15,7 +15,10 @@ import {
   insertVoidGeneralJournal,
   voidJournalFromGeneralJournal,
   insertVoidJournalFromGeneralJournal,
+  doRPTTransaction,
 } from "../../../model/Task/Accounting/general-journal.model";
+import { getMonth, getYear, endOfMonth, format } from "date-fns";
+
 const GeneralJournal = express.Router();
 
 GeneralJournal.post(
@@ -217,5 +220,123 @@ GeneralJournal.post(
     }
   }
 );
+GeneralJournal.post("/general-journal/jobs", async (req, res) => {
+  console.log(req.body);
+  let response = [];
+  const month = getMonth(new Date(req.body.jobTransactionDate)) + 1;
+  const from = `${
+    month.toString().length > 1 ? month : "0" + month
+  }-01-${getYear(new Date(req.body.jobTransactionDate))}`;
+  const to = format(
+    endOfMonth(new Date(req.body.jobTransactionDate)),
+    "MM-dd-yyyy"
+  );
+
+  switch (req.body.jobType) {
+    case "":
+      response = [];
+      break;
+    case "0":
+      response = [];
+      break;
+    case "1":
+      response = [];
+      break;
+    case "2":
+      response = [];
+      break;
+    case "3":
+      response = [];
+      break;
+    case "4":
+      response = (await doRPTTransaction(
+        `
+      '1.03.01' as code,
+      'Premium Receivables' as acctName, 
+      d.ShortName as subAcctName,
+      d.Acronym as BranchCode,
+      d.ClientName,
+      "0.0" as debit,
+      FORMAT(REPLACE((TotalDue - ifnull(b.TotalPaid, 0)), ',', ''), 2)  AS credit,
+      'RPT' as TC_Code,
+      '' as remarks,
+      '' as vatType,
+      '' as invoice,
+      a.PolicyNo,
+      a.IDNo, 
+      b.TotalPaid,
+      c.Mortgagee,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
+      `,
+        from,
+        to,
+        "N I L - HN"
+      )) as Array<any>;
+      break;
+    case "5":
+      console.log(from, "-", to, "AMIFIN");
+      response = (await doRPTTransaction(
+        `
+      '1.03.01' as code,
+      'Premium Receivables' as acctName, 
+      d.ShortName as subAcctName,
+      d.Acronym as BranchCode,
+      d.ClientName,
+      "0.0" as debit,
+      (TotalDue - ifnull(b.TotalPaid, 0)) AS credit,
+      'RPT' as TC_Code,
+      '' as remarks,
+      '' as vatType,
+      'NA' as invoice,
+      a.PolicyNo,
+      a.IDNo, 
+      b.TotalPaid,
+      c.Mortgagee,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
+      `,
+        from,
+        to,
+        "AMIFIN"
+      )) as Array<any>;
+      break;
+    case "6":
+      response = [];
+      break;
+    case "7":
+      response = [];
+      break;
+    case "8":
+      response = [];
+      break;
+    case "9":
+      "Milestone Guarantee";
+      response = [];
+      break;
+    case "10":
+      "Liberty Insurance Co.";
+      response = [];
+      break;
+    case "11":
+      "Federal Phoenix";
+      response = [];
+      break;
+    default:
+      response = [];
+  }
+
+  try {
+    res.send({
+      message: "Successfully get jobs ",
+      success: true,
+      jobs:response,
+    });
+  } catch (error: any) {
+    res.send({
+      message: error.message,
+      success: false,
+      jobs: [],
+    });
+  }
+});
 
 export default GeneralJournal;
