@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import { format } from "date-fns";
+
 export async function GenerateGeneralJournalID() {
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -245,6 +246,7 @@ export async function searchGeneralJournal(search: string) {
 
       `);
 }
+
 export async function getSelectedSearchGeneralJournal(Source_No: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -270,18 +272,55 @@ export async function getSelectedSearchGeneralJournal(Source_No: string) {
       `);
 }
 
-export async function doRPTTransaction
-(
-  setSelected:string,
+export async function doRPTTransactionLastRow() {
+  return prisma.$queryRawUnsafe(`
+  SELECT 
+    b.ShortName as subAcctName , b.Acronym as BranchCode, a.description as ClientName , a.entry_others_id as IDNo
+  FROM
+      upward_insurance.entry_others a
+          LEFT JOIN
+      upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
+  WHERE
+      a.entry_others_id = 'O-0124-001';
+    `);
+}
+export async function doMonthlyProduction(
+  account: string,
+  month: number,
+  year: number
+) {
+  return prisma.$queryRawUnsafe(`
+  SELECT 
+    PolicyNo as IDNo,
+    P.SubAcct as subAcctName,
+    TotalDue as debit,
+    PolicyNo as ClientName,
+    LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
+  FROM
+    upward_insurance.Policy P
+  WHERE
+    Account = '${account}'
+        AND MONTH(DateIssued) = ${month}
+        AND YEAR(DateIssued) = ${year}
+    `);
+}
+
+export async function doRPTTransaction(
   from: string,
   to: string,
   Mortgagee: string
 ) {
-  // AMIFIN
-  // N I L - HN
   return prisma.$queryRawUnsafe(`
     SELECT 
-      ${setSelected}
+      d.ShortName as subAcctName,
+      d.Acronym as BranchCode,
+      d.ClientName,
+      FORMAT(REPLACE((TotalDue - ifnull(b.TotalPaid, 0)), ',', ''), 2)  AS credit,
+      a.PolicyNo,
+      a.IDNo, 
+      b.TotalPaid,
+      c.Mortgagee,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
       FROM
           upward_insurance.policy a
               LEFT JOIN
@@ -354,5 +393,3 @@ export async function doRPTTransaction
 
     `);
 }
-// doMonthlyProduction
-

@@ -16,9 +16,10 @@ import {
   voidJournalFromGeneralJournal,
   insertVoidJournalFromGeneralJournal,
   doRPTTransaction,
+  doRPTTransactionLastRow,
+  doMonthlyProduction,
 } from "../../../model/Task/Accounting/general-journal.model";
 import { getMonth, getYear, endOfMonth, format } from "date-fns";
-
 const GeneralJournal = express.Router();
 
 GeneralJournal.post(
@@ -220,17 +221,10 @@ GeneralJournal.post(
     }
   }
 );
+
 GeneralJournal.post("/general-journal/jobs", async (req, res) => {
-  console.log(req.body);
+
   let response = [];
-  const month = getMonth(new Date(req.body.jobTransactionDate)) + 1;
-  const from = `${
-    month.toString().length > 1 ? month : "0" + month
-  }-01-${getYear(new Date(req.body.jobTransactionDate))}`;
-  const to = format(
-    endOfMonth(new Date(req.body.jobTransactionDate)),
-    "MM-dd-yyyy"
-  );
 
   switch (req.body.jobType) {
     case "":
@@ -249,55 +243,24 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
       response = [];
       break;
     case "4":
-      response = (await doRPTTransaction(
-        `
-      '1.03.01' as code,
-      'Premium Receivables' as acctName, 
-      d.ShortName as subAcctName,
-      d.Acronym as BranchCode,
-      d.ClientName,
-      "0.0" as debit,
-      FORMAT(REPLACE((TotalDue - ifnull(b.TotalPaid, 0)), ',', ''), 2)  AS credit,
-      'RPT' as TC_Code,
-      '' as remarks,
-      '' as vatType,
-      '' as invoice,
-      a.PolicyNo,
-      a.IDNo, 
-      b.TotalPaid,
-      c.Mortgagee,
-      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
-      `,
-        from,
-        to,
-        "N I L - HN"
-      )) as Array<any>;
+      const { from: fromNilData, to: toNilDate } = RPTComputationDate(
+        req.body.jobTransactionDate
+      );
+      response = await RPTComputation(
+        (await doRPTTransaction(
+          fromNilData,
+          toNilDate,
+          "N I L - HN"
+        )) as Array<any>
+      );
       break;
     case "5":
-      console.log(from, "-", to, "AMIFIN");
-      response = (await doRPTTransaction(
-        `
-      '1.03.01' as code,
-      'Premium Receivables' as acctName, 
-      d.ShortName as subAcctName,
-      d.Acronym as BranchCode,
-      d.ClientName,
-      "0.0" as debit,
-      (TotalDue - ifnull(b.TotalPaid, 0)) AS credit,
-      'RPT' as TC_Code,
-      '' as remarks,
-      '' as vatType,
-      'NA' as invoice,
-      a.PolicyNo,
-      a.IDNo, 
-      b.TotalPaid,
-      c.Mortgagee,
-      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
-      `,
-        from,
-        to,
-        "AMIFIN"
-      )) as Array<any>;
+      const { from: fromAMIFIN, to: toAMIFIN } = RPTComputationDate(
+        req.body.jobTransactionDate
+      );
+      response = await RPTComputation(
+        (await doRPTTransaction(fromAMIFIN, toAMIFIN, "AMIFIN")) as Array<any>
+      );
       break;
     case "6":
       response = [];
@@ -309,16 +272,22 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
       response = [];
       break;
     case "9":
-      "Milestone Guarantee";
-      response = [];
+      response = await MonthlyProductionComputation(
+        req.body.jobTransactionDate,
+        "MILESTONE GUARANTEE"
+      );
       break;
     case "10":
-      "Liberty Insurance Co.";
-      response = [];
+      response = await MonthlyProductionComputation(
+        req.body.jobTransactionDate,
+        "LIBERTY INSURANCE CO"
+      );
       break;
     case "11":
-      "Federal Phoenix";
-      response = [];
+      response = await MonthlyProductionComputation(
+        req.body.jobTransactionDate,
+        "FEDERAL PHOENIX"
+      );
       break;
     default:
       response = [];
@@ -328,7 +297,7 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
     res.send({
       message: "Successfully get jobs ",
       success: true,
-      jobs:response,
+      jobs: response,
     });
   } catch (error: any) {
     res.send({
@@ -338,5 +307,130 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
     });
   }
 });
+
+async function RPTComputation(jobs: Array<any>) {
+  let response = [];
+  const debit = jobs.reduce((a: number, b: any) => {
+    return a + parseFloat(b.credit.replace(/,/g, ""));
+  }, 0);
+
+  // insert credit
+  const overrideItems = {
+    code: "4.02.01",
+    acctName: "Accounts Payable",
+    debit: "0.0",
+    TC_Code: "RPT",
+    remarks: "",
+    vatType: "",
+    invoice: "",
+  };
+  // insert debit
+  const addItem = {
+    code: "1.05.01",
+    acctName: "Related Party Transaction",
+    subAcctName: "",
+    ClientName: "",
+    debit: debit.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    credit: "0.00",
+    TC_Code: "RPT",
+    remarks: "",
+    vatType: "",
+    invoice: "",
+    IDNo: "",
+    BranchCode: "",
+    TempID: (jobs.length + 1).toString().padStart(3, "0"),
+    ...((await doRPTTransactionLastRow()) as Array<any>)[0],
+  };
+
+  response = jobs.map((d: any) => {
+    d = {
+      ...d,
+      ...overrideItems,
+    };
+    return d;
+  });
+
+  if (jobs.length > 0) {
+    response.push(addItem);
+  }
+
+  return response;
+}
+
+function RPTComputationDate(jobTransactionDate: any) {
+  const month = getMonth(new Date(jobTransactionDate)) + 1;
+  const from = `${
+    month.toString().length > 1 ? month : "0" + month
+  }-01-${getYear(new Date(jobTransactionDate))}`;
+  const to = format(endOfMonth(new Date(jobTransactionDate)), "MM-dd-yyyy");
+
+  return { from, to };
+}
+
+async function MonthlyProductionComputation(
+  jobTransactionDate: any,
+  account: string
+) {
+  const id = {
+    "MILESTONE GUARANTEE": "UIA-1207-018",
+    "LIBERTY INSURANCE CO": "SUP025",
+    "FEDERAL PHOENIX": "UIO-1312-002",
+  }[account];
+  const date = new Date(jobTransactionDate);
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const milestone = (await doMonthlyProduction(
+    account,
+    month,
+    year
+  )) as Array<any>;
+  const addItem = {
+    code: "4.02.01",
+    acctName: "Accounts Payable",
+    credit: "0.00",
+    TC_Code: "",
+    remarks: "",
+    vatType: "",
+    invoice: "",
+  };
+
+  if (milestone.length <= 0) return [];
+
+  const milestoneCredit = milestone.reduce((a: number, b: any) => {
+    return a + parseFloat(b.debit.toString().replace(/,/g, ""));
+  }, 0);
+
+  const milestoneData = milestone.map((item) => {
+    item = {
+      ...item,
+      ...addItem,
+    };
+    return item;
+  });
+
+  milestoneData.push({
+    code: "4.02.01",
+    acctName: "Accounts Payable",
+    subAcctName: "HO",
+    ClientName: id,
+    debit: "0.00",
+    credit: milestoneCredit.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    TC_Code: "",
+    remarks: "",
+    vatType: "",
+    invoice: "",
+    TempID: (milestone.length + 1).toString().padStart(3, "0"),
+    IDNo: id,
+    BranchCode: "",
+  });
+
+  return milestoneData;
+}
 
 export default GeneralJournal;
