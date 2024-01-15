@@ -96,6 +96,12 @@ export async function createIdSequence() {
         type: "general-journal",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "cash-disbursement",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);

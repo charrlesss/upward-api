@@ -20,7 +20,7 @@ export async function getCheckList(search: string) {
       a.Credit as Amount,
       a.Bank, 
       c.Official_Receipt, 
-      DATE_FORMAT(c.Date_OR, '%m/%d/%Y') AS Date_OR, 
+      c.Date_OR , 
       b.BankAccount,
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM 

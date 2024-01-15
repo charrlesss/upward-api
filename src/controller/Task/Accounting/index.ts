@@ -5,6 +5,7 @@ import Deposit from "./deposit";
 import ReturnCheck from "./return-checks";
 import PettyCash from "./pettycash";
 import GeneralJournal from "./general-journal";
+import CashDisbursement from "./cash-disbursement";
 
 const Accounting = express.Router();
 
@@ -14,5 +15,6 @@ Accounting.use("/accounting", Deposit);
 Accounting.use("/accounting", ReturnCheck);
 Accounting.use("/accounting", PettyCash);
 Accounting.use("/accounting", GeneralJournal);
+Accounting.use("/accounting", CashDisbursement);
 
 export default Accounting;
