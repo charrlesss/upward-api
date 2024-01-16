@@ -6,7 +6,7 @@ import {
   GenerateGeneralJournalID,
   addJournalVoucher,
   addJournalFromJournalVoucher,
-  updatePettyCashID,
+  updateGeneralJournalID,
   searchGeneralJournal,
   getSelectedSearchGeneralJournal,
   deleteGeneralJournal,
@@ -18,6 +18,7 @@ import {
   doRPTTransaction,
   doRPTTransactionLastRow,
   doMonthlyProduction,
+  findeGeneralJournal,
 } from "../../../model/Task/Accounting/general-journal.model";
 import { getMonth, getYear, endOfMonth, format } from "date-fns";
 const GeneralJournal = express.Router();
@@ -26,6 +27,15 @@ GeneralJournal.post(
   "/general-journal/add-general-journal",
   async (req, res) => {
     try {
+      const generalJournal = (await findeGeneralJournal(
+        req.body.refNo
+      )) as Array<any>;
+      if (generalJournal.length > 0 && !req.body.hasSelected) {
+        return res.send({
+          message: `${req.body.refNo} already exist!`,
+          success: false,
+        });
+      }
       await deleteGeneralJournal(req.body.refNo);
       await deleteJournalFromGeneralJournal(req.body.refNo);
 
@@ -72,7 +82,10 @@ GeneralJournal.post(
           Source_No_Ref_ID: "",
         });
       });
-      await updatePettyCashID(req.body.refNo.split("-")[1]);
+
+      if (!req.body.hasSelected) {
+        await updateGeneralJournalID(req.body.refNo.split("-")[1]);
+      }
       res.send({
         message: req.body.hasSelected
           ? `Successfully update ${req.body.refNo}  in general journal`
@@ -223,7 +236,6 @@ GeneralJournal.post(
 );
 
 GeneralJournal.post("/general-journal/jobs", async (req, res) => {
-
   let response = [];
 
   switch (req.body.jobType) {

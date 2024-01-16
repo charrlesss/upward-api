@@ -24,7 +24,8 @@ export async function getChartOfAccount(search: string) {
             OR a.Short LIKE '%${search}%')
             AND a.Inactive = 0
             AND a.Acct_Type = 'Detail'
-    LIMIT 500;
+            ORDER BY a.Acct_Code ASC
+    LIMIT 100;
     `);
 }
 
@@ -37,74 +38,91 @@ export async function getPolicyIdClientIdRefId(search: string) {
     LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM
     (SELECT 
-        'Client' AS Type,
-            aa.entry_client_id AS IDNo,
-            aa.sub_account,
-            CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-    FROM
-        upward_insurance.entry_client aa UNION ALL SELECT 
-        'Agent' AS Type,
-            aa.entry_agent_id AS IDNo,
-            aa.sub_account,
-            CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-    FROM
-        upward_insurance.entry_agent aa UNION ALL SELECT 
-        'Employee' AS Type,
-            aa.entry_employee_id AS IDNo,
-            aa.sub_account,
-            CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-    FROM
-        upward_insurance.entry_employee aa UNION ALL SELECT 
-        'Supplier' AS Type,
-            aa.entry_supplier_id AS IDNo,
-            aa.sub_account,
-            CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-    FROM
-        upward_insurance.entry_supplier aa UNION ALL SELECT 
-        'Fixed Assets' AS Type,
-            aa.entry_fixed_assets_id AS IDNo,
-            aa.sub_account,
-            aa.fullname AS Shortname
-    FROM
-        upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
-        'Others' AS Type,
-            aa.entry_others_id AS IDNo,
-            aa.sub_account,
-            aa.description AS Shortname
-    FROM
-        upward_insurance.entry_others aa UNION ALL SELECT 
-        'Policy Type' AS Type, a.IDNo, b.sub_account, b.Shortname
+    'Client' AS Type,
+    aa.entry_client_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_client aa 
+UNION ALL SELECT 
+    'Agent' AS Type,
+    aa.entry_agent_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_agent aa 
+UNION ALL SELECT 
+    'Employee' AS Type,
+    aa.entry_employee_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_employee aa 
+UNION ALL SELECT 
+    'Supplier' AS Type,
+    aa.entry_supplier_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_supplier aa 
+UNION ALL SELECT 
+    'Fixed Assets' AS Type,
+    aa.entry_fixed_assets_id AS IDNo,
+    aa.sub_account,
+    aa.fullname AS Shortname,
+    CONCAT(aa.description, ' - ', aa.remarks) AS address
+FROM
+    upward_insurance.entry_fixed_assets aa 
+UNION ALL SELECT 
+    'Others' AS Type,
+    aa.entry_others_id AS IDNo,
+    aa.sub_account,
+    aa.description AS Shortname,
+    CONCAT(aa.description, ' - ', aa.remarks) AS address
+FROM
+    upward_insurance.entry_others aa UNION ALL SELECT 
+        'Policy Type' AS Type, a.IDNo, b.sub_account, b.Shortname, b.address
     FROM
         upward_insurance.policy a
     LEFT JOIN (SELECT 
         aa.entry_client_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+            aa.address
     FROM
         upward_insurance.entry_client aa UNION ALL SELECT 
         aa.entry_agent_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+            aa.address
     FROM
         upward_insurance.entry_agent aa UNION ALL SELECT 
         aa.entry_employee_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+            aa.address
     FROM
         upward_insurance.entry_employee aa UNION ALL SELECT 
         aa.entry_supplier_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+            aa.address
     FROM
         upward_insurance.entry_supplier aa UNION ALL SELECT 
         aa.entry_fixed_assets_id AS IDNo,
             aa.fullname AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+              CONCAT(aa.description, ' - ', aa.remarks) AS address
     FROM
         upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
         aa.entry_others_id AS IDNo,
             aa.description AS Shortname,
-            aa.sub_account
+            aa.sub_account,
+             CONCAT(aa.description, ' - ', aa.remarks) AS address
     FROM
         upward_insurance.entry_others aa) b ON a.IDNo = b.IDNo) a
         LEFT JOIN
@@ -138,7 +156,7 @@ export async function addJournalFromJournalVoucher(data: any) {
   return prisma.journal.create({ data });
 }
 
-export async function updatePettyCashID(last_count: string) {
+export async function updateGeneralJournalID(last_count: string) {
   return await prisma.$queryRawUnsafe(`
       UPDATE upward_insurance.id_sequence a 
         SET 
@@ -170,7 +188,11 @@ export async function deleteJournalFromGeneralJournal(Source_No: string) {
             AND a.Source_Type = 'GL'
         `);
 }
-
+export async function findeGeneralJournal(Source_No: string) {
+  return await prisma.$queryRawUnsafe(
+    `SELECT * FROM upward_insurance.journal_voucher where Source_No = '${Source_No}'`
+  );
+}
 export async function voidGeneralJournal(Source_No: string) {
   return await prisma.$queryRawUnsafe(`
         DELETE
@@ -185,23 +207,14 @@ export async function insertVoidGeneralJournal(
   refNo: string,
   dateEntry: string
 ) {
-  console.log(`
-    INSERT INTO
-    upward_insurance.journal_voucher 
-    (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
-    VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
-    new Date(dateEntry),
-    "MM/dd/yyyy"
-  )}) --')
-    `);
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
   upward_insurance.journal_voucher 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
-  VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
+  VALUES ('HO',"${format(
     new Date(dateEntry),
-    "MM/dd/yyyy"
-  )}) --')
+    "yyyy-MM-dd HH:mm:ss.SSS"
+  )}",'GL','${refNo}','-- Void(${format(new Date(), "MM/dd/yyyy")}) --')
   `);
 }
 
@@ -225,7 +238,7 @@ export async function insertVoidJournalFromGeneralJournal(
   upward_insurance.journal 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation,Source_No_Ref_ID)
   VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
-    new Date(dateEntry),
+    new Date(),
     "MM/dd/yyyy"
   )}) --','')
   `);
@@ -311,7 +324,7 @@ export async function doRPTTransaction(
   Mortgagee: string
 ) {
   return prisma.$queryRawUnsafe(`
-    SELECT 
+  SELECT 
       d.ShortName as subAcctName,
       d.Acronym as BranchCode,
       d.ClientName,
@@ -320,6 +333,7 @@ export async function doRPTTransaction(
       a.IDNo, 
       b.TotalPaid,
       c.Mortgagee,
+      d.address,
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
       FROM
           upward_insurance.policy a
@@ -331,50 +345,57 @@ export async function doRPTTransaction(
               upward_insurance.collection
           GROUP BY IDNo) b ON b.IDNo = a.PolicyNo
         left join  (
-          SELECT a.IDNo,a.Shortname as ClientName,a.sub_account , b.ShortName , b.Acronym from (
-          SELECT 
-              'Client' AS Type,
-                aa.entry_client_id AS IDNo,
-                aa.sub_account,
-                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-            FROM
-              upward_insurance.entry_client aa
-              UNION ALL
-              SELECT 
-              'Agent' AS Type,
-                aa.entry_agent_id AS IDNo,
-                aa.sub_account,
-                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-            FROM
-              upward_insurance.entry_agent aa UNION ALL SELECT 
-              'Employee' AS Type,
-                aa.entry_employee_id AS IDNo,
-                aa.sub_account,
-                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-            FROM
-              upward_insurance.entry_employee aa UNION ALL SELECT 
-              'Supplier' AS Type,
-                aa.entry_supplier_id AS IDNo,
-                aa.sub_account,
-                CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname
-            FROM
-              upward_insurance.entry_supplier aa UNION ALL SELECT 
-              'Fixed Assets' AS Type,
-                aa.entry_fixed_assets_id AS IDNo,
-                aa.sub_account,
-                aa.fullname AS Shortname
-            FROM
-              upward_insurance.entry_fixed_assets aa 
-            UNION ALL 
-            SELECT 
-              'Others' AS Type,
-                aa.entry_others_id AS IDNo,
-                aa.sub_account,
-                aa.description AS Shortname
-            FROM
-              upward_insurance.entry_others aa
-
-          ) a
+          SELECT a.IDNo, a.address, a.Shortname as ClientName,a.sub_account , b.ShortName , b.Acronym from (
+          
+    SELECT 
+    'Client' AS Type,
+    aa.entry_client_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_client aa 
+UNION ALL SELECT 
+    'Agent' AS Type,
+    aa.entry_agent_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_agent aa 
+UNION ALL SELECT 
+    'Employee' AS Type,
+    aa.entry_employee_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_employee aa 
+UNION ALL SELECT 
+    'Supplier' AS Type,
+    aa.entry_supplier_id AS IDNo,
+    aa.sub_account,
+    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    aa.address
+FROM
+    upward_insurance.entry_supplier aa 
+UNION ALL SELECT 
+    'Fixed Assets' AS Type,
+    aa.entry_fixed_assets_id AS IDNo,
+    aa.sub_account,
+    aa.fullname AS Shortname,
+    CONCAT(aa.description, ' - ', aa.remarks) AS address
+FROM
+    upward_insurance.entry_fixed_assets aa 
+UNION ALL SELECT 
+    'Others' AS Type,
+    aa.entry_others_id AS IDNo,
+    aa.sub_account,
+    aa.description AS Shortname,
+    CONCAT(aa.description, ' - ', aa.remarks) AS address
+FROM
+    upward_insurance.entry_others aa
+           ) a
           left join upward_insurance.sub_account b on a.sub_account = b.Sub_Acct
           ) d on a.IDNo = d.IDNo
               INNER JOIN
@@ -382,14 +403,12 @@ export async function doRPTTransaction(
           
       WHERE
           (
-              TotalDue - ifnull(b.TotalPaid, 0)) <> 0
-              AND a.PolicyType = 'TPL'
-              AND c.Mortgagee = '${Mortgagee}'
-              AND (CAST(a.DateIssued AS DATE) >= STR_TO_DATE('${from}', '%m-%d-%Y') 
-              AND CAST(a.DateIssued AS DATE) <= STR_TO_DATE('${to}', '%m-%d-%Y')
+            TotalDue - ifnull(b.TotalPaid, 0)) <> 0
+            AND a.PolicyType = 'TPL'
+            AND c.Mortgagee = '${Mortgagee}'
+            AND (CAST(a.DateIssued AS DATE) >= STR_TO_DATE('${from}', '%m-%d-%Y') 
+            AND CAST(a.DateIssued AS DATE) <= STR_TO_DATE('${to}', '%m-%d-%Y')
           )
       ORDER BY a.DateIssued
-
-
     `);
 }

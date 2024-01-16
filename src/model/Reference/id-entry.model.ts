@@ -64,6 +64,7 @@ interface EntryOthersType {
   entry_others_id: string;
   description: string;
   sub_account: string;
+  remarks: string;
 }
 
 const queryList: any = {
@@ -200,7 +201,8 @@ const queryList: any = {
       a.entry_others_id,
       a.description,
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) AS createdAt,
-      a.sub_account
+      a.sub_account,
+      a.remarks
     FROM
     upward_insurance.entry_others a
     where
@@ -406,6 +408,7 @@ async function updateOthers(data: EntryOthersType) {
    set 
     \`description\`='${data.description}',
     \`sub_account\`='${data.sub_account}',
+    \`remarks\`='${data.remarks}',
     \`update\`=NOW()
     where 
       \`entry_others_id\`= '${data.entry_others_id}'

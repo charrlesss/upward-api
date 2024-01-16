@@ -359,34 +359,34 @@ model books {
 }
 
 model cash_disbursement {
-  Branch_Code   String?   @db.VarChar(3)
+  Branch_Code   String?   @db.VarChar(255)
   Date_Entry    DateTime? @db.DateTime(6)
-  Source_Type   String?   @db.VarChar(3)
-  Source_No     String?   @db.VarChar(20)
-  Explanation   String?   @db.VarChar(700)
+  Source_Type   String?   @db.VarChar(255)
+  Source_No     String?   @db.VarChar(255)
+  Explanation   String?   @db.VarChar(255)
   Particulars   String?   @db.LongText
-  Payto         String?   @db.VarChar(100)
+  Payto         String?   @db.VarChar(255)
   Address       String?   @db.VarChar(255)
-  Check_Date    DateTime? @db.DateTime(6)
-  Check_No      String?   @db.VarChar(100)
-  Check_Bank    String?   @db.VarChar(100)
+  Check_Date    String?  @db.VarChar(255)
+  Check_No      String?   @db.VarChar(255)
+  Check_Bank    String?   @db.VarChar(255)
   Check_Return  DateTime? @db.DateTime(6)
   Check_Collect DateTime? @db.DateTime(6)
   Check_Deposit DateTime? @db.DateTime(6)
   Check_Reason  String?   @db.VarChar(255)
-  GL_Acct       String?   @db.VarChar(10)
-  Sub_Acct      String?   @db.VarChar(3)
-  ID_No         String?   @db.VarChar(20)
-  cGL_Acct      String?   @db.VarChar(50)
-  cSub_Acct     String?   @db.VarChar(100)
-  cID_No        String?   @db.VarChar(100)
+  GL_Acct       String?   @db.VarChar(255)
+  Sub_Acct      String?   @db.VarChar(255)
+  ID_No         String?   @db.VarChar(255)
+  cGL_Acct      String?   @db.VarChar(255)
+  cSub_Acct     String?   @db.VarChar(255)
+  cID_No        String?   @db.VarChar(255)
   Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
   Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
-  TC            String?   @db.VarChar(3)
+  TC            String?   @db.VarChar(255)
   Remarks       String?   @db.VarChar(255)
   AutoNo        BigInt    @id @default(autoincrement())
-  VAT_Type      String?   @db.VarChar(50)
-  OR_Invoice_No String?   @db.VarChar(100)
+  VAT_Type      String?   @db.VarChar(255)
+  OR_Invoice_No String?   @db.VarChar(255)
   VATItemNo     Int?
 }
 
@@ -1057,6 +1057,7 @@ model entry_fixed_assets {
 model entry_others {
   entry_others_id String   @id
   description     String   @db.Text
+  remarks         String   @db.Text
   createdAt       DateTime @default(now())
   update          DateTime @default(now())
   sub_account     String   @db.VarChar(500)
