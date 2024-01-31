@@ -10,11 +10,55 @@ IN SortBy VARCHAR(100)
 )
 BEGIN
 declare whr_query TEXT;
+declare selectClient TEXT;
+
+set selectClient = 'SELECT 
+            aa.entry_client_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_client aa
+            union all
+      SELECT 
+            aa.entry_agent_id AS IDNo,
+        Null as sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_agent aa
+            union all
+      SELECT 
+            aa.entry_employee_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_employee aa
+      union all
+      SELECT 
+            aa.entry_supplier_id AS IDNo,
+        null as sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+        FROM
+            upward_insurance.entry_supplier aa
+            union all
+      SELECT 
+            aa.entry_fixed_assets_id AS IDNo,
+        null as sub_account,
+        aa.fullname AS Shortname
+        FROM
+            upward_insurance.entry_fixed_assets aa
+            union all
+      SELECT 
+            aa.entry_others_id AS IDNo,
+        null as sub_account,
+        aa.description AS Shortname
+        FROM
+            upward_insurance.entry_others aa';
+
 SET @sql_query = concat('
 SELECT 
 	VPolicy.Mortgagee AS Mortgagee,
 	 Policy.IDNo AS IDNo,
-	 UPPER(entry_client.firstname,", ",entry_client.lastname) AS AssuredName,
+	 client.Shortname AS AssuredName,
 	 Policy.Account AS Account,
 	 Policy.PolicyType,
 	 Policy.PolicyNo,
@@ -51,7 +95,9 @@ LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo
 LEFT JOIN CGLPolicy ON Policy.PolicyNo = CGLPolicy.PolicyNo 
 LEFT JOIN MSPRPolicy ON Policy.PolicyNo = MSPRPolicy.PolicyNo 
 LEFT JOIN FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo 
-LEFT JOIN  entry_client ON Policy.IDNo = entry_client.entry_client_id');
+LEFT JOIN (
+   ',selectClient,'
+) client ON Policy.IDNo = client.IDNo');
 
 IF (Mortgagee = '') THEN
     IF (PolicyType = 'Bonds') THEN
@@ -60,17 +106,45 @@ IF (Mortgagee = '') THEN
 					SET whr_query = concat(' WHERE CAST(Policy.DateIssued AS DATE) <= CAST(''' , CAST(DateTo AS CHAR) , ''' AS DATE) AND CAST(Policy.DateIssued AS DATE) >= CAST(''' , CAST(DateFrom AS CHAR) , ''' AS DATE)  AND Policy.PolicyType in (select SublineName from subline where line = ''Bonds'')');
 			END IF;
 			IF (SortBy = 'Date From') THEN
-					SET whr_query = concat(' WHERE IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) <= CAST(''' , CAST(DateTo AS CHAR) , ''' AS DATE) AND IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) >= CAST(''' , CAST(DateFrom AS CHAR) , ''' AS DATE)  AND Policy.PolicyType in (select SublineName from subline where line = ''Bonds'')'); 
+					SET whr_query = concat(" WHERE date(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) <= STR_TO_DATE('",DateTo,"','%Y-%m-%d') AND date(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) >= STR_TO_DATE('",DateFrom,"','%Y-%m-%d')   AND Policy.PolicyType in (select SublineName from subline where line = 'Bonds')"); 
 			END IF;
 		END IF;
         
 		IF (Account_ <> 'ALL') THEN
 			IF (SortBy <> 'Date From') THEN
-				SET whr_query = concat( ' WHERE CAST(Policy.DateIssued AS DATE) <= CAST(''' , CAST(DateTo AS CHAR) , ''' AS DATE) AND CASTPolicy.DateIssued AS DATE) >= CAST(''' , CAST(DateFrom AS CHAR) , ''' AS DATE) AND Policy.Account = ''' , Account_ , ''' AND Policy.PolicyType in (select SublineName from subline where line = ''Bonds'')');
-            END IF;
+				SET whr_query = concat(" WHERE DATE(Policy.DateIssued) <= STR_TO_DATE('",DateTo,"', '%Y-%m-%d')
+										AND DATE(Policy.DateIssued) >= STR_TO_DATE('",DateFrom,"', '%Y-%m-%d')
+										AND Policy.Account = '",Account_,"'
+										AND Policy.PolicyType IN (SELECT 
+											SublineName
+										FROM
+											upward_insurance.subline
+										WHERE
+											line = 'Bonds')");
+          
+          END IF;
 			IF (SortBy = 'Date From') THEN
-					SET whr_query = concat(' WHERE IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) <= CAST(''' + CAST(DateTo AS CHAR) + ''' AS DATE) AND IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))) >= CAST(''' + CAST(@DateFrom AS CHAR) + ''' AS DATE) AND Policy.Account = ''' , Account_ , ''' AND Policy.PolicyType in (select SublineName from subline where line = ''Bonds'')'); 
-            END IF;
+				SET whr_query = concat(" WHERE DATE(IFNULL(BPolicy.BidDate,
+											IFNULL(VPolicy.DateFrom,
+													IFNULL(MPolicy.DateFrom,
+															IFNULL(PAPolicy.PeriodFrom,
+																	IFNULL(CGLPolicy.PeriodFrom,
+																			IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) <= STR_TO_DATE('",DateTo,"', '%Y-%m-%d')
+									AND DATE(IFNULL(BPolicy.BidDate,
+											IFNULL(VPolicy.DateFrom,
+													IFNULL(MPolicy.DateFrom,
+															IFNULL(PAPolicy.PeriodFrom,
+																	IFNULL(CGLPolicy.PeriodFrom,
+																			IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom))))))) >= STR_TO_DATE('",DateFrom,"', '%Y-%m-%d')
+									AND Policy.Account = '",Account_,"'
+									AND Policy.PolicyType IN (SELECT 
+										SublineName
+									FROM
+										subline
+									WHERE
+										line = 'Bonds')");
+            
+           END IF;
 		END IF;
 			SET whr_query = concat(whr_query , IF(CAST(IsFinanced AS SIGNED)  = 0, '', ' AND ((VPolicy.Mortgagee LIKE ''CASH MANAGEMENT%'') OR (VPolicy.Mortgagee LIKE ''CREDIT MASTER%'') OR (VPolicy.Mortgagee LIKE ''CAMFIN%''))'));
     END IF;

@@ -26,6 +26,9 @@ ProductionReports.post("/production-report", async (req, res) => {
     sort,
     mortgagee,
   } = req.body;
+
+  console.log(req.body);
+  
   const tableCol = [
     "Mortgagee",
     "IDNo",
@@ -70,8 +73,8 @@ ProductionReports.post("/production-report", async (req, res) => {
   )} ', '${account}', '${report_type}', ${format2}, '${
     mortgagee === "All" ? "" : mortgagee
   }', '${policy_type}', '${sort}');`;
-  console.log(query)
-  
+  console.log(query);
+
   const report: any = await prisma.$queryRawUnsafe(query);
   const data = mapColumnsToKeys(tableCol, report);
   res.send({
@@ -80,7 +83,9 @@ ProductionReports.post("/production-report", async (req, res) => {
 });
 ProductionReports.get("/getaccount", async (req, res) => {
   return res.send({
-    accounts: await prisma.policy_account.findMany({ select: { Account: true } }),
+    accounts: await prisma.policy_account.findMany({
+      select: { Account: true },
+    }),
     tpl: await prisma.$queryRawUnsafe(
       `SELECT * FROM upward.mortgagee where Policy = 'TPL'`
     ),
@@ -89,7 +94,7 @@ ProductionReports.get("/getaccount", async (req, res) => {
 ProductionReports.post("/renewal-notice", async (req, res) => {
   let { dateFrom, report_type } = req.body;
   let tableCol: any = [];
-  report_type =  report_type.toUpperCase()
+  report_type = report_type.toUpperCase();
   if (report_type === "COM") {
     tableCol = [
       "AssuredName",
@@ -106,28 +111,23 @@ ProductionReports.post("/renewal-notice", async (req, res) => {
     ];
   } else if (report_type === "FIRE") {
     tableCol = [
-      'AssuredName',
-      'PolicyNo',
-      'Expiration',
-      'InsuredValue',
-      'TotalPremium',
-      'Mortgage'
+      "AssuredName",
+      "PolicyNo",
+      "Expiration",
+      "InsuredValue",
+      "TotalPremium",
+      "Mortgage",
     ];
   } else if (report_type === "MAR") {
     tableCol = [
-     'AssuredName',
-     'PolicyNo',
-     'Expiration',
-     'InsuredValue',
-     'TotalPremium'
+      "AssuredName",
+      "PolicyNo",
+      "Expiration",
+      "InsuredValue",
+      "TotalPremium",
     ];
-  } else if(report_type === "PA") {
-    tableCol = [
-     'AssuredName',
-     'PolicyNo',
-     'Expiration',
-     'TotalPremium'
-    ];
+  } else if (report_type === "PA") {
+    tableCol = ["AssuredName", "PolicyNo", "Expiration", "TotalPremium"];
   }
 
   const query = `call renewal_report('${format(

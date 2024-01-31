@@ -35,7 +35,7 @@ export async function getline() {
       SELECT
           a.Line
       FROM
-          upward_insurance.subline_line a
+          upward_insurance.subline a
       GROUP BY a.Line;
       `;
   return await prisma.$queryRawUnsafe(query1);

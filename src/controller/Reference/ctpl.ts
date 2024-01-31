@@ -60,7 +60,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
     const ctplID = await generateUniqueUUID("ctplregistration", "ctplId");
     const { Prefix, NumSeriesFrom, NumSeriesTo, Cost } = req.body;
 
-    if (!(req.body.Prefix.match(/^[A-Za-z]+$/))) {
+    if (!req.body.Prefix.match(/^[A-Za-z]+$/)) {
       return res.send({
         message: "Invalid Prefix contain number!",
         success: false,
@@ -69,13 +69,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
 
     let addZeroFromSeries = getZeroFirstInput(NumSeriesFrom);
     let addZeroToSeries = getZeroFirstInput(NumSeriesTo);
-
-    if (addZeroToSeries.length !== addZeroFromSeries.length) {
-      return res.send({
-        message: "Invalid Series!",
-        success: false,
-      });
-    }
+  
     if (parseInt(NumSeriesFrom) > parseInt(NumSeriesTo)) {
       return res.send({
         message: "Invalid Series!",

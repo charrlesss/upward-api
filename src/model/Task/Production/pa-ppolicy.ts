@@ -5,7 +5,7 @@ export async function createPAPolicy(data: any) {
   return await prisma.papolicy.create({ data });
 }
 
-export async function searchPAPolicy(search:string) {
+export async function searchPAPolicy(search: string) {
   const query = `
   select a.*,b.*, 
   concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
@@ -23,19 +23,16 @@ export async function searchPAPolicy(search:string) {
   c.middlename like '%${search}%' 
   limit 100
   `;
-return await prisma.$queryRawUnsafe(query);
+  return await prisma.$queryRawUnsafe(query);
 }
 
-
-export async function deletePAPolicy(
-  Acount: string,
-  PolicyNo: string
-) {
+export async function deletePAPolicy(Acount: string, PolicyNo: string) {
   const query = `
   delete from upward_insurance.papolicy 
   where 
-  Account = '${Acount}' 
+  Account = '${Acount.trim()}' 
   and PolicyNo = '${PolicyNo}'
   `;
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }

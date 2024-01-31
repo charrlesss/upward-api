@@ -1,10 +1,5 @@
 import express, { Request, Response } from "express";
 import {
-  getAgents,
-  getClients,
-  getPolicyAccount,
-  getSubAccount,
-  getMortgagee,
   findPolicy,
   getClientById,
   deleteJournalBySource,
@@ -20,6 +15,15 @@ import {
   getRateType,
   searchFirePolicy,
 } from "../../../model/Task/Production/fire-policy";
+
+import {
+  getAgents,
+  getClients,
+  getPolicyAccount,
+  getSubAccount,
+  getMortgagee,
+} from "../../../model/Task/Production/policy";
+
 const FirePolicy = express.Router();
 
 FirePolicy.get("/get-fire-policy", async (req: Request, res: Response) => {
@@ -75,6 +79,7 @@ FirePolicy.get(
 );
 FirePolicy.get("/search-fire-policy", async (req: Request, res: Response) => {
   try {
+    console.log("wqeqw", req.query.searchFirePolicy);
     res.send({
       message: "Successfully search data",
       success: true,
@@ -84,8 +89,7 @@ FirePolicy.get("/search-fire-policy", async (req: Request, res: Response) => {
     res.send({ message: error.message, success: false, vehiclePolicy: null });
   }
 });
-async function insertFirePolicy(
-  {
+async function insertFirePolicy({
   sub_account,
   client_id,
   client_name,
@@ -113,8 +117,7 @@ async function insertFirePolicy(
   totalDue,
   strArea,
   cStrArea,
-}: any
-) {
+}: any) {
   await createPolicy({
     IDNo: client_id,
     Account: PolicyAccount,
@@ -264,7 +267,7 @@ FirePolicy.post("/delete-fire-policy", async (req, res) => {
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
     //delete policy
-    await deletePolicy(PolicyAccount, 'FIRE', PolicyNo);
+    await deletePolicy(PolicyAccount, "FIRE", PolicyNo);
     // //delete v policy
     await deleteFirePolicy(PolicyAccount, PolicyNo);
     res.send({

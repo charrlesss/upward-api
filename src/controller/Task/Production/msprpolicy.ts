@@ -7,8 +7,6 @@ import {
   deletePolicy,
   findPolicy,
   getClientById,
-  getPolicyAccount,
-  getSubAccount,
 } from "../../../model/Task/Production/vehicle-policy";
 import {
   createMSPRPolicy,
@@ -16,6 +14,11 @@ import {
   getMSPRRate,
   searchMsprPolicy,
 } from "../../../model/Task/Production/mspr-policy";
+
+import {
+  getSubAccount,
+  getPolicyAccount,
+} from "../../../model/Task/Production/policy";
 
 const MSPRPolicy = express.Router();
 
@@ -50,7 +53,7 @@ MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
     // get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
-    if (rate == null) {
+    if (rate == null || rate == undefined) {
       return res.send({
         message: "Please setup commission rate for this account and Line",
         success: false,
@@ -88,7 +91,7 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
-    if (rate == null) {
+    if (rate == null || rate == undefined) {
       return res.send({
         message: "Please setup commission rate for this account and Line",
         success: false,
@@ -117,8 +120,7 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
 });
 
 MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
-  const { PolicyAccount, PolicyNo, policyType } =
-    req.body;
+  const { PolicyAccount, PolicyNo, policyType } = req.body;
   try {
     //delete policy
     await deletePolicy(PolicyAccount, policyType, PolicyNo);
@@ -196,14 +198,16 @@ async function insertMSPRPolicy({
     DestinationPoint: moneyRoutesTo,
     Saferoom: safeDesc,
     Method: methodTrans,
-    Guard: parseFloat(parseFloat(guardsMinNum).toFixed(2)),
-    Messenger: parseFloat(parseFloat(messengerMaxNum).toFixed(2)),
-    SecI: sec1,
-    SecIPremium: prem1,
-    SecIB: sec2,
+    Guard: parseFloat(parseFloat(validateNumber(guardsMinNum)).toFixed(2)),
+    Messenger: parseFloat(
+      parseFloat(validateNumber(messengerMaxNum)).toFixed(2)
+    ),
+    SecI: validateNumber(sec1),
+    SecIPremium: validateNumber(prem1),
+    SecIB: validateNumber(sec2),
     SecIPremiumB: prem2,
-    SecII: sec3,
-    SecIIPremium: prem3,
+    SecII: validateNumber(sec3),
+    SecIIPremium: validateNumber(prem3),
   });
 
   //debit
@@ -245,6 +249,16 @@ async function insertMSPRPolicy({
     Remarks: "",
     Source_No_Ref_ID: "MSPR",
   });
+}
+
+function validateNumber(input: string) {
+  const sanitizedInput = input.replace(/,/g, "");
+
+  if (isNaN(Number(sanitizedInput))) {
+    return "0";
+  } else {
+    return input;
+  }
 }
 
 export default MSPRPolicy;

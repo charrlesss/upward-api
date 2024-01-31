@@ -7,8 +7,6 @@ import {
   deletePolicy,
   findPolicy,
   getClientById,
-  getPolicyAccount,
-  getSubAccount,
 } from "../../../model/Task/Production/vehicle-policy";
 import { getMSPRRate } from "../../../model/Task/Production/mspr-policy";
 import {
@@ -16,6 +14,10 @@ import {
   deleteCGLPolicy,
   searchCGLPolicy,
 } from "../../../model/Task/Production/cgl-policy";
+import {
+  getSubAccount,
+  getPolicyAccount,
+} from "../../../model/Task/Production/policy";
 
 const CGLPolicy = express.Router();
 
@@ -41,7 +43,6 @@ CGLPolicy.get("/get-cgl-policy", (req, res) => {
 CGLPolicy.post("/add-cgl-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
-
     if (await findPolicy(PolicyNo)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",

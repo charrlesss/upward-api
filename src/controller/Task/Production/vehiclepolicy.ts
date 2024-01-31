@@ -1,11 +1,5 @@
 import express, { Request, Response } from "express";
 import {
-  getAgents,
-  getClients,
-  getPolicyAccount,
-  getSubAccount,
-  getRates,
-  getMortgagee,
   getTPL_IDS,
   findPolicy,
   getRate,
@@ -23,62 +17,86 @@ import {
 } from "../../../model/Task/Production/vehicle-policy";
 import promiseAll from "../../../lib/promise-all";
 
+import {
+  getAgents,
+  getClients,
+  getPolicyAccount,
+  getSubAccount,
+  getRates,
+  getMortgagee,
+} from "../../../model/Task/Production/policy";
+
 const VehiclePolicy = express.Router();
 
+// VehiclePolicy.get(
+//   "/get-vehicle-policy",
+//   async (req: Request, res: Response) => {
+//     const { vpolicySearch } = req.query;
+//     console.log(vpolicySearch);
+//     try {
+//       promiseAll([
+//         getSubAccount(),
+//         getTempPolicyID(),
+//         getPolicyAccount("COM"),
+//         getPolicyAccount("TPL"),
+//         getRates("COM"),
+//         getRates("TPL"),
+//         getMortgagee("COM"),
+//         getMortgagee("TPL"),
+//       ]).then(
+//         ([
+//           clients,
+//           agents,
+//           sub_account,
+//           tempPolicyId,
+//           com,
+//           tpl,
+//           rateCom,
+//           rateTpl,
+//           mortCom,
+//           mortTpl,
+//         ]: any) => {
+//           res.send({
+//             message: "Successfully get data",
+//             success: true,
+//             vehiclePolicy: {
+//               clients,
+//               agents,
+//               sub_account,
+//               tempPolicyId,
+//               policy_account: {
+//                 com,
+//                 tpl,
+//               },
+//               rate: {
+//                 com: rateCom,
+//                 tpl: rateTpl,
+//               },
+//               mortgagee: {
+//                 com: mortCom,
+//                 tpl: mortTpl,
+//               },
+//             },
+//           });
+//         }
+//       );
+//     } catch (error: any) {
+//       res.send({ message: error.message, success: false, vehiclePolicy: null });
+//     }
+//   }
+// );
+
 VehiclePolicy.get(
-  "/get-vehicle-policy",
+  "/get-vehicle-policy-temp-id",
   async (req: Request, res: Response) => {
     try {
-      promiseAll([
-        getClients(""),
-        getAgents(""),
-        getSubAccount(),
-        getTempPolicyID(),
-        getPolicyAccount("COM"),
-        getPolicyAccount("TPL"),
-        getRates("COM"),
-        getRates("TPL"),
-        getMortgagee("COM"),
-        getMortgagee("TPL"),
-      ]).then(
-        ([
-          clients,
-          agents,
-          sub_account,
-          tempPolicyId,
-          com,
-          tpl,
-          rateCom,
-          rateTpl,
-          mortCom,
-          mortTpl,
-        ]: any) => {
-          res.send({
-            message: "Successfully get data",
-            success: true,
-            vehiclePolicy: {
-              clients,
-              agents,
-              sub_account,
-              tempPolicyId,
-              policy_account: {
-                com,
-                tpl,
-              },
-              rate: {
-                com: rateCom,
-                tpl: rateTpl,
-              },
-              mortgagee: {
-                com: mortCom,
-                tpl: mortTpl,
-              },
-            },
-          });
-        }
-      );
+      res.send({
+        message: "Successfully get data",
+        success: true,
+        tempId: await getTempPolicyID(),
+      });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, vehiclePolicy: null });
+      res.send({ message: error.message, success: false, tempId: [] });
     }
   }
 );
@@ -124,12 +142,10 @@ VehiclePolicy.get(
       res.send({
         message: "Successfully search data",
         success: true,
-        vehiclePolicy: {
-          tpl: await getTPL_IDS(req.query.tplIDSearch as string),
-        },
+        tpl_ids: await getTPL_IDS(req.query.tplIDSearch as string),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, vehiclePolicy: null });
+      res.send({ message: error.message, success: false, tpl_ids: [] });
     }
   }
 );
@@ -200,6 +216,7 @@ async function insertNewVPolicy({
   Source_No_Ref_ID,
   strArea,
   cStrArea,
+  remarks,
 }: any) {
   await createPolicy({
     IDNo: client_id,
@@ -269,6 +286,7 @@ async function insertNewVPolicy({
     AOGPercent: parseFloat(AOGPercent).toFixed(2),
     LocalGovTaxPercent: parseFloat(LocalGovTaxPercent).toFixed(2),
     TPLTypeSection_I_II: TplType,
+    Remarks: remarks,
   });
 
   if (PolicyNo.includes("TP-")) {
@@ -410,13 +428,8 @@ async function insertNewVPolicy({
   }
 }
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
-  const {
-    sub_account,
-    client_id,
-    PolicyAccount,
-    PolicyNo,
-    Denomination,
-  } = req.body;
+  const { sub_account, client_id, PolicyAccount, PolicyNo, Denomination } =
+    req.body;
   try {
     if (await findPolicy(PolicyNo)) {
       return res.send({

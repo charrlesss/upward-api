@@ -1,7 +1,5 @@
 import express, { Request, Response } from "express";
 import {
-  getSubAccount,
-  getPolicyAccount,
   findPolicy,
   getClientById,
   createPolicy,
@@ -19,6 +17,12 @@ import {
   getWords,
   deleteMarinePolicy,
 } from "../../../model/Task/Production/marine-policy";
+
+import {
+  getSubAccount,
+  getPolicyAccount,
+} from "../../../model/Task/Production/policy";
+
 const MarinePolicy = express.Router();
 
 MarinePolicy.get("/get-marine-policy", (req, res) => {
@@ -81,7 +85,7 @@ MarinePolicy.get(
       res.send({
         message: "Successfully search data",
         success: true,
-        firePolicy: await searchMarinePolicy(
+        marinePolicy: await searchMarinePolicy(
           req.query.searchMarinePolicy as string
         ),
       });

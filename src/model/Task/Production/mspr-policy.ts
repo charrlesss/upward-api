@@ -2,21 +2,16 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function getMSPRRate(Account: string, Line: string) {
-  return await prisma.rates.findMany({
-    where: {
-      Account,
-      AND: {
-        Line,
-      },
-    },
-  });
+  const query = `select * from upward_insurance.rates where Account='${Account}' AND  Line = '${Line}'`;
+  console.log(query);
+  return await prisma.$queryRawUnsafe(query);
 }
 export async function createMSPRPolicy(data: any) {
   return await prisma.msprpolicy.create({ data });
 }
 
 export async function searchMsprPolicy(search: string) {
-    const query = `
+  const query = `
     select a.*,b.*, 
     concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
@@ -36,11 +31,7 @@ export async function searchMsprPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-
-export async function deleteMsprPolicy(
-  Acount: string,
-  PolicyNo: string
-) {
+export async function deleteMsprPolicy(Acount: string, PolicyNo: string) {
   const query = `
   delete from upward_insurance.msprpolicy 
   where 

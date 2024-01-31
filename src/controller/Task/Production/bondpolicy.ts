@@ -7,9 +7,6 @@ import {
   deletePolicy,
   findPolicy,
   getClientById,
-  getPolicyAccount,
-  getPolicyType,
-  getSubAccount,
 } from "../../../model/Task/Production/vehicle-policy";
 import {
   createBondsPolicy,
@@ -17,6 +14,12 @@ import {
   getBondRate,
   searchBondsPolicy,
 } from "../../../model/Task/Production/bond-policy";
+import {
+  getSubAccount,
+  getPolicyAccount,
+  getPolicyType,
+} from "../../../model/Task/Production/policy";
+
 const BondPolicy = express.Router();
 
 BondPolicy.get("/get-bonds-policy", (req, res) => {
@@ -131,8 +134,7 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
 });
 
 BondPolicy.post("/delete-bonds-policy", async (req, res) => {
-  const { PolicyAccount, PolicyNo, policyType } =
-    req.body;
+  const { PolicyAccount, PolicyNo, policyType } = req.body;
   try {
     //delete policy
     await deletePolicy(PolicyAccount, policyType, PolicyNo);

@@ -6,6 +6,7 @@ import BondPolicy from "./bondpolicy";
 import MSPRPolicy from "./msprpolicy";
 import PAPolicy from "./papolicy";
 import CGLPolicy from "./cglpolicy";
+import Policy from "./policy";
 
 const Production = express.Router();
 
@@ -16,5 +17,6 @@ Production.use("/production", BondPolicy);
 Production.use("/production", MSPRPolicy);
 Production.use("/production", PAPolicy);
 Production.use("/production", CGLPolicy);
+Production.use("/production", Policy);
 
 export default Production;

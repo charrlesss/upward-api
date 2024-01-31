@@ -7,8 +7,6 @@ import {
   deletePolicy,
   findPolicy,
   getClientById,
-  getPolicyAccount,
-  getSubAccount,
 } from "../../../model/Task/Production/vehicle-policy";
 import { getMSPRRate } from "../../../model/Task/Production/mspr-policy";
 import {
@@ -16,6 +14,11 @@ import {
   searchPAPolicy,
   deletePAPolicy,
 } from "../../../model/Task/Production/pa-ppolicy";
+
+import {
+  getSubAccount,
+  getPolicyAccount,
+} from "../../../model/Task/Production/policy";
 
 const PAPolicy = express.Router();
 
@@ -83,13 +86,11 @@ PAPolicy.get("/search-pa-policy", async (req, res) => {
 });
 
 PAPolicy.post("/update-pa-policy", async (req, res) => {
-  const { sub_account, client_id, PolicyAccount, PolicyNo } =
-    req.body;
+  const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     //get Commision rate
-    const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
-
-    if (rate == null) {
+    const rate = ((await getMSPRRate(PolicyAccount, "PA")) as Array<any>)[0];
+    if (rate === null || rate === undefined) {
       return res.send({
         message: "Please setup commission rate for this account and Line",
         success: false,
@@ -173,9 +174,6 @@ async function insertPaPolicy({
     AgentID: agent_id,
     AgentCom: agent_com,
   });
-
-
-
 
   // create PA Policy
   await createPAPolicy({

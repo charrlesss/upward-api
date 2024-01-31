@@ -135,6 +135,7 @@ model vpolicy {
   AOGPercent          Decimal?  @default(0.0000) @db.Decimal(19, 4)
   LocalGovTaxPercent  Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TPLTypeSection_I_II String?
+  Remarks String?
 }
 
 model journal {
