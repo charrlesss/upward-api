@@ -269,9 +269,9 @@ async function insertNewVPolicy({
     Deductible: parseFloat(Deductible).toFixed(2),
     Towing: parseFloat(Towing).toFixed(2),
     RepairLimit: parseFloat(ARL).toFixed(2),
-    BodilyInjury: parseFloat(BodyInjury).toFixed(2),
-    PropertyDamage: parseFloat(PropertyDamage).toFixed(2),
-    PersonalAccident: parseFloat(PersinalAccident).toFixed(2),
+    BodilyInjury: parseFloat(BodyInjury.replace(/,/g, "")).toFixed(2),
+    PropertyDamage: parseFloat(PropertyDamage.replace(/,/g, "")).toFixed(2),
+    PersonalAccident: parseFloat(PersinalAccident.replace(/,/g, "")).toFixed(2),
     SecI: parseFloat(SectionI_II).toFixed(2),
     SecIIPercent: parseFloat(SectionIII).toFixed(2),
     ODamage: parseFloat(OwnDamage).toFixed(2),
@@ -457,6 +457,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
     res.send({ message: "Create Journal Successfully", success: true });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });

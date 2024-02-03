@@ -18,7 +18,7 @@ export async function createMarinePolicy(data: any) {
 export async function searchMarinePolicy(search: string) {
   const query = `
     select a.*,b.*, 
-    concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
+    if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
     c.address
      FROM upward_insurance.mpolicy a

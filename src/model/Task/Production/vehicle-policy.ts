@@ -286,7 +286,7 @@ export async function searchDataVPolicy(
       SELECT 
       a.*,
       b.*,
-      concat(c.firstname,', ',c.middlename,', ',c.lastname) as client_fullname,
+      if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
       c.address as address,
       concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname
     FROM

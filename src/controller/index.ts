@@ -1,16 +1,18 @@
-import express  from "express"
-import Authentication, { ValidateToken, logout } from "./Authentication"
-import Reference from "./Reference"
-import Task from "./Task"
-import Reports from "./Reports/Iindex"
+import express from "express";
+import Authentication, { ValidateToken, logout } from "./Authentication";
+import Reference from "./Reference";
+import Task from "./Task";
+import Reports from "./Reports/Iindex";
+import Template from "./Template";
 
-const router = express.Router()
+const router = express.Router();
 
-router.use(Authentication)
-router.use(ValidateToken)
-router.use(Reference)
-router.use(Task)
-router.use(Reports)
-router.get('/logout',logout)
+router.use(Authentication);
+router.use(ValidateToken);
+router.use(Reference);
+router.use(Task);
+router.use(Reports);
+router.use(Template);
+router.get("/logout", logout);
 
-export default router
+export default router;
