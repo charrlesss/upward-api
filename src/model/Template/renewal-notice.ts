@@ -35,32 +35,32 @@ FROM
     FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo
         LEFT JOIN
     (SELECT 
-        aa.entry_client_id AS IDNo,
+            aa.entry_client_id AS IDNo,
             aa.sub_account,
-            CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
+            if(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) as Shortname
     FROM
         upward_insurance.entry_client aa UNION ALL SELECT 
-        aa.entry_agent_id AS IDNo,
+            aa.entry_agent_id AS IDNo,
             NULL AS sub_account,
             CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
     FROM
         upward_insurance.entry_agent aa UNION ALL SELECT 
-        aa.entry_employee_id AS IDNo,
+            aa.entry_employee_id AS IDNo,
             aa.sub_account,
             CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
     FROM
         upward_insurance.entry_employee aa UNION ALL SELECT 
-        aa.entry_supplier_id AS IDNo,
+            aa.entry_supplier_id AS IDNo,
             NULL AS sub_account,
-            CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
+            if(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) as Shortname
     FROM
         upward_insurance.entry_supplier aa UNION ALL SELECT 
-        aa.entry_fixed_assets_id AS IDNo,
+            aa.entry_fixed_assets_id AS IDNo,
             NULL AS sub_account,
             aa.fullname AS Shortname
     FROM
         upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
-        aa.entry_others_id AS IDNo,
+            aa.entry_others_id AS IDNo,
             NULL AS sub_account,
             aa.description AS Shortname
     FROM

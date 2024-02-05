@@ -51,6 +51,8 @@ RenewlNotice.post("/renewal-notice-selected-search", async (req, res) => {
       "prev_evat",
       "prev_lgt",
       "prev_gross",
+      "SecIIPercent",
+      "Remarks"
     ];
     const report = mapColumnsToKeys(COM, getSelected);
 

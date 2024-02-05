@@ -17,14 +17,7 @@ import {
 } from "../../../model/Task/Production/vehicle-policy";
 import promiseAll from "../../../lib/promise-all";
 
-import {
-  getAgents,
-  getClients,
-  getPolicyAccount,
-  getSubAccount,
-  getRates,
-  getMortgagee,
-} from "../../../model/Task/Production/policy";
+import { getAgents, getClients } from "../../../model/Task/Production/policy";
 
 const VehiclePolicy = express.Router();
 
