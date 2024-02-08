@@ -16,27 +16,21 @@ export function ExportToExcel(data: Array<any>, res: Response) {
   worksheet.eachRow(function (row, rowNumber) {
     row.eachCell(function (cell, colNumber) {
       if (cell.value)
-        row.getCell(colNumber).font = { color: { argb: "004e47cc" } };
-
+        row.getCell(colNumber).font = { color: { argb: "004e47cc" }, };
     });
   });
-  worksheet.columns.forEach((col:any) => {
-    //next we find the value with the largest length
-    //we can access the values through col.value
-    //we can use the reduce function to find the largest value
-            const largestValueLength = col.values.reduce((maxWidth:any, value:any) => {
-    //the maxWidth starts at 0
-    //we compare the length of the value to the maxWidth and if it's larger, the maxWidth will update to the larger value.
-    //It will do this for each value in every cell, and only the largest value will remain
-                    if (value && value.length > maxWidth) {
-                        return value.length;
-                    }
-                    return maxWidth;
-                }, 0);
-    //finally we can set the width of the column to the new number
-    //we can access the width through the col.width
-          col.width = largestValueLength + 8;
-        });
+  worksheet.columns.forEach((col: any) => {
+    const largestValueLength = col.values.reduce(
+      (maxWidth: any, value: any) => {
+        if (value && value.length > maxWidth) {
+          return value.length;
+        }
+        return maxWidth;
+      },
+      0
+    );
+    col.width = largestValueLength + 8;
+  });
 
   workbook.xlsx
     .writeFile(excelFilePath)

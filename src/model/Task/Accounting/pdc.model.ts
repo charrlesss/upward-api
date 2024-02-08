@@ -2,34 +2,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function getPdcPolicyIdAndCLientId(search: String) {
-  const query = ` 
-  SELECT 
-  'Client ID' AS Type,
-    a.entry_client_id AS IDNo,
-    concat(a.firstname,', ', a.lastname) AS Name,
-    a.entry_client_id as ID
-  FROM upward_insurance.entry_client a  WHERE 
-  a.entry_client_id NOT IN (SELECT IDNo FROM upward_insurance.policy) AND 
-  (
-  a.entry_client_id like '%${search}%' OR  
-  a.firstname like '%${search}%' OR 
-  a.lastname like '%${search}%' 
-  )
-  union all
-  SELECT 
-    'Policy ID' AS Type,
-    a.PolicyNo AS IDNo,
-    concat(b.firstname,', ', b.lastname) AS Name,
-    a.IDNo  as ID 
-  FROM upward_insurance.policy a
-  left join upward_insurance.entry_client b on b.entry_client_id = a.IDNo 
-  where 
-  a.policyNo like '%${search}%' OR  
-  b.firstname like '%${search}%' OR 
-  b.lastname like '%${search}%' OR
-  a.IDNo  like '%${search}%' 
-  limit 100
-      `;
+  const query = ` CALL client_ids('${search}')`;
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -72,9 +45,9 @@ export async function searchPDC(search: any) {
 export async function getSearchPDCheck(ref_no: any) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
-    a.Ref_No,
-    a.Name,
-    a.Date,
+      a.Ref_No,
+      a.Name,
+      a.Date,
       a.Remarks,
       a.PNo,
       a.IDNo,
@@ -82,6 +55,7 @@ export async function getSearchPDCheck(ref_no: any) {
       DATE_FORMAT(a.Check_Date, '%m/%d/%Y') AS Check_Date,
       a.Check_Amnt,
       b.Bank AS BankName,
+      b.Bank_Code as BankCode,
       a.Branch,
       a.Check_Remarks,
       a.SlipCode AS Deposit_Slip,

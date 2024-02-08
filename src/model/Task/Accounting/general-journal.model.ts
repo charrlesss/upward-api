@@ -41,7 +41,7 @@ export async function getPolicyIdClientIdRefId(search: string) {
     'Client' AS Type,
     aa.entry_client_id AS IDNo,
     aa.sub_account,
-    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+   if(aa.company <> '',aa.company, CONCAT(aa.lastname, ', ', aa.firstname)) AS Shortname,
     aa.address
 FROM
     upward_insurance.entry_client aa 
@@ -65,7 +65,7 @@ UNION ALL SELECT
     'Supplier' AS Type,
     aa.entry_supplier_id AS IDNo,
     aa.sub_account,
-    CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
+    if(aa.company <> '',aa.company, CONCAT(aa.lastname, ', ', aa.firstname)) AS Shortname,
     aa.address
 FROM
     upward_insurance.entry_supplier aa 

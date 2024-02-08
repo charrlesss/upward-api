@@ -10,6 +10,7 @@ import {
   pdcIDGenerator,
 } from "../../../model/Task/Accounting/pdc.model";
 import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
+import { mapColumnsToKeys } from "../../Reports/Production/report-fields";
 
 const PDC = express.Router();
 
@@ -40,7 +41,7 @@ PDC.post("/add-pdc", async (req, res) => {
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
-          Bank: req.body.BankCode,
+          Bank: check.BankCode,
           Branch: check.Branch,
           Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
@@ -58,21 +59,20 @@ PDC.post("/add-pdc", async (req, res) => {
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
-          Bank: req.body.BankCode,
+          Bank: check.BankCode,
           Branch: check.Branch,
           Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
           Check_Amnt: check.Check_Amnt,
           Check_Remarks: check.Check_Remarks,
-          SlipCode: req.body.Deposit_Slip,
-          DateDepo: req.body.DateDeposit === "" ? "" : req.body.DateDeposit,
+          SlipCode: check.Deposit_Slip,
+          DateDepo: check.DateDeposit === "" ? "" : check.DateDeposit,
           ORNum: check.OR_No,
           PDC_Status: "Received",
         });
       }
     });
     await UpdateId("pdc-chk", newId.split("-")[1], month, year);
-
     await UpdateId(
       "pdc",
       req.body.Ref_No.split(".")[1],
@@ -164,10 +164,12 @@ PDC.post("/update-pdc", async (req, res) => {
 PDC.get("/search-pdc-policy-id", async (req, res) => {
   try {
     const { searchPdcPolicyIds } = req.query;
+    const data = await getPdcPolicyIdAndCLientId(searchPdcPolicyIds as string);
+    const dataCol = ["Type", "IDNo", "sub_account", "Name", "ID"];
+    const clientsId = mapColumnsToKeys(dataCol, data);
+
     res.send({
-      pdcIdsSearch: await getPdcPolicyIdAndCLientId(
-        searchPdcPolicyIds as string
-      ),
+      clientsId,
       success: true,
     });
   } catch (error: any) {
