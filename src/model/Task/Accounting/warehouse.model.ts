@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { format } from "date-fns";
 
 export async function getWarehouseSearch(search: string) {
   const query = `
@@ -36,6 +37,7 @@ export async function warehouseSelectedSearch(
 
   const query = `
       SELECT 
+        PDC_ID,
         PNo,
         IDNo,
         date_format(Date,'%m-%d-%Y') as dateRecieved,
@@ -54,5 +56,49 @@ export async function warehouseSelectedSearch(
           ORDER BY a.Check_Date
           `;
   console.log(query);
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function pullout(
+  PNNo: string,
+  CheckNo: string
+): Promise<Array<any>> {
+  const query = `
+  SELECT 
+    *
+  FROM
+    upward_insurance.pullout_request POR
+        LEFT JOIN
+    upward_insurance.pullout_request_details PORD ON POR.RCPNo = PORD.RCPNo
+  WHERE
+    PNNo = '${PNNo}' AND CheckNo = '${CheckNo}'
+        AND Status = 'APPROVED'
+  `;
+
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function updatePDCChecks(
+  pdcStatus: string,
+  remarks: string,
+  PDC_ID: string
+) {
+  function convertDate(date: any) {
+    return format(date, "yyyy-MM-dd");
+  }
+
+  const status = ["Stored", "Endorsed", "Pulled Out"];
+  const field = ["Date_Stored", "Date_Endorsed", "Date_Pulled_Out"];
+  const query = `UPDATE upward_insurance.pdc SET PDC_Status = '${
+    status[parseInt(pdcStatus)]
+  }', ${field[parseInt(pdcStatus)]} = str_to_date('${convertDate(
+    new Date()
+  )}','%Y-%m-%d %H:%i:%s.%f')${
+    pdcStatus === "2"
+      ? `, PDC_Remarks = '${remarks}' WHERE PDC_ID='${PDC_ID}'`
+      : ` WHERE PDC_ID='${PDC_ID}'`
+  }
+`;
+
   return await prisma.$queryRawUnsafe(query);
 }
