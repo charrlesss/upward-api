@@ -12,45 +12,46 @@ BEGIN
 declare whr_query TEXT;
 declare selectClient TEXT;
 
-set selectClient = 'SELECT 
+set selectClient = '
+	 SELECT 
             aa.entry_client_id AS IDNo,
-        aa.sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname
         FROM
             upward_insurance.entry_client aa
             union all
       SELECT 
             aa.entry_agent_id AS IDNo,
-        Null as sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
         FROM
             upward_insurance.entry_agent aa
             union all
       SELECT 
             aa.entry_employee_id AS IDNo,
-        aa.sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
         FROM
             upward_insurance.entry_employee aa
       union all
       SELECT 
             aa.entry_supplier_id AS IDNo,
-        null as sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) AS Shortname
         FROM
             upward_insurance.entry_supplier aa
             union all
       SELECT 
             aa.entry_fixed_assets_id AS IDNo,
-        null as sub_account,
-        aa.fullname AS Shortname
+			aa.sub_account,
+			aa.fullname AS Shortname
         FROM
             upward_insurance.entry_fixed_assets aa
             union all
       SELECT 
             aa.entry_others_id AS IDNo,
-        null as sub_account,
-        aa.description AS Shortname
+			aa.sub_account,
+			aa.description AS Shortname
         FROM
             upward_insurance.entry_others aa';
 
@@ -80,14 +81,15 @@ SELECT
 	'IF( ',IsFinanced,' = 0, IFNULL(CGLPolicy.LimitB, 0) + IFNULL(CGLPolicy.LimitA, 0) + IFNULL(VPolicy.ODamage, 0) + IFNULL(VPolicy.TPLLimit, 0),IFNULL(ODamage, 0) + IFNULL(TPLLimit, 0)) AS PLimit,',
     'IF(',IsFinanced ,'= 0, IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0) + IFNULL(FPolicy.InsuredValue, 0) + IFNULL(BPolicy.BondValue, 0) + IFNULL(MPolicy.InsuredValue, 0) + IFNULL(MSPRPolicy.SecI, 0) + IFNULL(MSPRPolicy.SecIB, 0) + IFNULL(MSPRPolicy.SecII, 0),IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0))  AS InsuredValue,' ,
     'CoverNo,
-	 Remarks,
+	 Policy.Remarks as Remarks,
 	 EstimatedValue,
 	 Make,
 	 BodyType,
 	 PlateNo,
 	 ChassisNo,
 	 MotorNo,
-	 Mortgagee 
+	 Mortgagee,
+     VPolicy.Remarks as VRemarks
 FROM Policy LEFT JOIN BPolicy ON Policy.PolicyNo = BPolicy.PolicyNo 
 LEFT JOIN VPolicy ON Policy.PolicyNo = VPolicy.PolicyNo 
 LEFT JOIN MPolicy ON Policy.PolicyNo = MPolicy.PolicyNo 

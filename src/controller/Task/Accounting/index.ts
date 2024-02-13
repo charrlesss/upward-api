@@ -7,6 +7,8 @@ import PettyCash from "./pettycash";
 import GeneralJournal from "./general-journal";
 import CashDisbursement from "./cash-disbursement";
 import Warehouse from "./warehouse";
+import Pullout from "./pullout";
+
 
 const Accounting = express.Router();
 
@@ -18,5 +20,6 @@ Accounting.use("/accounting", PettyCash);
 Accounting.use("/accounting", GeneralJournal);
 Accounting.use("/accounting", CashDisbursement);
 Accounting.use("/accounting", Warehouse);
+Accounting.use("/accounting", Pullout);
 
 export default Accounting;

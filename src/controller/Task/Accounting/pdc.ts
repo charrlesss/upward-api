@@ -37,7 +37,7 @@ PDC.post("/add-pdc", async (req, res) => {
           PDC_ID: newId,
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
-          IDNo: req.body.Ref_No,
+          IDNo: req.body.IDNo,
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
@@ -55,7 +55,7 @@ PDC.post("/add-pdc", async (req, res) => {
           PDC_ID: newId,
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
-          IDNo: req.body.Ref_No,
+          IDNo: req.body.IDNo,
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
@@ -107,7 +107,6 @@ PDC.post("/update-pdc", async (req, res) => {
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
-    console.log("qweqwe", req.body.DateDeposit);
     checks.forEach(async (check: any) => {
       newId = num.toString().padStart(count.length, "0");
       num++;
@@ -117,7 +116,7 @@ PDC.post("/update-pdc", async (req, res) => {
           PDC_ID: newId,
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
-          IDNo: req.body.Ref_No,
+          IDNo: req.body.IDNo,
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
@@ -135,7 +134,7 @@ PDC.post("/update-pdc", async (req, res) => {
           PDC_ID: newId,
           Ref_No: req.body.Ref_No,
           PNo: req.body.PNo,
-          IDNo: req.body.Ref_No,
+          IDNo: req.body.IDNo,
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
@@ -165,7 +164,7 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
   try {
     const { searchPdcPolicyIds } = req.query;
     const data = await getPdcPolicyIdAndCLientId(searchPdcPolicyIds as string);
-    const dataCol = ["Type", "IDNo", "sub_account", "Name", "ID"];
+    const dataCol = ["Type", "IDNo", "sub_account", "Name", "client_id", "ID"];
     const clientsId = mapColumnsToKeys(dataCol, data);
 
     res.send({

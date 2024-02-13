@@ -7,45 +7,46 @@ IN PAccount varchar(100)
 BEGIN
 declare selectClient TEXT;
 
-set selectClient = 'SELECT 
+set selectClient = '
+	 SELECT 
             aa.entry_client_id AS IDNo,
-        aa.sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+		   if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname
         FROM
             upward_insurance.entry_client aa
             union all
       SELECT 
             aa.entry_agent_id AS IDNo,
-        Null as sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
         FROM
             upward_insurance.entry_agent aa
             union all
       SELECT 
             aa.entry_employee_id AS IDNo,
-        aa.sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
         FROM
             upward_insurance.entry_employee aa
       union all
       SELECT 
             aa.entry_supplier_id AS IDNo,
-        null as sub_account,
-        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname
+			aa.sub_account,
+			if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname
         FROM
             upward_insurance.entry_supplier aa
             union all
       SELECT 
             aa.entry_fixed_assets_id AS IDNo,
-        null as sub_account,
-        aa.fullname AS Shortname
+			aa.sub_account,
+			aa.fullname AS Shortname
         FROM
             upward_insurance.entry_fixed_assets aa
             union all
       SELECT 
             aa.entry_others_id AS IDNo,
-        null as sub_account,
-        aa.description AS Shortname
+			aa.sub_account,
+			aa.description AS Shortname
         FROM
             upward_insurance.entry_others aa';
 

@@ -135,7 +135,7 @@ model vpolicy {
   AOGPercent          Decimal?  @default(0.0000) @db.Decimal(19, 4)
   LocalGovTaxPercent  Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TPLTypeSection_I_II String?
-  Remarks String?
+  Remarks             String?
 }
 
 model journal {
@@ -368,7 +368,7 @@ model cash_disbursement {
   Particulars   String?   @db.LongText
   Payto         String?   @db.VarChar(255)
   Address       String?   @db.VarChar(255)
-  Check_Date    String?  @db.VarChar(255)
+  Check_Date    String?   @db.VarChar(255)
   Check_No      String?   @db.VarChar(255)
   Check_Bank    String?   @db.VarChar(255)
   Check_Return  DateTime? @db.DateTime(6)
@@ -845,8 +845,9 @@ model pullout_request {
 }
 
 model pullout_request_details {
-  RCPNo   String  @id @db.VarChar(30)
+  RCPNo   String  @db.VarChar(30)
   CheckNo String? @db.VarChar(50)
+  PRD_ID  String  @id @db.VarChar(500)
 }
 
 model reportset {
