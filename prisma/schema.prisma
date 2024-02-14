@@ -845,9 +845,10 @@ model pullout_request {
 }
 
 model pullout_request_details {
-  RCPNo   String  @db.VarChar(30)
-  CheckNo String? @db.VarChar(50)
-  PRD_ID  String  @id @db.VarChar(500)
+  RCPNo     String  @db.VarChar(30)
+  CheckNo   String? @db.VarChar(50)
+  PRD_ID    String  @id @db.VarChar(500)
+  Rerequest Boolean @default(false)
 }
 
 model reportset {

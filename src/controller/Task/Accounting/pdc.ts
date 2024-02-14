@@ -164,9 +164,17 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
   try {
     const { searchPdcPolicyIds } = req.query;
     const data = await getPdcPolicyIdAndCLientId(searchPdcPolicyIds as string);
-    const dataCol = ["Type", "IDNo", "sub_account", "Name", "client_id", "ID"];
+    const dataCol = [
+      "Type",
+      "IDNo",
+      "sub_account",
+      "Name",
+      "client_id",
+      "ID",
+      "sub_account_ShortName",
+    ];
     const clientsId = mapColumnsToKeys(dataCol, data);
-
+    
     res.send({
       clientsId,
       success: true,
