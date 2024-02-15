@@ -14,14 +14,16 @@ export async function pulloutRequestAutoID() {
 export async function pulloutRequestPNoWithName(search: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
-      MAX(PNo) AS PNo, MAX(Name) AS Name, Ref_No
+    MAX(a.PNo) AS PNo, MAX(a.Name) AS Name, MAX(A.Ref_No) AS Ref_No, if(isnull(MAX(b.RCPNo)),'--',MAX(b.RCPNo)) as RCPNo
   FROM
-      upward_insurance.pdc
+    upward_insurance.pdc a
+    left join upward_insurance.pullout_request b on a.PNo = b.PNNo and  b.Status <> 'CANCEL'
   WHERE
-      PDC_Status = 'Stored'
-          AND ((PNo) LIKE '%${search}%' OR (Name) LIKE '%${search}%')
-  GROUP BY Ref_No
-  ORDER BY MAX(PNo) DESC
+    a.PDC_Status = 'Stored'
+        AND ((a.PNo) LIKE '%${search}%' OR (a.Name) LIKE '%${search}%' OR (b.RCPNo) LIKE '%${search}%')
+
+  GROUP BY a.PNo
+  ORDER BY MAX(a.PNo) DESC
   LIMIT 100
 ;`);
 }
@@ -49,6 +51,7 @@ export async function getSelectedRequestCheck(PNNo: string) {
                         FROM
                             PullOut_Request
                         WHERE
+							   Status <> 'CANCEL' AND
                             RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','CANCEL')
                         AND (SELECT 
                             PNNo
@@ -56,7 +59,8 @@ export async function getSelectedRequestCheck(PNNo: string) {
                             PullOut_Request
                         WHERE
                             RCPNo = a.RCPNo) = '${PNNo}'
-                        AND CheckNo = pd.Check_No and Rerequest = 0),
+                           
+                        AND CheckNo = pd.Check_No and cancel = 0),
             '--') AS 'Status',
     IFNULL((SELECT 
                     RCPNO
@@ -68,14 +72,16 @@ export async function getSelectedRequestCheck(PNNo: string) {
                         FROM
                             upward_insurance.PullOut_Request
                         WHERE
-                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','CANCEL')
+                          Status <> 'CANCEL' AND
+                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED')
                         AND (SELECT 
                             PNNo
                         FROM
                             PullOut_Request
                         WHERE
                             RCPNo = a.RCPNo) = '${PNNo}'
-                        AND CheckNo = pd.Check_No and Rerequest = 0),
+						
+                        AND CheckNo = pd.Check_No and cancel = 0),
             '--') AS 'RCPNO'
   FROM
     upward_insurance.PDC PD
@@ -83,59 +89,25 @@ export async function getSelectedRequestCheck(PNNo: string) {
     PNo = '${PNNo}'
         AND PDC_Status = 'Stored'
   ORDER BY Check_No
+
   `;
   return await prisma.$queryRawUnsafe(query);
+}
+export async function checkPNNo(PNNo: string) {
+  return await prisma.pullout_request.findMany({ where: { PNNo } });
 }
 
 export async function createPulloutRequest(data: any) {
   return await prisma.pullout_request.create({ data });
 }
+export async function updatePulloutRequest(data: any, RCPNo: string) {
+  return await prisma.pullout_request.update({ data, where: { RCPNo } });
+}
 
-export async function checkPulloutRequest(CheckNo: string) {
+export async function updatePulloutRequestDetails(RCPNo: string) {
   return await prisma.$queryRawUnsafe(
-    `
-  SELECT 
-    Status,
-    PNNo,
-    b.RCPNo
-  FROM
-      upward_insurance.pullout_request a
-          LEFT JOIN
-      upward_insurance.pullout_request_details b ON a.RCPNo = b.RCPNo
-  WHERE
-      b.CheckNo = '${CheckNo}'`
+    `update  upward_insurance.pullout_request_details a set a.cancel = 1 where RCPNo = '${RCPNo}';`
   );
-}
-export async function checkPulloutRequestDetails(CheckNo: string) {
-  return await prisma.pullout_request_details.findMany({ where: { CheckNo } });
-}
-
-export async function updatePulloutRequest(
-  PNNo: string,
-  RCPNo: string,
-  CheckNo: string,
-  Status: string
-) {
-  const query = `
-  UPDATE 
-      upward_insurance.pullout_request a
-          LEFT JOIN
-      upward_insurance.pullout_request_details b ON a.RCPNo = b.RCPNo
-      set a.Status = '${Status}'
-  WHERE
-      a.PNNo = '${PNNo}'
-          AND a.RCPNo = '${RCPNo}'
-          AND b.CheckNo = '${CheckNo}'
-  `;
-  console.log(query);
-  return await prisma.$queryRawUnsafe(query);
-}
-export async function deletePulloutRequestDetail(
-  CheckNo: string
-) {
-  return await prisma.pullout_request_details.deleteMany({
-    where: { CheckNo },
-  });
 }
 export async function createPulloutRequestDetails(data: any) {
   return await prisma.pullout_request_details.create({ data });
@@ -299,9 +271,11 @@ export async function searchPulloutRequestOnEdit(search: string) {
       
         ) b on b.IDNo =  a.PNNo
         WHERE
-        a.PNNo LIKE '%${search}%'
-      OR b.Name LIKE '%${search}%'
-      OR a.RCPNo LIKE '%${search}%'
+        a.Status <> 'CANCEL' and (
+          a.PNNo LIKE '%${search}%'
+          OR b.Name LIKE '%${search}%'
+          OR a.RCPNo LIKE '%${search}%'
+        )
       `;
   return await prisma.$queryRawUnsafe(query);
 }
