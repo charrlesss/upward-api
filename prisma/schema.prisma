@@ -824,12 +824,13 @@ model production {
 }
 
 model pullout_auth_codes {
-  RCPN             String    @id @db.VarChar(50)
-  For_User         String?   @db.VarChar(500)
-  Approved_Code    String?   @db.VarChar(50)
-  Disapproved_Code String?   @db.VarChar(50)
-  Used_By          String?   @db.VarChar(50)
-  Used_DateTime    DateTime? @db.Date
+  pullout_auth_codes_id String    @id @db.VarChar(500)
+  RCPN                  String    @db.VarChar(500)
+  For_User              String?   @db.VarChar(500)
+  Approved_Code         String?   @db.VarChar(500)
+  Disapproved_Code      String?   @db.VarChar(500)
+  Used_By               String?   @db.VarChar(500)
+  Used_DateTime         DateTime? @db.Date
 }
 
 model pullout_request {

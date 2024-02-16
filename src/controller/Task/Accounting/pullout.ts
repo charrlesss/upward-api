@@ -10,6 +10,11 @@ import {
   checkPNNo,
   updatePulloutRequest,
   updatePulloutRequestDetails,
+  approvedPullout,
+  getSelectedEditRequestCheck,
+  insertApprovalCode,
+  existApprovalCode,
+  updateApprovalCode,
 } from "../../../model/Task/Accounting/pullout.model";
 import { getUserById } from "../../../model/StoredProcedure";
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
@@ -48,12 +53,20 @@ PulloutRequest.get("/pullout/reqeust/get-pno-name", async (req, res) => {
   }
 });
 PulloutRequest.post("/pullout/reqeust/selected-pnno", async (req, res) => {
-  const { PNNo } = req.body;
+  const { PNo, requestMode, RCPNo } = req.body;
+  console.log(req.body);
   try {
+    if (requestMode === "edit") {
+      return res.send({
+        message: "Successfully",
+        success: true,
+        selected: await getSelectedEditRequestCheck(RCPNo),
+      });
+    }
     res.send({
       message: "Successfully",
       success: true,
-      selected: await getSelectedRequestCheck(PNNo),
+      selected: await getSelectedRequestCheck(PNo),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -69,36 +82,10 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
     const approvalCode = generateRandomNumber(6);
     const { RCPNo, PNNo, reason, selected } = req.body;
     const user = await getUserById((req.user as any).UserId);
-    const request = await checkPNNo(PNNo);
     let text = "";
     const Requested_By = user?.Username;
     const Requested_Date = new Date();
-    if (request.length > 0) {
-      await updatePulloutRequest(
-        {
-          Reason: reason,
-          Status: "PENDING",
-          Requested_By,
-          Requested_Date,
-        },
-        request[0].RCPNo
-      );
-      await createPulloutRequestDetailsFunc(selected, request[0].RCPNo);
-      text = getSelectedCheck(selected);
-      await sendRequestEmail({
-        ...req.body,
-        text,
-        Requested_By,
-        Requested_Date,
-        approvalCode,
-        subtitle,
-      });
-
-      return res.send({
-        message: "Save Successfully",
-        success: true,
-      });
-    }
+    text = getSelectedCheck(selected);
     await createPulloutRequest({
       RCPNo: RCPNo,
       PNNo: PNNo,
@@ -109,7 +96,6 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       Requested_Date: new Date(),
     });
     await createPulloutRequestDetailsFunc(selected, RCPNo);
-    text = getSelectedCheck(selected);
     await updateAnyId("pullout");
     await sendRequestEmail({
       ...req.body,
@@ -118,6 +104,17 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       Requested_Date,
       approvalCode,
       subtitle,
+    });
+    const pullout_auth_codes_id = await generateUniqueUUID(
+      "pullout_auth_codes",
+      "pullout_auth_codes_id"
+    );
+    await insertApprovalCode({
+      pullout_auth_codes_id,
+      RCPN: RCPNo,
+      For_User: "['LVA_ancar@yahoo.com','upwardclaims@yahoo.com']",
+      Approved_Code: approvalCode.toString(),
+      Disapproved_Code: "",
     });
     res.send({
       message: "Save Successfully",
@@ -173,6 +170,60 @@ PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false, requestList: [] });
   }
 });
+PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
+  try {
+    const { RCPNo, PNNo, client, reason, code, selected } = req.body;
+    console.log(req.body);
+    if (code === "" || code === null || code === undefined) {
+      return res.send({
+        message: "Invalid Approval Code",
+        success: false,
+      });
+    }
+
+    const user = await getUserById((req.user as any).UserId);
+
+    const check_request = (await existApprovalCode(RCPNo, code)) as Array<any>;
+
+    if (check_request.length <= 0)
+      return res.send({
+        message: "Invalid Approval Code",
+        success: false,
+      });
+
+    await sendApprovedEmail({
+      RCPNo,
+      PNNo,
+      client,
+      reason,
+      code,
+      selected,
+      approvedBy: user?.Username,
+    });
+
+    await approvedPullout(RCPNo, user?.Username as string);
+    await updateApprovalCode(RCPNo, code, user?.Username as string);
+    res.send({
+      message: `RCP No. ${RCPNo} Approved Successfuly`,
+      success: true,
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false });
+  }
+});
+PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
+  try {
+    return res.send({
+      message: "Successfully",
+      success: true,
+      selected: await getSelectedEditRequestCheck(req.body.RCPNo),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false, id: [] });
+  }
+});
 
 async function createPulloutRequestDetailsFunc(
   selected: string,
@@ -183,7 +234,9 @@ async function createPulloutRequestDetailsFunc(
       "pullout_request_details",
       "PRD_ID"
     );
-    if (!["APPROVED", "PENDING", "CANCEL"].includes(item.Status)) {
+    if (
+      !["APPROVED", "PENDING", "CANCEL", "DISAPPROVED"].includes(item.Status)
+    ) {
       await createPulloutRequestDetails({
         RCPNo: RCPNo,
         CheckNo: item.Check_No,
@@ -357,6 +410,135 @@ async function sendRequestEmail(props: any) {
     <p>This is a computer generated E-mail</p>
   </div>
     `
+  );
+}
+
+async function sendApprovedEmail(props: any) {
+  const { PNNo, client, reason, code, selected, approvedBy } = props;
+  const strong1 = `
+    font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            color: #334155;
+          
+    `;
+  const strong2 = `font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;`;
+  const th = ` border: 1px solid #ddd;
+    padding: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: green;
+    color: white;`;
+  await sendEmail(
+    { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
+    "upwardinsurance.gelo@gmail.com",
+    "charlespalencia21@gmail.com",
+    `
+  <div
+    style="
+      background-color: green;
+      color: white;
+      padding: 7px;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      text-align: center;
+    "
+  >
+    <h2>UPWARD</h2>
+    <p>Check storage pullout</p>
+  </div>
+  <div style="text-align: center">
+    <p>
+      <strong
+        style="${strong1}"
+        >Status : </strong
+      ><strong
+        style="${strong2} color:green"
+        >APPROVED</strong
+      >
+    </p>
+    <p>
+      <strong
+        style="${strong1}"
+        >Policy No. : </strong
+      ><strong
+        style="${strong2}"
+        >${PNNo}</strong
+      >
+    </p>
+    <p>
+      <strong
+        style="${strong1}"
+        >Client : </strong
+      ><strong
+        style="${strong2}"
+        >${client}</strong
+      >
+    </p>
+    <p>
+      <strong
+        style="${strong1}"
+        >Reason : </strong
+      ><strong
+        style="${strong2}"
+        >${reason}</strong
+      >
+    </p>
+    <p>
+    <strong
+      style="${strong1}"
+      >Approved by : </strong
+    ><strong
+      style="${strong2}"
+      >${approvedBy}</strong
+    >
+  </p>
+  <p>
+  <strong
+    style="${strong1}"
+    >Approved by : </strong
+  ><strong
+    style="${strong2}"
+    >${code}</strong
+  >
+</p>
+   
+  </div>
+  <table
+    style="
+      font-family: Arial, Helvetica, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    "
+  >
+    <thead>
+      <tr>
+        <th
+          style="${th}"
+        >
+          Date
+        </th>
+        <th
+          style="${th}"
+        >
+          Bank
+        </th>
+        <th
+          style="${th}"
+        >
+          Check No.
+        </th>
+        <th
+          style="${th}"
+        >
+          Amount
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      ${getSelectedCheck(selected)}
+    </tbody>
+  </table>`
   );
 }
 
