@@ -172,17 +172,16 @@ PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
 });
 PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
   try {
-    const { RCPNo, PNNo, client, reason, code, selected } = req.body;
-    console.log(req.body);
+    const { RCPNo, PNNo, client, reason, code, selected, approvedMode } =
+      req.body;
+    const isApproved = approvedMode === "approved";
     if (code === "" || code === null || code === undefined) {
       return res.send({
         message: "Invalid Approval Code",
         success: false,
       });
     }
-
     const user = await getUserById((req.user as any).UserId);
-
     const check_request = (await existApprovalCode(RCPNo, code)) as Array<any>;
 
     if (check_request.length <= 0)
@@ -199,9 +198,9 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
       code,
       selected,
       approvedBy: user?.Username,
+      isApproved,
     });
-
-    await approvedPullout(RCPNo, user?.Username as string);
+    await approvedPullout(RCPNo, user?.Username as string, isApproved);
     await updateApprovalCode(RCPNo, code, user?.Username as string);
     res.send({
       message: `RCP No. ${RCPNo} Approved Successfuly`,
@@ -212,6 +211,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false });
   }
 });
+
 PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
   try {
     return res.send({
@@ -414,7 +414,8 @@ async function sendRequestEmail(props: any) {
 }
 
 async function sendApprovedEmail(props: any) {
-  const { PNNo, client, reason, code, selected, approvedBy } = props;
+  const { PNNo, client, reason, code, selected, approvedBy, isApproved } =
+    props;
   const strong1 = `
     font-family: Arial, Helvetica, sans-serif;
             font-size: 14px;
@@ -428,7 +429,7 @@ async function sendApprovedEmail(props: any) {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: left;
-    background-color: green;
+    background-color:  ${isApproved ? "green" : "red"};
     color: white;`;
   await sendEmail(
     { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
@@ -437,7 +438,7 @@ async function sendApprovedEmail(props: any) {
     `
   <div
     style="
-      background-color: green;
+      background-color: ${isApproved ? "green" : "red"};
       color: white;
       padding: 7px;
       font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -453,8 +454,8 @@ async function sendApprovedEmail(props: any) {
         style="${strong1}"
         >Status : </strong
       ><strong
-        style="${strong2} color:green"
-        >APPROVED</strong
+        style="${strong2} ${isApproved ? "color:green" : "color:red"}"
+        >${isApproved ? "APPROVED" : "DISAPPROVED"}</strong
       >
     </p>
     <p>
@@ -487,7 +488,7 @@ async function sendApprovedEmail(props: any) {
     <p>
     <strong
       style="${strong1}"
-      >Approved by : </strong
+      >${isApproved ? "Approved by" : "Disapproved by"} : </strong
     ><strong
       style="${strong2}"
       >${approvedBy}</strong
@@ -496,7 +497,7 @@ async function sendApprovedEmail(props: any) {
   <p>
   <strong
     style="${strong1}"
-    >Approved by : </strong
+    >${isApproved ? "Approved by" : "Disapproved by"} : </strong
   ><strong
     style="${strong2}"
     >${code}</strong

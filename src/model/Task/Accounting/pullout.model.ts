@@ -50,7 +50,7 @@ export async function getSelectedRequestCheck(PNNo: string) {
                             PullOut_Request
                         WHERE
 							   Status <> 'CANCEL' AND
-                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','CANCEL')
+                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','DISAPPROVED')
                         AND (SELECT 
                             PNNo
                         FROM
@@ -71,7 +71,7 @@ export async function getSelectedRequestCheck(PNNo: string) {
                             upward_insurance.PullOut_Request
                         WHERE
                           Status <> 'CANCEL' AND
-                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED')
+                            RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','DISAPPROVED')
                         AND (SELECT 
                             PNNo
                         FROM
@@ -296,11 +296,15 @@ export async function searchPulloutRequestOnEdit(search: string) {
       `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function approvedPullout(RCPNo: string, username: string) {
+export async function approvedPullout(
+  RCPNo: string,
+  username: string,
+  isApproved: boolean
+) {
   const query = `
   update upward_insurance.pullout_request a
       set 
-        a.Status = 'APPROVED',
+        a.Status = '${isApproved ? "APPROVED" : "DISAPPROVED"}',
         a.Approved_By = '${username}',
         a.Approved_Date= now()
     WHERE
