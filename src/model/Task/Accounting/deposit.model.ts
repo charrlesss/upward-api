@@ -5,7 +5,7 @@ export async function getCashCollection(SlipCode: string) {
   const sql = `
     SELECT 
         a.Official_Receipt AS OR_No,
-        DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
+        a.Date_OR AS OR_Date,
         a.Debit AS Amount,
         a.Short AS Client_Name,
         a.DRCode,
@@ -29,7 +29,7 @@ export async function getCheckCollection(SlipCode: string) {
   const sql = `
   SELECT 
   a.Official_Receipt AS OR_No,
-   DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
+  a.Date_OR AS OR_Date,
    a.Check_No AS Check_No, 
    a.Check_Date,
    a.Debit AS Amount,
@@ -229,7 +229,7 @@ export async function getCashDeposit(SlipCode: string) {
     a.DRRemarks, 
     a.Temp_OR as  TempOR,
     a.Official_Receipt AS OR_No,
-    DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
+    a.Date_OR AS OR_Date,
     a.Debit as Amount,
     a.Short AS Client_Name,
     a.DRCode,
@@ -244,12 +244,41 @@ export async function getCashDeposit(SlipCode: string) {
   WHERE
     a.Payment = 'Cash'
         AND a.SlipCode = '${SlipCode}'
-  ORDER BY a.Date_OR DESC , a.Check_Date
+
+  union all 
+  SELECT 
+    aa.Payment as  Deposit,
+    aa.Check_No,
+    aa.Check_Date,
+    aa.Bank ,
+    aa.Short as Name,
+    aa.Temp_OR as  RowIndex,
+    aa.DRCode,
+    aa.Official_Receipt as ORNo,
+    aa.DRRemarks, 
+    aa.Temp_OR as  TempOR,
+    aa.Official_Receipt AS OR_No,
+    DATE_FORMAT(aa.Date_OR, '%m/%d/%Y') AS OR_Date,
+    aa.Debit as Amount,
+    aa.Short AS Client_Name,
+    aa.DRCode,
+    aa.ID_No,
+    aa.Temp_OR,
+    aa.SlipCode,
+    bb.Short
+  FROM
+    upward_insurance.collection aa
+        LEFT JOIN
+    upward_insurance.chart_account bb ON aa.DRCode = bb.Acct_Code
+  WHERE
+    aa.Payment = 'Cash'
+        AND aa.SlipCode = ''
+  ORDER BY OR_Date DESC , Check_Date
   `);
 }
 export async function getCheckDeposit(SlipCode: string) {
   return await prisma.$queryRawUnsafe(`
-    SELECT 
+  SELECT 
       a.Payment as  Deposit,
       a.Bank ,
       a.Short as Name,
@@ -258,7 +287,7 @@ export async function getCheckDeposit(SlipCode: string) {
       a.Temp_OR as  TempOR,
       a.ORNo AS OR_No,
       a.Official_Receipt AS Temp_OR,
-      DATE_FORMAT( a.Date_OR,'%m/%d/%Y') AS OR_Date,
+      a.Date_OR AS OR_Date,
       a.Check_No,
       a.Check_Date,
       a.Debit AS Amount,
@@ -270,10 +299,35 @@ export async function getCheckDeposit(SlipCode: string) {
       a.Temp_OR,
       a.SlipCode,
       b.Short 
-  FROM upward_insurance.collection a
-  LEFT JOIN upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
-  WHERE a.Payment = 'Check' AND  a.SlipCode = '${SlipCode}'
-  ORDER BY a.Date_OR DESC, a.Check_Date
+    FROM upward_insurance.collection a
+    LEFT JOIN upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
+    WHERE a.Payment = 'Check' AND  a.SlipCode = '${SlipCode}'
+    union all
+    SELECT 
+    aa.Payment as  Deposit,
+    aa.Bank ,
+    aa.Short as Name,
+    aa.Official_Receipt as  RowIndex,
+    aa.ORNo as ORNo,
+    aa.Temp_OR as  TempOR,
+    aa.ORNo AS OR_No,
+    aa.Official_Receipt AS Temp_OR,
+    DATE_FORMAT( aa.Date_OR,'%m/%d/%Y') AS OR_Date,
+    aa.Check_No,
+    aa.Check_Date,
+    aa.Debit AS Amount,
+    aa.Bank AS Bank_Branch,
+    aa.Short AS Client_Name, 
+    aa.DRCode,
+    aa.DRRemarks,
+    aa.ID_No,
+    aa.Temp_OR,
+    aa.SlipCode,
+    bb.Short 
+    FROM upward_insurance.collection aa
+    LEFT JOIN upward_insurance.chart_account bb ON aa.DRCode = bb.Acct_Code
+    WHERE aa.Payment = 'Check' AND  aa.SlipCode = ''
+    ORDER BY OR_Date DESC, Check_Date
   `);
 }
 export async function getCashBreakDown(SlipCode: string) {
@@ -374,7 +428,7 @@ export async function deleteSlipCode(Slipcode: string) {
 }
 export async function deleteDeposit(Slipcode: string) {
   return await prisma.$queryRawUnsafe(`
-    DELETE FROM upward_insurance.deposit WHERE Temp_Slipcode = '${Slipcode}'
+    DELETE FROM upward_insurance.deposit WHERE Temp_SlipCode = '${Slipcode}'
   `);
 }
 export async function deleteCashBreakDown(Slipcode: string) {
@@ -385,5 +439,10 @@ export async function deleteCashBreakDown(Slipcode: string) {
 export async function deleteJournalFromDeposit(Slipcode: string) {
   return await prisma.$queryRawUnsafe(`
     DELETE FROM upward_insurance.journal WHERE Source_Type='DC' and Source_No = '${Slipcode}'
+  `);
+}
+export async function removeDepositFromCollection(Slipcode: string) {
+  return await prisma.$queryRawUnsafe(`
+    UPDATE upward_insurance.collection set SlipCode='' WHERE SlipCode='${Slipcode}'
   `);
 }

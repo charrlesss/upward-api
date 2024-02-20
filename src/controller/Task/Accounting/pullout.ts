@@ -211,7 +211,6 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false });
   }
 });
-
 PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
   try {
     return res.send({
@@ -224,7 +223,6 @@ PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false, id: [] });
   }
 });
-
 async function createPulloutRequestDetailsFunc(
   selected: string,
   RCPNo: string
@@ -412,7 +410,6 @@ async function sendRequestEmail(props: any) {
     `
   );
 }
-
 async function sendApprovedEmail(props: any) {
   const { PNNo, client, reason, code, selected, approvedBy, isApproved } =
     props;

@@ -21,6 +21,7 @@ import {
   deleteDeposit,
   deleteCashBreakDown,
   deleteJournalFromDeposit,
+  removeDepositFromCollection
 } from "../../../model/Task/Accounting/deposit.model";
 const Deposit = express.Router();
 
@@ -106,7 +107,7 @@ Deposit.get("/search-deposit", async (req, res) => {
   } catch (error: any) {
     res.send({ success: false, message: error.message });
   }
-}); 
+});
 Deposit.post("/search-cash-check", async (req, res) => {
   try {
     const cashKeys: any = {
@@ -175,6 +176,7 @@ Deposit.post("/search-cash-check", async (req, res) => {
 });
 Deposit.post("/update-deposit", async (req, res) => {
   try {
+    await removeDepositFromCollection(req.body.depositSlip)
     await deleteSlipCode(req.body.depositSlip);
     await deleteDeposit(req.body.depositSlip);
     await deleteCashBreakDown(req.body.depositSlip);
@@ -346,3 +348,5 @@ async function addDeposit(req: any) {
 }
 
 export default Deposit;
+
+
