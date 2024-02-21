@@ -13,31 +13,41 @@ export async function GenerateReturnCheckID() {
 export async function getCheckList(search: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
-      a.Temp_SlipCode AS DepoSlip, 
-      DATE_FORMAT(a.Temp_SlipDate, '%m/%d/%Y') AS DepoDate,  
-      a.Check_No , 
-      a.Check_Date , 
-      a.Credit as Amount,
-      a.Bank, 
-      c.Official_Receipt, 
-      c.Date_OR , 
-      b.BankAccount,
-      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
-  FROM 
-      upward_insurance.deposit a 
-      LEFT JOIN upward_insurance.deposit_slip b ON a.Temp_SlipCode = b.SlipCode
-      LEFT JOIN (
-          SELECT Official_Receipt, Date_OR 
-          FROM upward_insurance.collection 
-          GROUP BY Official_Receipt, Date_OR
-      ) c ON a.Ref_No = c.Official_Receipt
-  WHERE 
-      c.Date_OR <> ''
-      AND a.Check_No <> '' 
-      AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
-  ORDER BY 
-      a.Check_Date
-  LIMIT 500;
+  a.Temp_SlipCodE AS DepoSlip, 
+  a.Temp_SlipDate AS DepoDate,
+  a.Check_No,
+  a.Check_Date,
+  a.Credit  as Amount,
+  a.Bank,
+  a.BankAccount,
+  a.Ref_No,
+  b.Official_Receipt, b.Date_OR,
+  LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
+FROM
+  (SELECT 
+      Temp_SlipCode,
+          Temp_SlipDate,
+          Check_No,
+          Check_Date,
+          Credit,
+          Bank,
+          BankAccount,
+          Ref_No
+  FROM
+      upward_insurance.deposit a
+  LEFT JOIN upward_insurance.deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
+      LEFT JOIN
+  (SELECT 
+      Official_Receipt, Date_OR
+  FROM
+      upward_insurance.collection
+  GROUP BY Official_Receipt , Date_OR) b ON a.Ref_No = b.Official_Receipt
+GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit , a.Check_Date , a.Check_No , a.Bank , a.BankAccount , b.Date_OR , b.Official_Receipt
+HAVING (((b.Date_OR) IS NOT NULL)
+  AND ((a.Check_No) <> ''))
+  AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
+ORDER BY a.Check_Date
+limit 100
   `);
 }
 export async function getCreditOnSelectedCheck(BankAccount: string) {

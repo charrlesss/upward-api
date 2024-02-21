@@ -32,10 +32,12 @@ ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
 });
 ReturnCheck.get("/get-check-list", async (req, res) => {
   try {
+    const checkList = await getCheckList(req.query.checkListSearch as string)
+    console.log(req.query.checkListSearch)
     res.send({
       message: "Successfully Get Check List",
       success: true,
-      checkList: await getCheckList(req.query.checkListSearch as string),
+      checkList,
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, checkList: [] });
@@ -168,3 +170,5 @@ ReturnCheck.post(
 );
 
 export default ReturnCheck;
+
+

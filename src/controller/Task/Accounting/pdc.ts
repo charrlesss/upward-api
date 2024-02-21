@@ -219,10 +219,9 @@ PDC.get("/search-pdc", async (req, res) => {
     res.send({ message: error.message, success: false, searchPDC: [] });
   }
 });
-PDC.get("/get-search-pdc-check", async (req, res) => {
+PDC.post("/get-search-pdc-check", async (req, res) => {
   try {
-    const { ref_no } = req.query;
-    const searchPDCData = await getSearchPDCheck(ref_no as string);
+    const searchPDCData = await getSearchPDCheck(req.body.ref_no);
     res.send({
       message: "Search PDC Check Successfully",
       success: true,

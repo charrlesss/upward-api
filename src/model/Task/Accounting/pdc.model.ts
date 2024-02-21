@@ -59,7 +59,7 @@ export async function getSearchPDCheck(ref_no: any) {
       a.Branch,
       a.Check_Remarks,
       a.SlipCode AS Deposit_Slip,
-      a.DateDepo AS DateDeposit,
+      DATE_FORMAT(a.DateDepo, '%m/%d/%Y') AS DateDeposit,
       a.ORNum AS OR_No
     FROM
       upward_insurance.pdc a
