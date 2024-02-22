@@ -20,6 +20,7 @@ export async function getCashCollection(SlipCode: string) {
     WHERE
         Payment = 'Cash'
             AND (a.SlipCode = '' OR a.SlipCode = '${SlipCode}')
+            AND a.ORNo IS not NULL AND a.ORNo <> ''
     ORDER BY a.Date_OR DESC , a.Check_Date 
     `;
 
@@ -27,26 +28,29 @@ export async function getCashCollection(SlipCode: string) {
 }
 export async function getCheckCollection(SlipCode: string) {
   const sql = `
-  SELECT 
-  a.Official_Receipt AS OR_No,
-  a.Date_OR AS OR_Date,
-   a.Check_No AS Check_No, 
-   a.Check_Date,
-   a.Debit AS Amount,
-   a.Bank AS Bank_Branch,
-   a.Short AS Client_Name,
-  a.DRCode,
-   a.DRRemarks,
-   a.ID_No,
-   a.Temp_OR,
-    SlipCode,
-   b.Short
-   FROM upward_insurance.collection a
-   LEFT JOIN upward_insurance.chart_account b
-   ON a.DRCode = b.Acct_Code 
-   WHERE a.Payment = 'Check' 
-   AND (a.SlipCode IS NULL OR a.SlipCode = '${SlipCode}') ORDER BY a.Date_OR DESC, a.Check_Date
-
+      SELECT 
+        a.Official_Receipt AS OR_No,
+        a.Date_OR AS OR_Date,
+        a.Check_No AS Check_No,
+        a.Check_Date,
+        a.Debit AS Amount,
+        a.Bank AS Bank_Branch,
+        a.Short AS Client_Name,
+        a.DRCode,
+        a.DRRemarks,
+        a.ID_No,
+        a.Temp_OR,
+        SlipCode,
+        b.Short
+      FROM
+        upward_insurance.collection a
+            LEFT JOIN
+        upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
+      WHERE
+        a.Payment = 'Check'
+            AND (a.SlipCode IS NULL OR a.SlipCode = '${SlipCode}')
+            AND a.ORNo IS not NULL AND a.ORNo <> ''
+      ORDER BY a.Date_OR DESC , a.Check_Date
     `;
 
   return await prisma.$queryRawUnsafe(sql);
@@ -243,6 +247,7 @@ export async function getCashDeposit(SlipCode: string) {
     upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
   WHERE
     a.Payment = 'Cash'
+    AND a.ORNo IS not NULL AND a.ORNo <> ''
         AND a.SlipCode = '${SlipCode}'
 
   union all 
@@ -273,6 +278,7 @@ export async function getCashDeposit(SlipCode: string) {
   WHERE
     aa.Payment = 'Cash'
         AND aa.SlipCode = ''
+        AND aa.ORNo IS not NULL AND aa.ORNo <> ''
   ORDER BY OR_Date DESC , Check_Date
   `);
 }
@@ -302,6 +308,7 @@ export async function getCheckDeposit(SlipCode: string) {
     FROM upward_insurance.collection a
     LEFT JOIN upward_insurance.chart_account b ON a.DRCode = b.Acct_Code
     WHERE a.Payment = 'Check' AND  a.SlipCode = '${SlipCode}'
+    AND a.ORNo IS not NULL AND a.ORNo <> ''
     union all
     SELECT 
     aa.Payment as  Deposit,
@@ -327,6 +334,7 @@ export async function getCheckDeposit(SlipCode: string) {
     FROM upward_insurance.collection aa
     LEFT JOIN upward_insurance.chart_account bb ON aa.DRCode = bb.Acct_Code
     WHERE aa.Payment = 'Check' AND  aa.SlipCode = ''
+    AND aa.ORNo IS not NULL AND aa.ORNo <> ''
     ORDER BY OR_Date DESC, Check_Date
   `);
 }

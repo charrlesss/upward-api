@@ -78,7 +78,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         RC_No: req.body.RefNo,
         Explanation: req.body.Explanation,
         Check_No: items.Check_No,
-        Date_Deposit: new Date(items.DepoDate),
+        Date_Deposit:new Date(items.DepoDate).toISOString(),
         Amount: parseFloat(items.Amount.replace(/,/g, "")).toFixed(2),
         Reason: items.Reason,
         Bank: items.Bank,

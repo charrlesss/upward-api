@@ -14,7 +14,7 @@ export async function getCheckList(search: string) {
   return await prisma.$queryRawUnsafe(`
   SELECT 
   a.Temp_SlipCodE AS DepoSlip, 
-  a.Temp_SlipDate AS DepoDate,
+  date_format(a.Temp_SlipDate, '%m/%d/%Y') AS DepoDate,
   a.Check_No,
   a.Check_Date,
   a.Credit  as Amount,
