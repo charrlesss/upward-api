@@ -32,8 +32,7 @@ ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
 });
 ReturnCheck.get("/get-check-list", async (req, res) => {
   try {
-    const checkList = await getCheckList(req.query.checkListSearch as string)
-    console.log(req.query.checkListSearch)
+    const checkList = await getCheckList(req.query.checkListSearch as string);
     res.send({
       message: "Successfully Get Check List",
       success: true,
@@ -44,7 +43,6 @@ ReturnCheck.get("/get-check-list", async (req, res) => {
   }
 });
 ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
-  console.log(req.body);
   try {
     res.send({
       message: "Successfully Get Modal Data",
@@ -66,6 +64,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
       return res.send({
         message: `${req.body.RefNo} already exists!`,
         success: false,
+        isClearableError :false,
         credit: [],
         debit: [],
       });
@@ -78,7 +77,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         RC_No: req.body.RefNo,
         Explanation: req.body.Explanation,
         Check_No: items.Check_No,
-        Date_Deposit:new Date(items.DepoDate).toISOString(),
+        Date_Deposit: new Date(items.DepoDate).toISOString(),
         Amount: parseFloat(items.Amount.replace(/,/g, "")).toFixed(2),
         Reason: items.Reason,
         Bank: items.Bank,
@@ -95,12 +94,13 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
           .toString()
           .padStart(2, "0")}`,
       });
-
       await updatePDCFromReturnCheck(items.Check_No);
       await updateJournalFromReturnCheck(items.Check_No, items.DepoSlip);
     });
 
     await deleteJournalFromReturnCheck(req.body.RefNo);
+
+
     req.body.accountingEntry.forEach(async (items: any) => {
       await addJournalFromReturnCheck({
         Branch_Code: req.body.BranchCode,
@@ -130,12 +130,15 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
     await updateRCID(req.body.RefNo.split("-")[1]);
 
     res.send({
-      message:req.body.isUpdated ? "Successfully update return check": "Successfully add return check",
+      message: req.body.isUpdated
+        ? "Successfully update return check"
+        : "Successfully add return check",
       success: true,
+      isClearableError:true
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, credit: [], debit: [] });
+    res.send({ message: error.message, success: false, credit: [], debit: [] ,isClearableError:false});
   }
 });
 ReturnCheck.get("/search-return-checks", async (req, res) => {
@@ -170,5 +173,3 @@ ReturnCheck.post(
 );
 
 export default ReturnCheck;
-
-

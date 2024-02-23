@@ -61,6 +61,10 @@ export async function createCollection(data: any) {
   return await prisma.collection.create({ data });
 }
 
+export async function upteCollection(data: any ,Temp_OR:string) {
+  return await prisma.collection.update({ data , where:{Temp_OR}});
+}
+
 export async function updatePDCCheck(data: any) {
   return await prisma.$queryRawUnsafe(`
     UPDATE upward_insurance.pdc a

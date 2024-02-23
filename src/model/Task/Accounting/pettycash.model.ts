@@ -81,24 +81,26 @@ export async function searchPettyCash(search: string) {
 export async function loadSelectedPettyCash(PC_No: string) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
-    a.Branch_Code,
-    a.PC_Date,
-    a.PC_No,
-    a.Payee,
-    a.Explanation,
-    a.DRPurpose as purpose,
-    a.Debit as amount,
-    a.DRAcct_Code as accountCode,
-    a.DRShort as accountShort,
-    a.Sub_Acct as sub_account,
-    a.IDNo as clientID,
-    a.ShortName as clientName,
-    a.CRAcct_Code ,
-    a.CRShort ,
-    a.Credit,
-    a.DRVATType as vatType,
-    a.DRInvoiceNo as invoice,
-    a.VATItemNo as TempID
+      concat(a.ShortName,' > ',a.IDNo,' > ',a.Sub_Acct) as \`usage\`,
+      concat(a.DRShort,' > ',a.DRAcct_Code) as accountID,
+      a.Branch_Code,
+      a.PC_Date,
+      a.PC_No,
+      a.Payee,
+      a.Explanation,
+      a.DRPurpose as purpose,
+      a.Debit as amount,
+      a.DRAcct_Code as accountCode,
+      a.DRShort as accountShort,
+      a.Sub_Acct as sub_account,
+      a.IDNo as clientID,
+      a.ShortName as clientName,
+      a.CRAcct_Code ,
+      a.CRShort ,
+      a.Credit,
+      a.DRVATType as vatType,
+      a.DRInvoiceNo as invoice,
+      a.VATItemNo as TempID
     FROM upward_insurance.petty_cash a  where a.PC_No='${PC_No}'
       `);
 }

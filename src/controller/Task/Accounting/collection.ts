@@ -156,30 +156,30 @@ async function AddCollection(req: any) {
   const debit = JSON.parse(req.body.debit);
   const credit = JSON.parse(req.body.credit);
 
-  let Payment = "";
-  let Debit = "0";
-  let CheckNo = "";
-  let CheckDate = "";
-  let Bank = "";
-  let DRCode = "";
-  let DRTitle = "";
-  let SlipCode = "";
-  let DRCtr = "";
-  let DRRemarks = "";
-  let Purpose = "";
-  let Credit = "0";
-  let CRRemarks = "";
-  let CRCode = "";
-  let CRTitle = "";
-  let CRLoanID = "";
-  let CRLoanName = "";
-  let CRVatType = "";
-  let CRInvoiceNo = "";
-
   const TotalRows =
     debit.length >= credit.length ? debit.length : credit.length;
 
   for (let i = 0; i <= TotalRows - 1; i++) {
+    let Payment = "";
+    let Debit = "0";
+    let CheckNo = "";
+    let CheckDate = "";
+    let Bank = "";
+    let DRCode = "";
+    let DRTitle = "";
+    let SlipCode = "";
+    let DRCtr = "";
+    let DRRemarks = "";
+    let Purpose = "";
+    let Credit = "0";
+    let CRRemarks = "";
+    let CRCode = "";
+    let CRTitle = "";
+    let CRLoanID = "";
+    let CRLoanName = "";
+    let CRVatType = "";
+    let CRInvoiceNo = "";
+
     if (i <= debit.length - 1) {
       Payment = debit[i].Payment;
       Debit = debit[i].Amount;
@@ -207,7 +207,7 @@ async function AddCollection(req: any) {
       CRVatType = credit[i].VATType;
       CRInvoiceNo = credit[i].invoiceNo;
     }
-
+   
     const ColDate =
       i === 0 ? format(new Date(req.body.Date), "MM/dd/yyyy") : null;
     const OR = i === 0 ? req.body.ORNo : "";
@@ -259,16 +259,14 @@ async function AddCollection(req: any) {
   }
   await deleteFromJournalToCollection(req.body.ORNo);
   for (let i = 0; i <= debit.length - 1; i++) {
-    Payment = debit[i].Payment;
-    Debit = debit[i].Amount;
-    CheckNo = debit[i].Check_No ?? "";
-    CheckDate = debit[i].Check_Date ?? "";
-    Bank = debit[i].Bank_Branch ?? "";
-    DRCode = debit[i].Acct_Code;
-    DRTitle = debit[i].Acct_Title;
-    SlipCode = debit[i].Deposit_Slip;
-    DRCtr = debit[i].Cntr;
-    DRRemarks = debit[i].TC;
+    const Payment = debit[i].Payment;
+    const Debit = debit[i].Amount;
+    const CheckNo = debit[i].Check_No ?? "";
+    const CheckDate = debit[i].Check_Date ?? "";
+    const Bank = debit[i].Bank_Branch ?? "";
+    const DRCode = debit[i].Acct_Code;
+    const DRTitle = debit[i].Acct_Title;
+    const DRRemarks = debit[i].TC;
     await createJournal({
       Branch_Code: "HO",
       Date_Entry: format(new Date(req.body.Date), "MM/dd/yyyy"),
@@ -292,15 +290,13 @@ async function AddCollection(req: any) {
   }
 
   for (let i = 0; i <= credit.length - 1; i++) {
-    Purpose = credit[i].transaction;
-    Credit = credit[i].amount;
-    CRRemarks = credit[i].Remarks;
-    CRCode = credit[i].Title;
-    CRTitle = credit[i].TC;
-    CRLoanID = credit[i].Account_No;
-    CRLoanName = credit[i].Name;
-    CRVatType = credit[i].VATType;
-    CRInvoiceNo = credit[i].invoiceNo;
+    const Purpose = credit[i].transaction;
+    const Credit = credit[i].amount;
+    const CRRemarks = credit[i].Remarks;
+    const CRCode = credit[i].Title;
+    const CRTitle = credit[i].TC;
+    const CRVatType = credit[i].VATType;
+    const CRInvoiceNo = credit[i].invoiceNo;
 
     await createJournal({
       Branch_Code: "HO",

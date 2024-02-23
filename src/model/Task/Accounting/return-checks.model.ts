@@ -46,6 +46,7 @@ GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit
 HAVING (((b.Date_OR) IS NOT NULL)
   AND ((a.Check_No) <> ''))
   AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
+  AND a.Temp_SlipCode not in (select SlipCode from upward_insurance.return_checks)
 ORDER BY a.Check_Date
 limit 100
   `);
@@ -80,7 +81,6 @@ export async function getDebitOnSelectedCheck(Official_Receipt: string) {
   WHERE
       a.Official_Receipt = '${Official_Receipt}'
       AND a.CRCode <> ''
-      AND a.Payment = 'Check'
   `);
 }
 export async function getBranchName() {
@@ -167,8 +167,8 @@ export async function getReturnCheckSearchFromJournal(RC_No: string) {
     a.cSub_Acct as SubAcctName,
     a.ID_No as IDNo,
     a.cID_No as IDNo,
-    a.Debit,
-    a.Credit,
+    format(a.Debit,2) as Debit,
+    format(a.Credit,2) as Credit,
     date_format(date(str_to_date(a.Check_Date,'%m/%d/%Y')), '%m/%d/%y') as Check_Date,
     a.Check_No Check_No,
     a.Check_Bank as Bank,
@@ -183,6 +183,7 @@ export async function getReturnCheckSearchFromJournal(RC_No: string) {
   WHERE
     a.Source_Type = 'RC' AND
     a.Source_No = '${RC_No}'
+    order by a.Check_No, Code desc
       `);
 }
 
@@ -199,7 +200,7 @@ export async function getReturnCheckSearch(RC_No: string) {
     a.Reason, 
     a.Bank, 
     date_format(date(str_to_date(a.Check_Date,'%m/%d/%Y')), '%m/%d/%y') as Check_Date, 
-    DATE_FORMAT(a.Date_Return ,'%m/%d/%y')  AS Return_Date,
+    a.Date_Return  AS Return_Date,
     a.SlipCode AS DepoSlip, 
     a.ORNum AS OR_NO, 
     a.BankAccnt AS Bank_Account,
