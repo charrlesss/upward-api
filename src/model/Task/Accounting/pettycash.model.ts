@@ -89,7 +89,7 @@ export async function loadSelectedPettyCash(PC_No: string) {
       a.Payee,
       a.Explanation,
       a.DRPurpose as purpose,
-      a.Debit as amount,
+      format(a.Debit ,2) as amount,
       a.DRAcct_Code as accountCode,
       a.DRShort as accountShort,
       a.Sub_Acct as sub_account,
@@ -100,7 +100,7 @@ export async function loadSelectedPettyCash(PC_No: string) {
       a.Credit,
       a.DRVATType as vatType,
       a.DRInvoiceNo as invoice,
-      a.VATItemNo as TempID
+      LPAD(ROW_NUMBER() OVER (), 3, '0') as TempID
     FROM upward_insurance.petty_cash a  where a.PC_No='${PC_No}'
       `);
 }

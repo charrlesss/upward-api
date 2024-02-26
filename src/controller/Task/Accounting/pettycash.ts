@@ -63,7 +63,6 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
     );
     await deletePettyCash(refNo);
     pettyCash.forEach(async (item: any, i: number) => {
-       
       addPettyCash({
         Branch_Code: "HO",
         PC_Date: datePetty,
@@ -71,7 +70,7 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
         Payee: payee,
         Explanation: explanation,
         DRPurpose: item.purpose,
-        Debit: item.amount,
+        Debit: parseFloat(item.amount.replace(/,/g, "")),
         DRAcct_Code: item.accountCode,
         DRShort: item.accountShort,
         Sub_Acct: item.sub_account,
@@ -99,7 +98,7 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
         Sub_Acct: item.sub_account,
         ID_No: item.clientID,
         cID_No: item.clientName,
-        Debit: item.amount,
+        Debit: parseFloat(item.amount.replace(/,/g, "")),
         Credit: "0.00",
         Remarks: item.purpose,
         VAT_Type: item.vatType,

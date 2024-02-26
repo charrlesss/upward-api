@@ -4,6 +4,9 @@ import {
   pullout,
   warehouseSelectedSearch,
   updatePDCChecks,
+  getApprovedPulloutWarehouse,
+  getApprovedPulloutWarehouseCheckList,
+  getApprovedPulloutWarehouseCheckListSelected,
 } from "../../../model/Task/Accounting/warehouse.model";
 
 const Warehouse = express.Router();
@@ -39,6 +42,65 @@ Warehouse.post(
         ),
       });
     } catch (err: any) {
+      console.log(err.message);
+      res.send({ message: err.message, success: false, data: [] });
+    }
+  }
+);
+
+Warehouse.get(
+  "/warehouse/search-approved-pullout-warehouse",
+  async (req, res) => {
+    const { searchApprovedPullout } = req.query;
+    try {
+      res.send({
+        message: "successfully",
+        success: true,
+        data: await getApprovedPulloutWarehouse(
+          searchApprovedPullout as string
+        ),
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({ message: err.message, success: false, data: [] });
+    }
+  }
+);
+
+Warehouse.get(
+  "/warehouse/search-checklist-approved-pullout-warehouse",
+  async (req, res) => {
+    const { searchApprovedPulloutCheckList } = req.query;
+    console.log(searchApprovedPulloutCheckList)
+
+    try {
+      const data = await getApprovedPulloutWarehouseCheckList(
+        searchApprovedPulloutCheckList as string
+      );
+      res.send({
+        message: "successfully",
+        success: true,
+        data,
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({ message: err.message, success: false, data: [] });
+    }
+  }
+);
+Warehouse.post(
+  "/warehouse/search-checklist-approved-pullout-warehouse-selected",
+  async (req, res) => {
+    const { RCPNo } = req.body;
+    try {
+      const data = await getApprovedPulloutWarehouseCheckListSelected(RCPNo);
+      res.send({
+        message: "successfully",
+        success: true,
+        data,
+      });
+    } catch (err: any) {
+      console.log(err.message);
       res.send({ message: err.message, success: false, data: [] });
     }
   }

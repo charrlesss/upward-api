@@ -172,6 +172,7 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
       "client_id",
       "ID",
       "sub_account_ShortName",
+      "address"
     ];
     const clientsId = mapColumnsToKeys(dataCol, data);
     

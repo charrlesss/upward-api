@@ -78,6 +78,78 @@ export async function pullout(
   return await prisma.$queryRawUnsafe(query);
 }
 
+export async function getApprovedPulloutWarehouse(RCPNo: string) {
+  const query = `
+  SELECT DISTINCT
+      B.RCPNo as label
+  FROM
+      upward_insurance.PDC A
+          INNER JOIN
+      (SELECT 
+          A.RCPNo, A.PNNo, b.CheckNo, a.Status
+      FROM
+          upward_insurance.PullOut_Request A
+      left JOIN upward_insurance.PullOut_Request_Details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
+          AND A.Check_No = B.CheckNo
+  WHERE
+      PDC_Status = 'Stored'
+      AND b.Status = 'APPROVED'
+      OR b.RCPNo LIKE '%${RCPNo}%'
+  ORDER BY B.RCPNo
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function getApprovedPulloutWarehouseCheckList(RCPNo: string) {
+  const query = `
+  SELECT 
+  B.RCPNo,
+  b.PNNo,
+  a.Name,
+  convert(COUNT(b.CheckNo),CHAR) NoOfChecks,
+  b.Reason
+FROM
+upward_insurance.PDC A
+    INNER JOIN
+(SELECT 
+    A.RCPNo, A.PNNo, b.CheckNo, a.Status, a.Reason
+FROM
+    upward_insurance.PullOut_Request A
+INNER JOIN upward_insurance.PullOut_Request_Details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
+    AND A.Check_No = B.CheckNo
+WHERE
+    PDC_Status = 'Stored'
+    AND b.Status = 'APPROVED' 
+    AND b.RCPNo like '%${RCPNo}%'
+GROUP BY B.RCPNo , b.PNNo , a.Name , b.Reason
+ORDER BY B.RCPNo
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function getApprovedPulloutWarehouseCheckListSelected(
+  RCPNo: string
+) {
+  const query = `
+    select 
+      a.PNNo as PNo,
+      c.IDNo,
+      date_format(c.Date,'%m/%d/%Y')  as dateRecieved,
+      c.Name,
+      date_format(c.Check_Date,'%m/%d/%Y') as Check_Date,
+      c.Check_No,
+      c.Check_Amnt,
+      d.Bank,
+      a.Status as PDC_Status,
+      CAST(ROW_NUMBER() OVER () AS CHAR) AS PDC_ID
+    From upward_insurance.pullout_request a 
+    inner join upward_insurance.pullout_request_details b on a.RCPNo = b.RCPNo
+    inner join pdc c on b.CheckNo = c.Check_No 
+    left join upward_insurance.bank d on c.Bank = d.Bank_Code
+    where a.Status = 'APPROVED' and 
+    a.RCPNo = '${RCPNo}'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
 export async function updatePDCChecks(
   pdcStatus: string,
   remarks: string,

@@ -61,29 +61,32 @@ export async function findCashDisbursement(Source_No: string) {
 export async function findSearchSelectedCashDisbursement(Source_No: string) {
   return await prisma.$queryRawUnsafe(
     `SELECT 
-      Branch_Code,
-      Date_Entry as dateEntry,
-      Source_No as refNo,
-      Explanation as explanation,
-      Particulars as particulars,
-      Payto as Payto,
-      Address as address,
-      GL_Acct as code,
-      cGL_Acct as acctName,
-      cSub_Acct as subAcctName,
-      cID_No as ClientName,
-      Debit as debit,
-      Credit as credit,
-      Check_No as checkNo ,
-      Check_Date as checkDate ,
-      Remarks as remarks,
-      Sub_Acct as subAcct,
-      ID_No as IDNo,
-      TC as TC_Code,
-      VAT_Type as vatType,
-      OR_Invoice_No as invoice,
-      VATItemNo as TempID
-    FROM upward_insurance.cash_disbursement where Source_No = '${Source_No}' and Source_Type = 'CV'`
+        Branch_Code,
+        Date_Entry as dateEntry,
+        Source_No as refNo,
+        Explanation as explanation,
+        Particulars as particulars,
+        Payto as Payto,
+        Address as address,
+        GL_Acct as code,
+        cGL_Acct as acctName,
+        cSub_Acct as subAcctName,
+        cID_No as ClientName,
+        Debit as debit,
+        Credit as credit,
+        Check_No as checkNo ,
+        Check_Date as checkDate ,
+        Remarks as remarks,
+        Sub_Acct as subAcct,
+        ID_No as IDNo,
+        TC as TC_Code,
+        VAT_Type as vatType,
+        OR_Invoice_No as invoice,
+        VATItemNo as TempID
+    FROM 
+    upward_insurance.cash_disbursement 
+      where 
+      Source_No = '${Source_No}' and Source_Type = 'CV'`
   );
 }
 export async function searchCashDisbursement(search: string) {
