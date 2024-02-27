@@ -74,7 +74,7 @@ export async function pullout(
     PNNo = '${PNNo}' AND CheckNo = '${CheckNo}'
         AND Status = 'APPROVED'
   `;
-
+  console.log(query)
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -139,7 +139,7 @@ export async function getApprovedPulloutWarehouseCheckListSelected(
       c.Check_Amnt,
       d.Bank,
       a.Status as PDC_Status,
-      CAST(ROW_NUMBER() OVER () AS CHAR) AS PDC_ID
+      c.PDC_ID 
     From upward_insurance.pullout_request a 
     inner join upward_insurance.pullout_request_details b on a.RCPNo = b.RCPNo
     inner join pdc c on b.CheckNo = c.Check_No 
@@ -171,6 +171,7 @@ export async function updatePDCChecks(
       : ` WHERE PDC_ID='${PDC_ID}'`
   }
 `;
+console.log(query)
 
   return await prisma.$queryRawUnsafe(query);
 }

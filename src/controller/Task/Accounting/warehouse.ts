@@ -115,21 +115,20 @@ Warehouse.post("/warehouse/save", async (req, res) => {
     ];
     const selected = JSON.parse(req.body.selected);
     if (req.body.pdcStatus === "2") {
-      selected.forEach(async (check: any) => {
-        const pulloutRequest = await pullout(check.PNo, check.Check_No);
+      selected.forEach(async (item: any) => {
+        const pulloutRequest = await pullout(item.PNo, item.Check_No);
         if (pulloutRequest.length <= 0) {
           return res.send({
-            message: `PN No. : ${check.PNo}\nCheck No : ${check.Check_No} dont have pullout approval!`,
+            message: `PN No. : ${item.PNo}\nCheck No : ${item.Check_No} dont have pullout approval!`,
             success: false,
           });
         }
       });
     }
-
     selected.forEach(async (check: any) => {
+      console.log(check)
       await updatePDCChecks(req.body.pdcStatus, req.body.remarks, check.PDC_ID);
     });
-
     res.send({
       message: `Successfully ${successMessage[parseInt(req.body.pdcStatus)]}`,
       success: true,
