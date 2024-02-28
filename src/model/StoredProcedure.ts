@@ -102,6 +102,18 @@ export async function createIdSequence() {
         type: "cash-disbursement",
         year: getYear(),
       },
+      {
+        last_count: "0000",
+        month: getMonth(),
+        type: 'pullout',
+        year: getYear(),
+      },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: 'check-postponement',
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);
