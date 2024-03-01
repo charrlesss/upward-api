@@ -21,8 +21,9 @@ import {
   deleteDeposit,
   deleteCashBreakDown,
   deleteJournalFromDeposit,
-  removeDepositFromCollection
+  removeDepositFromCollection,
 } from "../../../model/Task/Accounting/deposit.model";
+import saveUserLogs from "../../../lib/save_user_logs";
 const Deposit = express.Router();
 
 Deposit.get("/getCashCollection", async (req, res) => {
@@ -87,6 +88,7 @@ Deposit.post("/add-deposit", async (req, res) => {
       year: firstPart,
       month: secondPart,
     });
+    await saveUserLogs(req, req.body.depositSlip, "add", "Deposit");
     res.send({
       message: "Successfully Create New Deposit.",
       success: true,
@@ -176,12 +178,13 @@ Deposit.post("/search-cash-check", async (req, res) => {
 });
 Deposit.post("/update-deposit", async (req, res) => {
   try {
-    await removeDepositFromCollection(req.body.depositSlip)
+    await removeDepositFromCollection(req.body.depositSlip);
     await deleteSlipCode(req.body.depositSlip);
     await deleteDeposit(req.body.depositSlip);
     await deleteCashBreakDown(req.body.depositSlip);
     await deleteJournalFromDeposit(req.body.depositSlip);
     await addDeposit(req);
+    await saveUserLogs(req, req.body.depositSlip, "edit", "Deposit");
     res.send({
       message: "Successfully Update Deposit.",
       success: true,
@@ -348,5 +351,3 @@ async function addDeposit(req: any) {
 }
 
 export default Deposit;
-
-

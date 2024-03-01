@@ -8,6 +8,7 @@ import {
   getApprovedPulloutWarehouseCheckList,
   getApprovedPulloutWarehouseCheckListSelected,
 } from "../../../model/Task/Accounting/warehouse.model";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const Warehouse = express.Router();
 
@@ -28,7 +29,6 @@ Warehouse.get(
     }
   }
 );
-
 Warehouse.post(
   "/warehouse/get-search-selected-pdc-checks-client-policy",
   async (req, res) => {
@@ -47,7 +47,6 @@ Warehouse.post(
     }
   }
 );
-
 Warehouse.get(
   "/warehouse/search-approved-pullout-warehouse",
   async (req, res) => {
@@ -66,12 +65,11 @@ Warehouse.get(
     }
   }
 );
-
 Warehouse.get(
   "/warehouse/search-checklist-approved-pullout-warehouse",
   async (req, res) => {
     const { searchApprovedPulloutCheckList } = req.query;
-    console.log(searchApprovedPulloutCheckList)
+    console.log(searchApprovedPulloutCheckList);
 
     try {
       const data = await getApprovedPulloutWarehouseCheckList(
@@ -105,7 +103,6 @@ Warehouse.post(
     }
   }
 );
-
 Warehouse.post("/warehouse/save", async (req, res) => {
   try {
     const successMessage = [
@@ -126,9 +123,10 @@ Warehouse.post("/warehouse/save", async (req, res) => {
       });
     }
     selected.forEach(async (check: any) => {
-      console.log(check)
       await updatePDCChecks(req.body.pdcStatus, req.body.remarks, check.PDC_ID);
     });
+
+    await saveUserLogs(req, "", "add", "Warehouse");
     res.send({
       message: `Successfully ${successMessage[parseInt(req.body.pdcStatus)]}`,
       success: true,

@@ -21,6 +21,7 @@ import {
   findeGeneralJournal,
 } from "../../../model/Task/Accounting/general-journal.model";
 import { getMonth, getYear, endOfMonth, format } from "date-fns";
+import saveUserLogs from "../../../lib/save_user_logs";
 const GeneralJournal = express.Router();
 
 GeneralJournal.post(
@@ -86,6 +87,14 @@ GeneralJournal.post(
       if (!req.body.hasSelected) {
         await updateGeneralJournalID(req.body.refNo.split("-")[1]);
       }
+
+      await saveUserLogs(
+        req,
+        req.body.refNo,
+        req.body.hasSelected ? "update" : "add",
+        "General-Journal"
+      );
+
       res.send({
         message: req.body.hasSelected
           ? `Successfully update ${req.body.refNo}  in general journal`

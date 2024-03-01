@@ -21,6 +21,7 @@ import generateUniqueUUID from "../../../lib/generateUniqueUUID";
 import sendEmail from "../../../lib/sendEmail";
 import { format } from "date-fns";
 import generateRandomNumber from "../../../lib/generateRandomNumber";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const Pullout = express.Router();
 const PulloutRequest = express.Router();
@@ -38,7 +39,6 @@ PulloutRequest.get("/pullout/reqeust/get-id", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false, id: [] });
   }
 });
-
 PulloutRequest.get("/pullout/reqeust/get-pno-name", async (req, res) => {
   const { pnclientSearch: serach } = req.query;
   try {
@@ -116,6 +116,7 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       Approved_Code: approvalCode.toString(),
       Disapproved_Code: "",
     });
+    await saveUserLogs(req, RCPNo, "add","Pullout");
     res.send({
       message: "Save Successfully",
       success: true,
@@ -148,6 +149,7 @@ PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
 
     await updatePulloutRequest({ Status: "CANCEL" }, RCPNo);
     await updatePulloutRequestDetails(RCPNo);
+    await saveUserLogs(req, RCPNo, "cancel request","Pullout");
     res.send({
       message: `Cancel Request ${RCPNo} Successfully`,
       success: true,
@@ -181,7 +183,6 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
         success: false,
       });
     }
-    const user = await getUserById((req.user as any).UserId);
     const check_request = (await existApprovalCode(RCPNo, code)) as Array<any>;
 
     if (check_request.length <= 0)
@@ -190,6 +191,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
         success: false,
       });
 
+    const user = await getUserById((req.user as any).UserId);
     await sendApprovedEmail({
       RCPNo,
       PNNo,
@@ -202,6 +204,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     });
     await approvedPullout(RCPNo, user?.Username as string, isApproved);
     await updateApprovalCode(RCPNo, code, user?.Username as string);
+    await saveUserLogs(req, RCPNo, `${isApproved ? "approved" :"disapproved"} request`,"Pullout");
     res.send({
       message: `RCP No. ${RCPNo} Approved Successfuly`,
       success: true,
@@ -539,7 +542,6 @@ async function sendApprovedEmail(props: any) {
   </table>`
   );
 }
-
 Pullout.use(PulloutRequest);
 Pullout.use(PulloutApporved);
 export default Pullout;

@@ -11,6 +11,7 @@ import {
 } from "../../../model/Task/Accounting/pdc.model";
 import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
 import { mapColumnsToKeys } from "../../Reports/Production/report-fields";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const PDC = express.Router();
 
@@ -80,6 +81,7 @@ PDC.post("/add-pdc", async (req, res) => {
       req.body.Ref_No.split(".")[0]
     );
     const newPdcId = await pdcIDGenerator();
+    await saveUserLogs(req, req.body.Ref_No, "add", "PDC");
     res.send({
       message: "Create New PDC Successfully.",
       success: true,
@@ -155,6 +157,7 @@ PDC.post("/update-pdc", async (req, res) => {
       }
     });
     await UpdateId("pdc", newId, month, year);
+    await saveUserLogs(req, newId, "edit", "PDC");
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
     res.send({ message: error.message, success: false });
@@ -172,10 +175,10 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
       "client_id",
       "ID",
       "sub_account_ShortName",
-      "address"
+      "address",
     ];
     const clientsId = mapColumnsToKeys(dataCol, data);
-    
+
     res.send({
       clientsId,
       success: true,

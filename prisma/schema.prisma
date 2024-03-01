@@ -784,20 +784,24 @@ model petty_cash {
 }
 
 model postponement {
-  RPCDNo        String    @id @db.VarChar(250)
-  PNNo          String?   @db.VarChar(250)
-  HoldingFees   Decimal?  @db.Decimal(16, 2)
-  PenaltyCharge Decimal?  @db.Decimal(16, 2)
-  Surplus       Decimal?  @db.Decimal(18, 2)
-  Deducted_to   String?   @db.VarChar(150)
-  PaidVia       String?   @db.VarChar(50)
-  PaidInfo      String?   @db.VarChar(250)
-  PaidDate      String?   @db.VarChar(250)
-  Date          DateTime? @db.Date
-  Status        String?   @db.VarChar(250)
-  Branch        String?   @db.VarChar(250)
-  ClientBranch  String?   @db.VarChar(250)
-  Prepared_by   String?   @db.VarChar(250)
+  RPCDNo         String    @id @db.VarChar(250)
+  PNNo           String?   @db.VarChar(250)
+  HoldingFees    Decimal?  @db.Decimal(16, 2)
+  PenaltyCharge  Decimal?  @db.Decimal(16, 2)
+  Surplus        Decimal?  @db.Decimal(18, 2)
+  Deducted_to    String?   @db.VarChar(150)
+  PaidVia        String?   @db.VarChar(50)
+  PaidInfo       String?   @db.VarChar(250)
+  PaidDate       String?   @db.VarChar(250)
+  Date           DateTime? @db.Date
+  Status         String?   @db.VarChar(250)
+  Branch         String?   @db.VarChar(250)
+  ClientBranch   String?   @db.VarChar(250)
+  Prepared_by    String?   @db.VarChar(250)
+  Requested_By   String?   @db.VarChar(30)
+  Requested_Date DateTime? @db.DateTime(6)
+  Approved_By    String?   @db.VarChar(30)
+  Approved_Date  DateTime? @db.DateTime(6)
 }
 
 model postponement_auth_codes {
@@ -1118,4 +1122,15 @@ enum users_AccountType {
   PRODUCTION
   ACCOUNTING
   ADMIN
+}
+
+model system_logs {
+  action       String   @db.Text
+  logs_id      Int      @id @default(autoincrement())
+  username     String   @db.Text
+  dataString   String   @db.Text
+  createdAt    DateTime
+  user_id      String   @db.Text
+  account_type String   @db.Text
+  module       String   @db.Text
 }

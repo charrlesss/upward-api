@@ -12,6 +12,7 @@ import {
   loadSelectedPettyCash,
 } from "../../../model/Task/Accounting/pettycash.model";
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const PettyCash = express.Router();
 
@@ -127,6 +128,8 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
     if (!hasSelected) {
       await updatePettyCashID(req.body.refNo.split("-")[1]);
     }
+
+    await saveUserLogs(req, refNo, hasSelected ? "update" : "add","Petty Cash");
     res.send({
       message: hasSelected
         ? "Successfully update petty cash"

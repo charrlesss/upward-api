@@ -18,9 +18,12 @@ export async function pulloutRequestPNoWithName(search: string) {
   FROM
       upward_insurance.pdc a
       WHERE 
-      a.PNo LIKE '%${search}%' OR
-          a.IDNo LIKE '%${search}%' OR
-          a.Name LIKE '%${search}%' 
+        a.PDC_Status = 'Stored' and
+          (
+            a.PNo LIKE '%${search}%' OR
+            a.IDNo LIKE '%${search}%' OR
+            a.Name LIKE '%${search}%' 
+          )
   GROUP BY a.PNo
   LIMIT 100;
 ;`);

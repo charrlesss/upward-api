@@ -17,6 +17,7 @@ import {
   getReturnCheckSearch,
   findReturnCheck,
 } from "../../../model/Task/Accounting/return-checks.model";
+import saveUserLogs from "../../../lib/save_user_logs";
 const ReturnCheck = express.Router();
 
 ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
@@ -64,7 +65,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
       return res.send({
         message: `${req.body.RefNo} already exists!`,
         success: false,
-        isClearableError :false,
+        isClearableError: false,
         credit: [],
         debit: [],
       });
@@ -100,7 +101,6 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
 
     await deleteJournalFromReturnCheck(req.body.RefNo);
 
-
     req.body.accountingEntry.forEach(async (items: any) => {
       await addJournalFromReturnCheck({
         Branch_Code: req.body.BranchCode,
@@ -129,16 +129,28 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
     });
     await updateRCID(req.body.RefNo.split("-")[1]);
 
+    await saveUserLogs(
+      req,
+      req.body.RefNo,
+      req.body.isUpdated ? "update" : "add",
+      "Return Check"
+    );
     res.send({
       message: req.body.isUpdated
         ? "Successfully update return check"
         : "Successfully add return check",
       success: true,
-      isClearableError:true
+      isClearableError: true,
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, credit: [], debit: [] ,isClearableError:false});
+    res.send({
+      message: error.message,
+      success: false,
+      credit: [],
+      debit: [],
+      isClearableError: false,
+    });
   }
 });
 ReturnCheck.get("/search-return-checks", async (req, res) => {

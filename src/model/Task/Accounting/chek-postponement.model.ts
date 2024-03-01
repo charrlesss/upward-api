@@ -81,9 +81,13 @@ export async function getCheckPostponementPNNo(search: string) {
         ) b on a.IDNo = b.IDNo
         left join upward_insurance.sub_account c on b.sub_account = c.Sub_Acct
         WHERE 
-        a.PNo LIKE '%${search}%' OR
-            a.IDNo LIKE '%${search}%' OR
-            a.Name LIKE '%${search}%' 
+            
+            a.PDC_Status = 'Stored' and 
+            (
+              a.PNo LIKE '%${search}%' OR
+              a.IDNo LIKE '%${search}%' OR
+              a.Name LIKE '%${search}%' 
+            )
     GROUP BY a.PNo
     LIMIT 100;
     `;
@@ -118,27 +122,29 @@ export async function getSelectedCheckPostponementPNNo(
 export async function searchEditPostponentRequest(search: string) {
   const query = `
   SELECT 
-  RPCDNo,
-  PNNo,
-  Deducted_to,
-  ClientBranch,
-  format(HoldingFees,2) AS holdingFee,
-  format(PenaltyCharge,2) AS penaltyCharge,
-  format(Surplus,2) AS surplus,
-  Deducted_to AS deductedTo,
-  PaidVia AS paidVia,
-  PaidInfo AS paidInfo,
-  date_format(PaidDate,'%Y-%m-%d') AS paidDate,
-  format(CAST(REPLACE(HoldingFees, ',', '') AS DECIMAL) + CAST(REPLACE(PenaltyCharge, ',', '') AS DECIMAL) + CAST(REPLACE(Surplus, ',', '') AS DECIMAL),2) AS total
-FROM
-  upward_insurance.postponement a
-WHERE
-  Status <> 'CANCEL' AND
-  (
-    RPCDNo LIKE '%${search}%' OR 
-    PNNo LIKE '%${search}%' OR 
-    Deducted_to LIKE '%${search}%'
-  )
+    RPCDNo,
+    PNNo,
+    Deducted_to,
+    ClientBranch,
+    format(HoldingFees,2) AS holdingFee,
+    format(PenaltyCharge,2) AS penaltyCharge,
+    format(Surplus,2) AS surplus,
+    Deducted_to AS deductedTo,
+    PaidVia AS paidVia,
+    PaidInfo AS paidInfo,
+    date_format(PaidDate,'%Y-%m-%d') AS paidDate,
+    Requested_By,
+    Requested_Date,
+    format(CAST(REPLACE(HoldingFees, ',', '') AS DECIMAL) + CAST(REPLACE(PenaltyCharge, ',', '') AS DECIMAL) + CAST(REPLACE(Surplus, ',', '') AS DECIMAL),2) AS total
+  FROM
+    upward_insurance.postponement a
+  WHERE
+    Status = 'PENDING' AND
+    (
+      RPCDNo LIKE '%${search}%' OR 
+      PNNo LIKE '%${search}%' OR 
+      Deducted_to LIKE '%${search}%'
+    )
   `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -163,7 +169,7 @@ export async function searchSelectedEditPostponentRequest(RPCD: string) {
     WHERE
       RPCD = '${RPCD}' AND
       a.cancel = 0 AND
-      c.Status <> 'CANCEL'
+      c.Status = 'PENDING'
     ;`;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -173,7 +179,6 @@ export async function updateOnCancelPostponentRequest(RPCD: string) {
     ;`;
   return await prisma.$queryRawUnsafe(query);
 }
-
 export async function updateOnCancelPostponentRequestDetails(RPCD: string) {
   const query = `
     update  upward_insurance.postponement_detail a set a.cancel = 1  where a.RPCD = '${RPCD}'
@@ -188,4 +193,40 @@ export async function createPostponementDetails(data: any) {
 }
 export async function approvalCodePostponement(data: any) {
   return await prisma.postponement_auth_codes.create({ data });
+}
+export async function updatePostponementStatus(
+  isApproved: boolean,
+  RPCDNo: string,
+  Approved_By: string
+) {
+  const query = `
+  UPDATE upward_insurance.postponement a 
+  SET 
+      a.Status = '${isApproved ? "APPROVED" : "DISAPPROVED"}',
+      a.Approved_By = '${Approved_By}',
+      a.Approved_Date = now()
+  WHERE
+      a.RPCDNo = '${RPCDNo}';
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function findApprovalPostponementCode(code: string, RPCD: string) {
+  const query = `
+    SELECT * FROM upward_insurance.postponement_auth_codes a where a.Approved_Code  = '${code}' AND a.RPCD='${RPCD}';
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function updateApprovalPostponementCode(
+  Used_By: string,
+  RPCDNo: string
+) {
+  const query = `
+  UPDATE upward_insurance.postponement_auth_codes a 
+  SET 
+      a.Used_By = '${Used_By}',
+      a.Used_DateTime = now()
+  WHERE
+      a.RPCD = '${RPCDNo}';
+  `;
+  return await prisma.$queryRawUnsafe(query);
 }

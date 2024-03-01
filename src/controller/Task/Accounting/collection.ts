@@ -17,6 +17,7 @@ import {
 } from "../../../model/Task/Accounting/collection.model";
 
 import { format } from "date-fns";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const Collection = express.Router();
 
@@ -93,6 +94,7 @@ Collection.post("/add-collection", async (req, res) => {
       month: req.body.ORNo.split(".")[0].slice(-2),
     });
     const newID = await collectionIDGenerator();
+    await saveUserLogs(req, req.body.ORNo, "add", "Collection");
     res.send({
       message: "Create Collection Successfully!",
       success: true,
@@ -138,7 +140,7 @@ Collection.post("/update-collection", async (req, res) => {
   try {
     await deleteCollection(req.body.ORNo);
     AddCollection(req);
-
+    await saveUserLogs(req, req.body.ORNo, "edit", "Collection");
     res.send({
       message: "Update Collection Successfully!",
       success: true,
@@ -207,7 +209,7 @@ async function AddCollection(req: any) {
       CRVatType = credit[i].VATType;
       CRInvoiceNo = credit[i].invoiceNo;
     }
-   
+
     const ColDate =
       i === 0 ? format(new Date(req.body.Date), "MM/dd/yyyy") : null;
     const OR = i === 0 ? req.body.ORNo : "";
