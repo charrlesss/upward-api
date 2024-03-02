@@ -19,6 +19,7 @@ import {
   getPolicyAccount,
   getPolicyType,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const BondPolicy = express.Router();
 
@@ -77,6 +78,8 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertBondsPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req, PolicyNo, "add", "Bonds Policy");
     res.send({ message: "Create Bonds Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -127,6 +130,8 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
 
     // insert fire policy
     await insertBondsPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req, PolicyNo, "update", "Bonds Policy");
     res.send({ message: "Update Bonds Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -140,7 +145,7 @@ BondPolicy.post("/delete-bonds-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, policyType, PolicyNo);
     //delete v policy
     await deleteBondsPolicy(PolicyAccount, policyType, PolicyNo);
-
+    await saveUserLogs(req, PolicyNo, "delete", "Bonds Policy");
     res.send({ message: "Delete Bonds Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

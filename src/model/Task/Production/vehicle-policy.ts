@@ -76,9 +76,9 @@ export async function getRate(account: string, line: string, type: string) {
   const query = `
   select Rate from Rates 
   where 
-  Account = '${account}' 
-  and Line = '${line}' 
-  and Type = '${type}'
+  trim(Account) = '${account}' 
+  and trim(Line) = '${line}' 
+  and trim(Type) = '${type}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }

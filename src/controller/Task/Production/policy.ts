@@ -69,16 +69,39 @@ Policy.get("/get-policy-account", async (req, res) => {
   }
 });
 
+// Policy.get("/get-rates", async (req, res) => {
+//   try {
+//     res.send({
+//       message: "successfully get rates",
+//       success: true,
+//       rates: {
+//         COM: await getRates("COM", req.body.Account),
+//         TPL: await getRates("TPL", req.body.Account),
+//       },
+//     });
+//   } catch (err: any) {
+//     res.send({
+//       message: "SERVER:ERROR",
+//       success: false,
+//       rates: {
+//         COM: [],
+//         TPL: [],
+//       },
+//     });
+//   }
+// });
+
 Policy.get("/get-rates", async (req, res) => {
   try {
-    res.send({
-      message: "successfully get rates",
-      success: true,
-      rates: {
-        COM: await getRates("COM"),
-        TPL: await getRates("TPL"),
-      },
-    });
+    const Type = (req.query.Type as string).trim();
+    const Account = (req.query.Account as string).trim();
+    setTimeout(async () => {
+      res.send({
+        message: "successfully get rates",
+        success: true,
+        rates: await getRates(Type, Account),
+      });
+    }, 2000);
   } catch (err: any) {
     res.send({
       message: "SERVER:ERROR",

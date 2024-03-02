@@ -19,6 +19,7 @@ import {
   getSubAccount,
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const PAPolicy = express.Router();
 
@@ -66,6 +67,7 @@ PAPolicy.post("/add-pa-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertPaPolicy({ ...req.body, cStrArea, strArea });
+    await saveUserLogs(req, PolicyNo, "add", "PA Policy");
     res.send({ message: "Create PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err);
@@ -111,6 +113,9 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
 
     // insert fire policy
     await insertPaPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req, PolicyNo, "update", "PA Policy");
+
     res.send({ message: "Update PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -126,6 +131,7 @@ PAPolicy.post("/delete-pa-policy", async (req, res) => {
     //delete pa policy
     await deletePAPolicy(PolicyAccount, PolicyNo);
 
+    await saveUserLogs(req, PolicyNo, "delete", "PA Policy");
     res.send({ message: "Delete PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);

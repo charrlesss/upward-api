@@ -727,7 +727,7 @@ export async function createPolicyAccount() {
 
 export async function creatRates() {
   const Account = [
-    "  MILESTONE GUARANTEE     ",
+    "MILESTONE GUARANTEE",
     "MILESTONE GUARANTEE",
     "MILESTONE GUARANTEE",
     "MILESTONE GUARANTEE",

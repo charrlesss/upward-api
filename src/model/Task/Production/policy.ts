@@ -55,24 +55,17 @@ export async function getPolicyAccount(type: string) {
 export async function getPolicyType(Line: string) {
   return await prisma.subline.findMany({
     select: {
-      SublineName:true
+      SublineName: true,
     },
     where: {
-      Line
+      Line,
     },
   });
 }
 
-
-export async function getRates(type: string) {
-  if (type === "COM") {
-    const query = `
-       select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
-    `;
-    return await prisma.$queryRawUnsafe(query);
-  }
+export async function getRates(type: string, Account: string) {
   const query = `
-  select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}'
+  select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}' and Account = '${Account}'
 `;
   return await prisma.$queryRawUnsafe(query);
 }

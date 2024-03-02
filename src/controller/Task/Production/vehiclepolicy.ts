@@ -18,6 +18,7 @@ import {
 import promiseAll from "../../../lib/promise-all";
 
 import { getAgents, getClients } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const VehiclePolicy = express.Router();
 
@@ -448,6 +449,8 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req,PolicyNo,"add","Vehicle Policy")
     res.send({ message: "Create Journal Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -547,6 +550,8 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
 
     // insert policy
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req,PolicyNo,"update","Vehicle Policy")
     res.send({ message: "Update Journal Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -573,6 +578,8 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, form_type, PolicyNo);
     // //delete v policy
     await deleteVehiclePolicy(PolicyAccount, form_type, PolicyNo);
+
+    await saveUserLogs(req,PolicyNo,"delete","Vehicle Policy")
     res.send({
       message: "Delete Vehicle Policy Successfully",
       success: true,

@@ -18,6 +18,7 @@ import {
   getSubAccount,
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const CGLPolicy = express.Router();
 
@@ -65,7 +66,7 @@ CGLPolicy.post("/add-cgl-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
-
+    await saveUserLogs(req, PolicyNo, "add", "CGL Policy");
     res.send({ message: "Create CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -111,6 +112,8 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
 
     // insert CGL policy
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req, PolicyNo, "update", "CGL Policy");
     res.send({ message: "Update CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -124,7 +127,7 @@ CGLPolicy.post("/delete-cgl-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, "CGL", PolicyNo);
     //delete CGL policy
     await deleteCGLPolicy(PolicyAccount, PolicyNo);
-
+    await saveUserLogs(req, PolicyNo, "delete", "CGL Policy");
     res.send({ message: "Delete CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

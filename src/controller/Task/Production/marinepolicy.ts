@@ -22,6 +22,7 @@ import {
   getSubAccount,
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const MarinePolicy = express.Router();
 
@@ -71,6 +72,7 @@ MarinePolicy.post("/add-marine-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertMarinePolicy({ ...req.body, cStrArea, strArea });
+    await saveUserLogs(req, PolicyNo, "add", "Marine Policy");
     res.send({ message: "Create Marine Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err);
@@ -102,7 +104,7 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
     const rate = (
       (await getMarineRate(PolicyAccount, "Marine")) as Array<any>
     )[0];
-
+    await saveUserLogs(req, PolicyNo, "update", "Marine Policy");
     if (rate == null) {
       return res.send({
         message: "Please setup commission rate for this account and Line",
@@ -137,6 +139,8 @@ MarinePolicy.post("/delete-marine-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, "MAR", PolicyNo);
     // //delete m policy
     await deleteMarinePolicy(PolicyAccount, PolicyNo);
+
+    await saveUserLogs(req, PolicyNo, "delete", "Marine Policy");
     res.send({
       message: "Delete Marine Policy Successfully",
       success: true,

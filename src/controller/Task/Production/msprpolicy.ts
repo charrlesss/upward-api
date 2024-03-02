@@ -19,6 +19,7 @@ import {
   getSubAccount,
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const MSPRPolicy = express.Router();
 
@@ -65,6 +66,7 @@ MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+    await saveUserLogs(req, PolicyNo, "add", "MSPR Policy");
     res.send({ message: "Create MSPR Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err);
@@ -112,6 +114,8 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
 
     // insert fire policy
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+
+    await saveUserLogs(req, PolicyNo, "update", "MSPR Policy");
     res.send({ message: "Update MSPR Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -126,7 +130,7 @@ MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, policyType, PolicyNo);
     //delete v policy
     await deleteMsprPolicy(PolicyAccount, PolicyNo);
-
+    await saveUserLogs(req, PolicyNo, "delete", "MSPR Policy");
     res.send({ message: "Delete MSPR Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);

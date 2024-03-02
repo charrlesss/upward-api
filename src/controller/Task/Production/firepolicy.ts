@@ -23,6 +23,7 @@ import {
   getSubAccount,
   getMortgagee,
 } from "../../../model/Task/Production/policy";
+import saveUserLogs from "../../../lib/save_user_logs";
 
 const FirePolicy = express.Router();
 
@@ -221,7 +222,7 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     await insertFirePolicy({ ...req.body, cStrArea, strArea });
-
+    await saveUserLogs(req, PolicyNo, "add", "Fire Policy");
     res.send({ message: "Create Fire Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -257,6 +258,7 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
 
     // insert fire policy
     await insertFirePolicy({ ...req.body, cStrArea, strArea });
+    await saveUserLogs(req, PolicyNo, "update", "Fire Policy");
     res.send({ message: "Update Fire Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -270,6 +272,7 @@ FirePolicy.post("/delete-fire-policy", async (req, res) => {
     await deletePolicy(PolicyAccount, "FIRE", PolicyNo);
     // //delete v policy
     await deleteFirePolicy(PolicyAccount, PolicyNo);
+    await saveUserLogs(req, PolicyNo, "delete", "Fire Policy");
     res.send({
       message: "Delete Fire Policy Successfully",
       success: true,
