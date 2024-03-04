@@ -120,6 +120,7 @@ GeneralJournal.post(
         req.body.refNo,
         req.body.dateEntry
       );
+      await saveUserLogs(req, req.body.refNo, "void", "General-Journal");
       res.send({
         message: `Successfully void ${req.body.refNo} in general journal`,
         success: true,

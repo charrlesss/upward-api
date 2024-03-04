@@ -131,6 +131,7 @@ CashDisbursement.post(
       );
       await DeleteNewJournalFromCashDisbursement(req.body.refNo);
       await insertVoidCashDisbursement(req.body.refNo, req.body.dateEntry);
+      await saveUserLogs(req, req.body.refNo, "void", "Cash-Disbursement");
       res.send({
         message: `Successfully void ${req.body.refNo} in cash disbursement`,
         success: true,

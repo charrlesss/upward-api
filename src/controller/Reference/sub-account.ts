@@ -12,9 +12,11 @@ const SubAccount = express.Router();
 
 SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
   try {
+    req.body.createdAt = new Date();
     await createSubAccount(req.body);
     res.send({ message: "Create Sub Account Successfully!", success: true });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
@@ -75,8 +77,14 @@ SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
 SubAccount.get("/export-sub-account", async (req, res) => {
   const subAccountHeaders: any = {
     SubAccount: {
-      header: ["Sub Account ID", "Acronym","Short Name", "Description", "Created At"],
-      row: ["Sub_Acct", "Acronym", "ShortName","Description", "createdAt"],
+      header: [
+        "Sub Account ID",
+        "Acronym",
+        "Short Name",
+        "Description",
+        "Created At",
+      ],
+      row: ["Sub_Acct", "Acronym", "ShortName", "Description", "createdAt"],
     },
   };
   const { policySearch, isAll } = req.query;
