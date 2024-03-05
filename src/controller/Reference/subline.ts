@@ -32,18 +32,21 @@ Subline.get("/get-subline", async (req: Request, res: Response) => {
 
 Subline.post("/add-subline", async (req: Request, res: Response) => {
   try {
+    req.body.createdAt = new Date()
     if ((await findSubline(req.body.Line, req.body.SublineName)).length > 0) {
       return res.send({
         message: "Already Exist!",
         success: false,
       });
     }
+
     await addSubline(req.body);
     return res.send({
       message: "Create Mortgagee Successfully!",
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message)
     res.send({ message: err.message, success: false });
   }
 });

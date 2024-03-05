@@ -53,12 +53,14 @@ SubAccount.get("/search-sub-account", async (req: Request, res: Response) => {
 SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
   const { Sub_Acct, ...rest } = req.body;
   try {
-    await updateSubAccount(rest, Sub_Acct);
+    delete rest.createdAt;
+    await updateSubAccount({...rest,update:new Date()}, Sub_Acct);
     res.send({
       message: "Update Sub Account Successfully!",
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message)
     res.send({ message: err.message, success: false });
   }
 });
@@ -70,6 +72,8 @@ SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message)
+
     res.send({ message: err.message, success: false });
   }
 });

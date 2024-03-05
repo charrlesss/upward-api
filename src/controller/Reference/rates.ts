@@ -40,6 +40,7 @@ Rates.get("/get-rates", async (req: Request, res: Response) => {
 
 Rates.post("/add-rates", async (req: Request, res: Response) => {
   try {
+    req.body.createdAt = new Date()
     await addRate(req.body);
     res.send({
       message: "Create Rates Successfully!",
