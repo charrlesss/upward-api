@@ -11,7 +11,6 @@ import {
   getSubAccounts,
   searchEntry,
   updateEntry,
-  
 } from "../../model/Reference/id-entry.model";
 import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
 import { ExportToExcel } from "../../lib/exporttoexcel";
@@ -23,6 +22,7 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_client_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+  req.body.createdAt = new Date();
   try {
     await CreateClientEntry(req.body);
     await UpdateId("entry client", newCount, newMonth, newYear);
@@ -31,6 +31,7 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -39,6 +40,8 @@ ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_employee_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+
+  req.body.createdAt = new Date();
   try {
     await CreateEmployeeEntry(req.body);
     await UpdateId("entry employee", newCount, newMonth, newYear);
@@ -47,6 +50,7 @@ ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -55,6 +59,7 @@ ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_agent_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+  req.body.createdAt = new Date();
   try {
     await CreateAgentEntry(req.body);
     await UpdateId("entry agent", newCount, newMonth, newYear);
@@ -63,6 +68,7 @@ ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -71,6 +77,7 @@ ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_fixed_assets_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+  req.body.createdAt = new Date();
   try {
     await CreateFixedAssetstEntry(req.body);
     await UpdateId("entry fixed assets", newCount, newMonth, newYear);
@@ -79,6 +86,7 @@ ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -87,6 +95,7 @@ ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_supplier_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+  req.body.createdAt = new Date();
   try {
     await CreateSupplierEntry(req.body);
     await UpdateId("entry supplier", newCount, newMonth, newYear);
@@ -95,6 +104,7 @@ ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -103,6 +113,7 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
   const [s, ym, newCount] = req.body.entry_others_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
+  req.body.createdAt = new Date();
   try {
     await CreateOtherEntry(req.body);
     await UpdateId("entry others", newCount, newMonth, newYear);
@@ -111,6 +122,7 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -120,6 +132,7 @@ ID_Entry.post("/entry-update", async (req, res) => {
     await updateEntry(req.query.entry as string, req.body);
     res.send({ message: "Update Successfully", success: true });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
@@ -147,14 +160,6 @@ ID_Entry.get("/id-entry-subaccounts", async (req: Request, res: Response) => {
 ID_Entry.get("/search-entry", async (req, res) => {
   const { entry, entrySearch } = req.query;
   try {
-    if (entry === "Client" || entry === "Employee") {
-      return res.send({
-        success: true,
-        message: "Successfully Get All Client Entry ",
-        entry: await searchEntry(entry as string, entrySearch as string),
-        sub_accounts: await getAllSubAccount(),
-      });
-    }
     res.send({
       success: true,
       message: "Successfully Get All Client Entry ",
@@ -241,23 +246,23 @@ ID_Entry.get("/export-entry", async (req, res) => {
         "address",
       ],
     },
-    'Fixed Assets': {
+    "Fixed Assets": {
       header: [
         "Entry Fixed Assets ID",
         "Fullname",
         "Description",
         "Remarks",
-        "Created At"
+        "Created At",
       ],
       row: [
         "entry_fixed_assets_id",
         "fullname",
         "description",
         "remarks",
-        "createdAt"
+        "createdAt",
       ],
     },
-    Supplier:{
+    Supplier: {
       header: [
         "Entry Supplier ID",
         "Company",
@@ -290,16 +295,8 @@ ID_Entry.get("/export-entry", async (req, res) => {
       ],
     },
     Others: {
-      header: [
-        "Entry Others ID",
-        "Description",
-        "Created At",
-      ],
-      row: [
-        "entry_others_id",
-        "description",
-        "createdAt",
-      ],
+      header: ["Entry Others ID", "Description", "Created At"],
+      row: ["entry_others_id", "description", "createdAt"],
     },
   };
   const { entry, entrySearch, isAll } = req.query;
@@ -330,17 +327,22 @@ ID_Entry.post("/entry-delete", async (req, res) => {
       message: "Successfully Delete",
     });
   } catch (err: any) {
+    console.log(err.message);
     res.send({ success: false, message: err.message });
   }
 });
 
 ID_Entry.get("/sub-account", async (req: Request, res: Response) => {
   try {
-   
+    const subAccount: any = await getSubAccounts();
+    const defaultValue = subAccount.filter(
+      (itms: any) => itms.Acronym === "HO"
+    );
     res.send({
       message: "Successfully get sub accounts",
       success: true,
-      subAccount:await getSubAccounts()
+      subAccount,
+      defaultValue,
     });
   } catch (err: any) {
     res.send({ success: false, message: err.message });

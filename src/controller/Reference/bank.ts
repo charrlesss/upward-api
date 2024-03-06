@@ -6,7 +6,7 @@ import {
   removeBank,
   updateBank,
 } from "../../model/Reference/banl.mode.";
-
+ 
 const Bank = express.Router();
 
 Bank.get("/get-banks", async (req: Request, res: Response) => {

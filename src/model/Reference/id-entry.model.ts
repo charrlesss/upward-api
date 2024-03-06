@@ -273,7 +273,7 @@ export async function CreateSupplierEntry(data: EntrySupplierType) {
 }
 export async function CreateOtherEntry(data: EntryOthersType) {
   await prisma.entry_others.create({
-    data,
+    data
   });
 }
 export async function getAllSubAccount() {
