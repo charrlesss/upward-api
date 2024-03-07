@@ -40,7 +40,7 @@ model mortgagee {
 }
 
 model subline {
-  ID          Int      @id @default(autoincrement())
+  ID          String   @id @default(uuid())
   Line        String   @db.Text
   SublineName String   @db.VarChar(255)
   createdAt   DateTime @default(now())
@@ -53,7 +53,7 @@ model subline_line {
 }
 
 model rates {
-  ID        Int      @id @default(autoincrement())
+  ID          String   @id @default(uuid())
   Account   String?  @db.VarChar(250)
   Line      String?  @db.VarChar(250)
   Type      String?  @db.VarChar(250)
@@ -1110,12 +1110,13 @@ model sub_account {
 }
 
 model users {
-  UserId        String            @id @default(uuid())
-  Username      String            @unique(map: "Users_Username_key") @db.VarChar(50)
-  Password      String            @db.VarChar(500)
-  AccountType   users_AccountType
-  REFRESH_TOKEN String?           @db.Text
-  CreatedAt     DateTime          @default(now())
+  UserId               String            @id @default(uuid())
+  Username             String            @unique(map: "Users_Username_key") @db.VarChar(50)
+  Password             String            @db.VarChar(500)
+  AccountType          users_AccountType
+  REFRESH_TOKEN        String?           @db.Text
+  CreatedAt            DateTime          @default(now())
+  userConfirmationCode String            @db.VarChar(500)
 }
 
 enum users_AccountType {

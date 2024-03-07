@@ -67,12 +67,12 @@ export async function getFire() {
       `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function updateRate(ID: number, Type: string, Rate: string) {
+export async function updateRate(ID: string, Type: string, Rate: string) {
   return await prisma.rates.update({ where: { ID }, data: { Type, Rate } });
 }
 export async function addRates(data: RateType) {
   await prisma.rates.create({ data });
 }
-export async function deleteRate(ID: number) {
+export async function deleteRate(ID: string) {
   await prisma.rates.delete({ where:{ID} });
 }

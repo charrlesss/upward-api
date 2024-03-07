@@ -7,8 +7,12 @@ import {
   getline,
   searchSubline,
   updateSubline,
-  deletesubline
+  deletesubline,
+  getNextId,
 } from "../../model/Reference/subline.model";
+import saveUserLogs from "../../lib/save_user_logs";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 
 const Subline = express.Router();
 
@@ -32,30 +36,35 @@ Subline.get("/get-subline", async (req: Request, res: Response) => {
 
 Subline.post("/add-subline", async (req: Request, res: Response) => {
   try {
-    req.body.createdAt = new Date()
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.ID;
+    req.body.createdAt = new Date();
     if ((await findSubline(req.body.Line, req.body.SublineName)).length > 0) {
       return res.send({
         message: "Already Exist!",
         success: false,
       });
     }
-
-    await addSubline(req.body);
+    const ID = await generateUniqueUUID("subline", "ID");
+    await addSubline({ ID, ...req.body });
+    await saveUserLogs(req, ID, "add", "Subline");
     return res.send({
       message: "Create Mortgagee Successfully!",
       success: true,
     });
   } catch (err: any) {
-    console.log(err.message)
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
 
 Subline.post("/delete-subline", async (req: Request, res: Response) => {
-  const { ID } = req.body;
-
   try {
-    await deletesubline(parseInt(req.body.ID));
+    if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Subline"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    await deletesubline(req.body.ID);
     res.send({
       message: "Delete Subline Successfully!",
       success: true,
@@ -67,7 +76,17 @@ Subline.post("/delete-subline", async (req: Request, res: Response) => {
 
 Subline.post("/update-subline", async (req: Request, res: Response) => {
   try {
-    await updateSubline({SublineName:req.body.SublineName,ID:parseInt(req.body.ID)});
+    if (!(await saveUserLogsCode(req, "edit", req.body.ID, "Subline"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.userCodeConfirmation;
+    await updateSubline({
+      SublineName: req.body.SublineName,
+      ID: req.body.ID,
+    });
     res.send({
       message: "Update Subline Successfully!",
       success: true,
@@ -94,8 +113,8 @@ Subline.get("/search-subline", async (req: Request, res: Response) => {
 Subline.get("/export-subline", async (req, res) => {
   const subAccountHeaders: any = {
     Subline: {
-      header: ["ID", "Line","Subline Name", "Created At"],
-      row: ["ID", "Line","SublineName", "createdAt"],
+      header: ["ID", "Line", "Subline Name", "Created At"],
+      row: ["ID", "Line", "SublineName", "createdAt"],
     },
   };
   const { sublineSearch, isAll } = req.query;

@@ -11,6 +11,9 @@ import {
   deleteRate,
 } from "../../model/Reference/rates.model";
 import { getline } from "../../model/Reference/subline.model";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import saveUserLogs from "../../lib/save_user_logs";
 
 const Rates = express.Router();
 
@@ -40,8 +43,13 @@ Rates.get("/get-rates", async (req: Request, res: Response) => {
 
 Rates.post("/add-rates", async (req: Request, res: Response) => {
   try {
-    req.body.createdAt = new Date()
-    await addRate(req.body);
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.ID;
+    const ID = await generateUniqueUUID("subline", "ID");
+    req.body.createdAt = new Date();
+    await addRate({ ID, ...req.body });
+    await saveUserLogs(req, ID, "add", "Rates");
     res.send({
       message: "Create Rates Successfully!",
       success: true,
@@ -54,7 +62,14 @@ Rates.post("/add-rates", async (req: Request, res: Response) => {
 
 Rates.post("/update-rates", async (req: Request, res: Response) => {
   try {
-    await updateRate(parseInt(req.body.ID), req.body.Type, req.body.Rate);
+    if (!(await saveUserLogsCode(req, "edit", req.body.ID, "Rates"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    } 
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.userCodeConfirmation;
+
+    await updateRate(req.body.ID, req.body.Type, req.body.Rate);
     res.send({
       message: "Update Rates Successfully!",
       success: true,
@@ -67,7 +82,10 @@ Rates.post("/update-rates", async (req: Request, res: Response) => {
 
 Rates.post("/delete-rates", async (req: Request, res: Response) => {
   try {
-    await deleteRate(parseInt(req.body.ID));
+    if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Rates"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    await deleteRate(req.body.ID);
     res.send({
       message: "Delete Rates Successfully!",
       success: true,
@@ -93,30 +111,30 @@ Rates.get("/search-rates", async (req: Request, res: Response) => {
 });
 
 Rates.get("/export-rates", async (req: Request, res: Response) => {
-    const subAccountHeaders: any = {
-        Rates: {
-          header: ["ID", "Account","Type","Rate", "Created At"],
-          row: ["ID", "Account","Type","Rate", "createdAt"],
-        },
-      };
-      const { ratesSearch, isAll } = req.query;
-    
-      let data = [];
-      if (JSON.parse(isAll as string)) {
-        data = mapDataBasedOnHeaders(
-          (await searchRate("", true)) as Array<any>,
-          subAccountHeaders,
-          "Rates"
-        );
-      } else {
-        data = mapDataBasedOnHeaders(
-          (await searchRate(ratesSearch as string)) as Array<any>,
-          subAccountHeaders,
-          "Rates"
-        );
-      }
-    
-      ExportToExcel(data, res);
-  });
+  const subAccountHeaders: any = {
+    Rates: {
+      header: ["ID", "Account", "Type", "Rate", "Created At"],
+      row: ["ID", "Account", "Type", "Rate", "createdAt"],
+    },
+  };
+  const { ratesSearch, isAll } = req.query;
+
+  let data = [];
+  if (JSON.parse(isAll as string)) {
+    data = mapDataBasedOnHeaders(
+      (await searchRate("", true)) as Array<any>,
+      subAccountHeaders,
+      "Rates"
+    );
+  } else {
+    data = mapDataBasedOnHeaders(
+      (await searchRate(ratesSearch as string)) as Array<any>,
+      subAccountHeaders,
+      "Rates"
+    );
+  }
+
+  ExportToExcel(data, res);
+});
 
 export default Rates;

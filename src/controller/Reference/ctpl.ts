@@ -19,6 +19,8 @@ import {
   findManyJournal,
   updateJournal,
 } from "../../model/Task/Production/vehicle-policy";
+import saveUserLogs from "../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 
 const CTPL = express.Router();
 function getZeroFirstInput(data: string) {
@@ -55,7 +57,10 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
 
 CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
   try {
-    delete req.body.createdAt;
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.ctplId;
+    req.body.createdAt = new Date();
     const user = await getUserById((req.user as any).UserId);
     const ctplID = await generateUniqueUUID("ctplregistration", "ctplId");
     const { Prefix, NumSeriesFrom, NumSeriesTo, Cost } = req.body;
@@ -69,7 +74,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
 
     let addZeroFromSeries = getZeroFirstInput(NumSeriesFrom);
     let addZeroToSeries = getZeroFirstInput(NumSeriesTo);
-  
+
     if (parseInt(NumSeriesFrom) > parseInt(NumSeriesTo)) {
       return res.send({
         message: "Invalid Series!",
@@ -86,7 +91,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
     for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
       const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
       // DEBIT'
-      const res1 = await createJournal({
+      await createJournal({
         Source_No: _sourceNo,
         Branch_Code: "HO",
         Date_Entry: new Date().toLocaleDateString(),
@@ -100,7 +105,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
         Source_No_Ref_ID: ctplID,
       });
       // Credit
-      const res2 = await createJournal({
+      await createJournal({
         Source_No: _sourceNo,
         Branch_Code: "HO",
         Date_Entry: new Date().toLocaleDateString(),
@@ -122,6 +127,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
       ctplId: ctplID,
       CreatedBy: (user as any)?.Username,
     });
+    await saveUserLogs(req, ctplID, "add", "CTPL");
     return res.send({
       message: "Create CTPL Successfully!",
       success: true,
@@ -135,6 +141,10 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
 CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
   try {
     const tpldID = req.body.ctplId;
+    if (!(await saveUserLogsCode(req, "delete", tpldID, "CTPL"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     const ctpl = await findCtplById(tpldID);
     if (ctpl == null) {
       return res.send({

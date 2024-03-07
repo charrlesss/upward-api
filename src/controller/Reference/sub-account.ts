@@ -7,13 +7,22 @@ import {
   updateSubAccount,
   deleteSubAccount,
 } from "../../model/Reference/sub-account.model";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import saveUserLogs from "../../lib/save_user_logs";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
 
 const SubAccount = express.Router();
 
 SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
   try {
+    delete req.body.Sub_Acct;
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.userCodeConfirmation;
     req.body.createdAt = new Date();
-    await createSubAccount(req.body);
+    const Sub_Acct = await generateUniqueUUID("sub_account", "Sub_Acct");
+    await createSubAccount({ Sub_Acct, ...req.body });
+    await saveUserLogs(req, Sub_Acct, "add", "Sub Account");
     res.send({ message: "Create Sub Account Successfully!", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -51,28 +60,44 @@ SubAccount.get("/search-sub-account", async (req: Request, res: Response) => {
 });
 
 SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
-  const { Sub_Acct, ...rest } = req.body;
   try {
+    if (
+      !(await saveUserLogsCode(req, "edit", req.body.Sub_Acct, "Sub Account"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.userCodeConfirmation;
+    const { Sub_Acct, ...rest } = req.body;
+
     delete rest.createdAt;
-    await updateSubAccount({...rest,update:new Date()}, Sub_Acct);
+    await updateSubAccount({ ...rest, update: new Date() }, Sub_Acct);
     res.send({
       message: "Update Sub Account Successfully!",
       success: true,
     });
   } catch (err: any) {
-    console.log(err.message)
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
 SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
   try {
+    if (
+      !(await saveUserLogsCode(req, "delete", req.body.Sub_Acct, "Sub Account"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     await deleteSubAccount(req.body.Sub_Acct);
     res.send({
       message: "Delete Sub Account Successfully!",
       success: true,
     });
   } catch (err: any) {
-    console.log(err.message)
+    console.log(err.message);
 
     res.send({ message: err.message, success: false });
   }

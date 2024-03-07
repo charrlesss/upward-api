@@ -51,7 +51,7 @@ export async function updateSubline({
   ID,
   SublineName,
 }: {
-  ID: number;
+  ID: string;
   SublineName: string;
 }) {
   return await prisma.subline.update({
@@ -64,6 +64,17 @@ export async function updateSubline({
   });
 }
 
-export async function deletesubline(ID: number) {
+export async function deletesubline(ID: string) {
   return await prisma.subline.delete({ where: { ID } });
+}
+
+
+export async function getNextId(tablename:string) {
+  const result:any = await prisma.$queryRawUnsafe(`
+    SELECT AUTO_INCREMENT
+    FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = '${tablename}'`);
+
+  return result
 }

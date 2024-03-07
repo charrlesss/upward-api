@@ -9,6 +9,8 @@ import {
   updateMortgagee,
   searchMortgagee,
 } from "../../model/Reference/mortgagee.model";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import saveUserLogs from "../../lib/save_user_logs";
 
 const Mortgagee = express.Router();
 
@@ -32,6 +34,10 @@ Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
 
 Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
   try {
+    delete req.body.mode;
+    delete req.body.search;
+    
+    req.body.createdAt = new Date()
     if (await findMortgagee(req.body.Mortgagee)) {
       return res.send({
         message: "Mortgagee is Already Exist Successfully!",
@@ -40,11 +46,13 @@ Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
     }
 
     await addMortgagee(req.body);
+    await saveUserLogs(req, req.body.Mortgagee, "add", "Mortgagee");
     return res.send({
       message: "Create Mortgagee Successfully!",
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message)
     res.send({ message: err.message, success: false });
   }
 });
@@ -53,6 +61,12 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
   const { Mortgagee } = req.body;
 
   try {
+    if (
+      !(await saveUserLogsCode(req, "delete", Mortgagee, "Mortgagee"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     await deleteMortgagee(Mortgagee);
     res.send({
       message: "Delete Mortgagee Successfully!",
@@ -65,6 +79,15 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
 
 Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
   try {
+    if (
+      !(await saveUserLogsCode(req, "edit", req.body.Mortgagee, "Mortgagee"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
+    delete req.body.mode;
+    delete req.body.search;
+    delete req.body.userCodeConfirmation;
     await updateMortgagee(req.body);
     res.send({
       message: "Update Mortgagee Successfully!",

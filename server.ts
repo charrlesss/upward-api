@@ -4,7 +4,7 @@ import cors from "cors";
 import router from "./src/controller";
 import path from "path";
 import cookieParser from "cookie-parser";
-import testReport from "./src/controller/Reports/test-report";
+import { creatSampleUser ,createSublineLine ,creatRates } from "./src/model/StoredProcedure";
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
@@ -30,6 +30,8 @@ async function main() {
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
   });
+
+  
   app.listen(PORT, () => console.log(`Listen in port ${PORT}`));
 }
 

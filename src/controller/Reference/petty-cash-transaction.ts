@@ -1,5 +1,13 @@
 import express, { Request, Response } from "express";
-import { addPettyCashTransaction, deletePettyCashTransaction, getPettyCashTransaction, updatePettyCashTransaction } from "../../model/Reference/petty-cash-transaction..model";
+import {
+  addPettyCashTransaction,
+  deletePettyCashTransaction,
+  getPettyCashTransaction,
+  updatePettyCashTransaction,
+} from "../../model/Reference/petty-cash-transaction..model";
+import generateUniqueUUID from "../../lib/generateUniqueUUID";
+import saveUserLogs from "../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 
 const PettyCashTransaction = express.Router();
 
@@ -25,7 +33,12 @@ PettyCashTransaction.post(
   "/add-petty-cash-transaction",
   async (req: Request, res: Response) => {
     try {
-      await addPettyCashTransaction(req.body);
+      delete req.body.mode;
+      delete req.body.search;
+      delete req.body.createdAt;
+      const Petty_Log = await generateUniqueUUID("petty_log", "Petty_Log");
+      await addPettyCashTransaction({ Petty_Log, ...req.body });
+      await saveUserLogs(req, Petty_Log, "add", "Petty Cash");
       res.send({
         message: "Create Petty Cash Transaction Successfully!",
         success: true,
@@ -41,6 +54,14 @@ PettyCashTransaction.post(
   "/update-petty-cash-transaction",
   async (req: Request, res: Response) => {
     try {
+      if (
+        !(await saveUserLogsCode(req, "edit", req.body.Petty_Log, "Petty Cash"))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
+      delete req.body.mode;
+      delete req.body.search;
+      delete req.body.userCodeConfirmation;
       req.body.Inactive = Boolean(req.body.Inactive);
       await updatePettyCashTransaction(req.body);
       res.send({
@@ -58,6 +79,16 @@ PettyCashTransaction.post(
   "/delete-petty-cash-transaction",
   async (req: Request, res: Response) => {
     try {
+      if (
+        !(await saveUserLogsCode(
+          req,
+          "delete",
+          req.body.Petty_Log,
+          "Petty Cash"
+        ))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
       await deletePettyCashTransaction(req.body);
       res.send({
         message: "Delete Petty Cash Transaction Successfully!",
