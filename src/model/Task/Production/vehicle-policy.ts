@@ -76,10 +76,11 @@ export async function getRate(account: string, line: string, type: string) {
   const query = `
   select Rate from Rates 
   where 
-  trim(Account) = '${account}' 
+  trim(Account) = '${account.trim()}' 
   and trim(Line) = '${line}' 
   and trim(Type) = '${type}'
   `;
+  console.log(query)
   return await prisma.$queryRawUnsafe(query);
 }
 

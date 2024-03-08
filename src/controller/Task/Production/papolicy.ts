@@ -20,6 +20,7 @@ import {
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const PAPolicy = express.Router();
 
@@ -90,6 +91,10 @@ PAPolicy.get("/search-pa-policy", async (req, res) => {
 PAPolicy.post("/update-pa-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "update", PolicyNo, "PA Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "PA")) as Array<any>)[0];
     if (rate === null || rate === undefined) {
@@ -114,8 +119,6 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
     // insert fire policy
     await insertPaPolicy({ ...req.body, cStrArea, strArea });
 
-    await saveUserLogs(req, PolicyNo, "update", "PA Policy");
-
     res.send({ message: "Update PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -126,6 +129,10 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
 PAPolicy.post("/delete-pa-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "PA Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, "PA", PolicyNo);
     //delete pa policy

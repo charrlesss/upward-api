@@ -7,6 +7,9 @@ import {
   getPolicyAccount,
   getRates,
   getPolicyType,
+  getPolicyAccounts,
+  policyAccounts,
+  policyTypes,
 } from "../../../model/Task/Production/policy";
 import { getRateType } from "../../../model/Task/Production/fire-policy";
 const Policy = express.Router();
@@ -23,7 +26,6 @@ Policy.get("/get-clients", async (req, res) => {
     res.send({ message: "SERVER:ERROR", success: false, clients: [] });
   }
 });
-
 Policy.get("/get-agents", async (req, res) => {
   try {
     const { agentSearch } = req.query;
@@ -37,7 +39,6 @@ Policy.get("/get-agents", async (req, res) => {
     res.send({ message: "SERVER:ERROR", success: false, agents: [] });
   }
 });
-
 Policy.get("/get-sub_account", async (req, res) => {
   try {
     res.send({
@@ -49,15 +50,14 @@ Policy.get("/get-sub_account", async (req, res) => {
     res.send({ message: "SERVER:ERROR", success: false, sub_account: [] });
   }
 });
-
 Policy.get("/get-policy-account", async (req, res) => {
   try {
     res.send({
       message: "successfully get policy account",
       success: true,
       policy_account: {
-        COM: await getPolicyAccount("COM"),
-        TPL: await getPolicyAccount("TPL"),
+        COM: await getPolicyAccounts("COM", "Vehicle"),
+        TPL: await getPolicyAccounts("TPL", "Vehicle"),
       },
     });
   } catch (err: any) {
@@ -68,29 +68,36 @@ Policy.get("/get-policy-account", async (req, res) => {
     });
   }
 });
-
-// Policy.get("/get-rates", async (req, res) => {
-//   try {
-//     res.send({
-//       message: "successfully get rates",
-//       success: true,
-//       rates: {
-//         COM: await getRates("COM", req.body.Account),
-//         TPL: await getRates("TPL", req.body.Account),
-//       },
-//     });
-//   } catch (err: any) {
-//     res.send({
-//       message: "SERVER:ERROR",
-//       success: false,
-//       rates: {
-//         COM: [],
-//         TPL: [],
-//       },
-//     });
-//   }
-// });
-
+Policy.get("/policy-accounts-by-line", async (req, res) => {
+  try {
+    res.send({
+      message: "successfully get policy account",
+      success: true,
+      policyAccounts: await policyAccounts(req.query.Line as string),
+    });
+  } catch (err: any) {
+    res.send({
+      message: "SERVER:ERROR",
+      success: false,
+      policyAccounts: [],
+    });
+  }
+});
+Policy.post("/policy-type-by-line", async (req, res) => {
+  try {
+    res.send({
+      message: "successfully get policy account",
+      success: true,
+      policyTypes: await policyTypes(req.body.Line,req.body.Account),
+    });
+  } catch (err: any) {
+    res.send({
+      message: err.message,
+      success: false,
+      policyTypes: [],
+    });
+  }
+});
 Policy.get("/get-rates", async (req, res) => {
   try {
     const Type = (req.query.Type as string).trim();
@@ -110,6 +117,24 @@ Policy.get("/get-rates", async (req, res) => {
         COM: [],
         TPL: [],
       },
+    });
+  }
+});
+
+Policy.post("/get-rates", async (req, res) => {
+  try {
+    const Type = req.body.Type.trim();
+    const Account = req.body.Account.trim();
+    res.send({
+      message: "successfully get rates",
+      success: true,
+      rates: await getRates(Type, Account),
+    });
+  } catch (err: any) {
+    res.send({
+      message: "SERVER:ERROR",
+      success: false,
+      rates: [],
     });
   }
 });

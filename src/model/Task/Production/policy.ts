@@ -52,6 +52,47 @@ export async function getPolicyAccount(type: string) {
   });
 }
 
+export async function policyAccounts(Line: string) {
+  return await prisma.$queryRawUnsafe(`
+    SELECT 
+        MAX(Account) as Account 
+    FROM
+        upward_insurance.rates
+    WHERE
+        Line = '${Line}'  
+    GROUP BY Account
+    ORDER BY Account asc
+
+  `);
+}
+export async function policyTypes(Line: string, Account: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+      TYPE
+    FROM
+        upward_insurance.rates
+    WHERE
+        Line = '${Line}' AND
+        Account = '${Account}'
+    GROUP BY TYPE
+    ORDER BY TYPE asc
+  `);
+}
+
+export async function getPolicyAccounts(type: string, line: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    MAX(Account) as Account
+  FROM
+    upward_insurance.rates
+  WHERE
+  Line = '${line}'
+      AND SUBSTRING(type, 1, 3) = '${type}'
+  group by Account
+  ORDER BY Account asc
+  `);
+}
+
 export async function getPolicyType(Line: string) {
   return await prisma.subline.findMany({
     select: {

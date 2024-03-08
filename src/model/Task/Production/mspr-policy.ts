@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function getMSPRRate(Account: string, Line: string) {
-  const query = `select * from upward_insurance.rates where Account='${Account}' AND  Line = '${Line}'`;
+  const query = `select * from upward_insurance.rates where trim(Account)='${Account.trim()}' AND  Line = '${Line}'`;
   console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }

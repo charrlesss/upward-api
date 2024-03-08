@@ -19,6 +19,7 @@ import promiseAll from "../../../lib/promise-all";
 
 import { getAgents, getClients } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const VehiclePolicy = express.Router();
 
@@ -450,7 +451,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
 
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
 
-    await saveUserLogs(req,PolicyNo,"add","Vehicle Policy")
+    await saveUserLogs(req, PolicyNo, "add", "Vehicle Policy");
     res.send({ message: "Create Journal Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -525,6 +526,10 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
     Source_No_Ref_ID,
   } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "update", PolicyNo, "Vehicle Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //get Commision rate
     const rate = (
       (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
@@ -551,7 +556,6 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
     // insert policy
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
 
-    await saveUserLogs(req,PolicyNo,"update","Vehicle Policy")
     res.send({ message: "Update Journal Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -574,12 +578,16 @@ VehiclePolicy.get("/tpl-search-vehicle-policy", async (req, res) => {
 VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Vehicle Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, form_type, PolicyNo);
     // //delete v policy
     await deleteVehiclePolicy(PolicyAccount, form_type, PolicyNo);
 
-    await saveUserLogs(req,PolicyNo,"delete","Vehicle Policy")
+    await saveUserLogs(req, PolicyNo, "delete", "Vehicle Policy");
     res.send({
       message: "Delete Vehicle Policy Successfully",
       success: true,

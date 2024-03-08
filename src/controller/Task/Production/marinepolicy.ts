@@ -23,6 +23,7 @@ import {
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const MarinePolicy = express.Router();
 
@@ -100,11 +101,14 @@ MarinePolicy.get(
 MarinePolicy.post("/update-marine-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "update", PolicyNo, "Marine Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     //get Commision rate
     const rate = (
       (await getMarineRate(PolicyAccount, "Marine")) as Array<any>
     )[0];
-    await saveUserLogs(req, PolicyNo, "update", "Marine Policy");
     if (rate == null) {
       return res.send({
         message: "Please setup commission rate for this account and Line",
@@ -135,12 +139,15 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
 MarinePolicy.post("/delete-marine-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Marine Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, "MAR", PolicyNo);
     // //delete m policy
     await deleteMarinePolicy(PolicyAccount, PolicyNo);
 
-    await saveUserLogs(req, PolicyNo, "delete", "Marine Policy");
     res.send({
       message: "Delete Marine Policy Successfully",
       success: true,

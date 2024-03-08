@@ -24,6 +24,7 @@ import {
   getMortgagee,
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const FirePolicy = express.Router();
 
@@ -232,6 +233,10 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, occupancy } =
     req.body;
   try {
+    if (!(await saveUserLogsCode(req, "edit", PolicyNo, "Fire Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //get Commision rate
     const rate = (
       (await getRate(PolicyAccount, "Fire", occupancy)) as Array<any>
@@ -258,7 +263,6 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
 
     // insert fire policy
     await insertFirePolicy({ ...req.body, cStrArea, strArea });
-    await saveUserLogs(req, PolicyNo, "update", "Fire Policy");
     res.send({ message: "Update Fire Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -268,11 +272,14 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
 FirePolicy.post("/delete-fire-policy", async (req, res) => {
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Fire Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, "FIRE", PolicyNo);
     // //delete v policy
     await deleteFirePolicy(PolicyAccount, PolicyNo);
-    await saveUserLogs(req, PolicyNo, "delete", "Fire Policy");
     res.send({
       message: "Delete Fire Policy Successfully",
       success: true,

@@ -20,6 +20,7 @@ import {
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const MSPRPolicy = express.Router();
 
@@ -90,6 +91,10 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
     req.body;
   try {
+    if (!(await saveUserLogsCode(req, "update", PolicyNo, "MSPR Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
@@ -115,7 +120,6 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     // insert fire policy
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
 
-    await saveUserLogs(req, PolicyNo, "update", "MSPR Policy");
     res.send({ message: "Update MSPR Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -126,6 +130,10 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
 MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo, policyType } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "MSPR Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, policyType, PolicyNo);
     //delete v policy

@@ -19,6 +19,7 @@ import {
   getPolicyAccount,
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const CGLPolicy = express.Router();
 
@@ -88,6 +89,10 @@ CGLPolicy.get("/search-cgl-policy", async (req, res) => {
 CGLPolicy.post("/update-cgl-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "edit", PolicyNo, "CGL Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "CGL")) as Array<any>)[0];
 
@@ -113,7 +118,6 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
     // insert CGL policy
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
 
-    await saveUserLogs(req, PolicyNo, "update", "CGL Policy");
     res.send({ message: "Update CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -123,11 +127,14 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
 CGLPolicy.post("/delete-cgl-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo } = req.body;
   try {
+    if (!(await saveUserLogsCode(req, "delete", PolicyNo, "CGL Policy"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     //delete policy
     await deletePolicy(PolicyAccount, "CGL", PolicyNo);
     //delete CGL policy
     await deleteCGLPolicy(PolicyAccount, PolicyNo);
-    await saveUserLogs(req, PolicyNo, "delete", "CGL Policy");
     res.send({ message: "Delete CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
