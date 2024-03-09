@@ -13,6 +13,7 @@ import {
   insertVoidCashDisbursement,
 } from "../../../model/Task/Accounting/cash-disbursement.model";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 const CashDisbursement = express.Router();
 
 CashDisbursement.get("/cash-disbursement/generate-id", async (req, res) => {
@@ -32,6 +33,18 @@ CashDisbursement.post(
   "/cash-disbursement/add-cash-disbursement",
   async (req, res) => {
     try {
+      if (
+        req.body.hasSelected &&
+        !(await saveUserLogsCode(
+          req,
+          "edit",
+          req.body.refNo,
+          "Cash-Disbursement"
+        ))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
+
       const cashDisbursement = (await findCashDisbursement(
         req.body.refNo
       )) as Array<any>;
@@ -98,14 +111,8 @@ CashDisbursement.post(
       });
       if (!req.body.hasSelected) {
         await updateCashDisbursementID(req.body.refNo.split("-")[1]);
+        await saveUserLogs(req, req.body.refNo, "add", "Cash-Disbursement");
       }
-
-      await saveUserLogs(
-        req,
-        req.body.refNo,
-        req.body.hasSelected ? "update" : "add",
-        "Cash-Disbursement"
-      );
 
       res.send({
         message: req.body.hasSelected
@@ -124,6 +131,17 @@ CashDisbursement.post(
   "/cash-disbursement/void-cash-disbursement",
   async (req, res) => {
     try {
+      if (
+        !(await saveUserLogsCode(
+          req,
+          "void",
+          req.body.refNo,
+          "Cash-Disbursement"
+        ))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
+
       await DeleteNewCashDisbursement(req.body.refNo);
       await insertVoidJournalFromCashDisbursement(
         req.body.refNo,

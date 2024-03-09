@@ -13,6 +13,7 @@ import {
 } from "../../../model/Task/Accounting/pettycash.model";
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const PettyCash = express.Router();
 
@@ -46,6 +47,12 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
   try {
     const { refNo, datePetty, payee, explanation, hasSelected, pettyCash } =
       req.body;
+    if (
+      hasSelected &&
+      !(await saveUserLogsCode(req, "edit", refNo, "Petty Cash"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
 
     if (
       !hasSelected &&
@@ -128,8 +135,9 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
     if (!hasSelected) {
       await updatePettyCashID(req.body.refNo.split("-")[1]);
     }
-
-    await saveUserLogs(req, refNo, hasSelected ? "update" : "add","Petty Cash");
+    if (!hasSelected) {
+      await saveUserLogs(req, refNo, "add", "Petty Cash");
+    }
     res.send({
       message: hasSelected
         ? "Successfully update petty cash"

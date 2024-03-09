@@ -12,6 +12,7 @@ import {
 import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
 import { mapColumnsToKeys } from "../../Reports/Production/report-fields";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const PDC = express.Router();
 
@@ -93,6 +94,10 @@ PDC.post("/add-pdc", async (req, res) => {
 });
 PDC.post("/update-pdc", async (req, res) => {
   try {
+    if (!(await saveUserLogsCode(req, "edit", req.body.Ref_No, "PDC"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     if ((await findPdc(req.body.Ref_No)).length <= 0) {
       return res.send({
         message: "REF No. you try to update is not exist!",
@@ -157,7 +162,6 @@ PDC.post("/update-pdc", async (req, res) => {
       }
     });
     await UpdateId("pdc", newId, month, year);
-    await saveUserLogs(req, newId, "edit", "PDC");
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
     res.send({ message: error.message, success: false });

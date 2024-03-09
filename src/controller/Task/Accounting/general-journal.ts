@@ -22,12 +22,25 @@ import {
 } from "../../../model/Task/Accounting/general-journal.model";
 import { getMonth, getYear, endOfMonth, format } from "date-fns";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 const GeneralJournal = express.Router();
 
 GeneralJournal.post(
   "/general-journal/add-general-journal",
   async (req, res) => {
     try {
+      if (
+        req.body.hasSelected &&
+        !(await saveUserLogsCode(
+          req,
+          "edit",
+          req.body.refNo,
+          "General-Journal"
+        ))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
+
       const generalJournal = (await findeGeneralJournal(
         req.body.refNo
       )) as Array<any>;
@@ -86,14 +99,8 @@ GeneralJournal.post(
 
       if (!req.body.hasSelected) {
         await updateGeneralJournalID(req.body.refNo.split("-")[1]);
+        await saveUserLogs(req, req.body.refNo, "add", "General-Journal");
       }
-
-      await saveUserLogs(
-        req,
-        req.body.refNo,
-        req.body.hasSelected ? "update" : "add",
-        "General-Journal"
-      );
 
       res.send({
         message: req.body.hasSelected
@@ -113,6 +120,17 @@ GeneralJournal.post(
   "/general-journal/void-general-journal",
   async (req, res) => {
     try {
+      if (
+        !(await saveUserLogsCode(
+          req,
+          "void",
+          req.body.refNo,
+          "General-Journal"
+        ))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
+      }
+
       await voidGeneralJournal(req.body.refNo);
       await insertVoidGeneralJournal(req.body.refNo, req.body.dateEntry);
       await voidJournalFromGeneralJournal(req.body.refNo);

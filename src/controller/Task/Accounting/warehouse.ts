@@ -136,5 +136,4 @@ Warehouse.post("/warehouse/save", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 export default Warehouse;

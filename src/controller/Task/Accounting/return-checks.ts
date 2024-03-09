@@ -18,6 +18,7 @@ import {
   findReturnCheck,
 } from "../../../model/Task/Accounting/return-checks.model";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 const ReturnCheck = express.Router();
 
 ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
@@ -58,6 +59,12 @@ ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
 });
 ReturnCheck.post("/add-return-check", async (req, res) => {
   try {
+    if (
+      req.body.isUpdated &&
+      !(await saveUserLogsCode(req, "edit", req.body.RefNo, "Return Check"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
     if (
       !req.body.isUpdated &&
       ((await findReturnCheck(req.body.RefNo)) as Array<any>).length > 0
@@ -128,13 +135,10 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
       });
     });
     await updateRCID(req.body.RefNo.split("-")[1]);
+    if (!req.body.isUpdated) {
+      await saveUserLogs(req, req.body.RefNo, "add", "Return Check");
+    }
 
-    await saveUserLogs(
-      req,
-      req.body.RefNo,
-      req.body.isUpdated ? "update" : "add",
-      "Return Check"
-    );
     res.send({
       message: req.body.isUpdated
         ? "Successfully update return check"

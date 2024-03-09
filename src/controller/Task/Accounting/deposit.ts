@@ -24,6 +24,7 @@ import {
   removeDepositFromCollection,
 } from "../../../model/Task/Accounting/deposit.model";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 const Deposit = express.Router();
 
 Deposit.get("/getCashCollection", async (req, res) => {
@@ -178,13 +179,19 @@ Deposit.post("/search-cash-check", async (req, res) => {
 });
 Deposit.post("/update-deposit", async (req, res) => {
   try {
+    if (
+      !(await saveUserLogsCode(req, "edit", req.body.depositSlip, "Deposit"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
     await removeDepositFromCollection(req.body.depositSlip);
     await deleteSlipCode(req.body.depositSlip);
     await deleteDeposit(req.body.depositSlip);
     await deleteCashBreakDown(req.body.depositSlip);
     await deleteJournalFromDeposit(req.body.depositSlip);
     await addDeposit(req);
-    await saveUserLogs(req, req.body.depositSlip, "edit", "Deposit");
+    // await saveUserLogs(req, req.body.depositSlip, "edit", "Deposit");
     res.send({
       message: "Successfully Update Deposit.",
       success: true,

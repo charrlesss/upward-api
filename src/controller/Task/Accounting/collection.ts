@@ -18,6 +18,7 @@ import {
 
 import { format } from "date-fns";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const Collection = express.Router();
 
@@ -138,9 +139,12 @@ Collection.get("/search-collection", async (req, res) => {
 
 Collection.post("/update-collection", async (req, res) => {
   try {
+    if (!(await saveUserLogsCode(req, "edit", req.body.ORNo, "Collection"))) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+    
     await deleteCollection(req.body.ORNo);
     AddCollection(req);
-    await saveUserLogs(req, req.body.ORNo, "edit", "Collection");
     res.send({
       message: "Update Collection Successfully!",
       success: true,

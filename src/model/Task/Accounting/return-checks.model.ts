@@ -46,7 +46,7 @@ GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit
 HAVING (((b.Date_OR) IS NOT NULL)
   AND ((a.Check_No) <> ''))
   AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
-  AND a.Temp_SlipCode not in (select SlipCode from upward_insurance.return_checks)
+  AND a.Check_No not in (select Check_No from upward_insurance.return_checks)
 ORDER BY a.Check_Date
 limit 100
   `);
