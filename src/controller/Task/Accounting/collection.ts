@@ -12,6 +12,7 @@ import {
   getSearchCollection,
   getTransactionBanksDetails,
   getTransactionDescription,
+  postTransactionBanksDetails,
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
@@ -88,6 +89,7 @@ Collection.post("/add-collection", async (req, res) => {
         collectionID: null,
       });
     }
+
     AddCollection(req);
     await updateCollectionIDSequence({
       last_count: req.body.ORNo.split(".")[1],
@@ -165,6 +167,7 @@ async function AddCollection(req: any) {
   const TotalRows =
     debit.length >= credit.length ? debit.length : credit.length;
 
+
   for (let i = 0; i <= TotalRows - 1; i++) {
     let Payment = "";
     let Debit = "0";
@@ -187,13 +190,14 @@ async function AddCollection(req: any) {
     let CRInvoiceNo = "";
 
     if (i <= debit.length - 1) {
-      Payment = debit[i].Payment;
+     const [transaction] = await postTransactionBanksDetails(debit[i].TC) as Array<any> 
+     Payment = debit[i].Payment;
       Debit = debit[i].Amount;
       CheckNo = debit[i].Check_No;
       CheckDate = debit[i].Check_Date;
       Bank = debit[i].Bank_Branch;
-      DRCode = debit[i].Acct_Code;
-      DRTitle = debit[i].Acct_Title;
+      DRCode =  transaction.Acct_Code;
+      DRTitle =  transaction.Acct_Title;
       SlipCode = debit[i].Deposit_Slip;
       DRCtr = debit[i].Cntr;
       DRRemarks = debit[i].Remarks;
@@ -202,7 +206,6 @@ async function AddCollection(req: any) {
       const { Acct_Code, Acct_Title } = (
         (await TransactionAndChartAccount(credit[i].transaction)) as Array<any>
       )[0];
-
       Purpose = credit[i].transaction;
       Credit = credit[i].amount;
       CRRemarks = credit[i].Remarks;
@@ -265,14 +268,18 @@ async function AddCollection(req: any) {
   }
   await deleteFromJournalToCollection(req.body.ORNo);
   for (let i = 0; i <= debit.length - 1; i++) {
+
+    const [transaction] = await postTransactionBanksDetails(debit[i].TC) as Array<any>
+
     const Payment = debit[i].Payment;
     const Debit = debit[i].Amount;
     const CheckNo = debit[i].Check_No ?? "";
     const CheckDate = debit[i].Check_Date ?? "";
     const Bank = debit[i].Bank_Branch ?? "";
-    const DRCode = debit[i].Acct_Code;
-    const DRTitle = debit[i].Acct_Title;
+    const DRCode = transaction.Acct_Code;
+    const DRTitle = transaction.Acct_Title;
     const DRRemarks = debit[i].TC;
+
     await createJournal({
       Branch_Code: "HO",
       Date_Entry: format(new Date(req.body.Date), "MM/dd/yyyy"),
