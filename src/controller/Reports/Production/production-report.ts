@@ -1122,13 +1122,15 @@ const ProductionReports = express.Router();
 const prisma = new PrismaClient();
 
 ProductionReports.post("/production-report", async (req, res) => {
-  handleReportRequest(req, res, (report: any) => {
-    res.send({
-      message: "get report successfully",
-      success: true,
-      report,
+  setTimeout(()=>{
+    handleReportRequest(req, res, (report: any) => {
+      res.send({
+        message: "get report successfully",
+        success: true,
+        report,
+      });
     });
-  });
+  },5000)
 });
 
 ProductionReports.post("/production-report-to-excel", async (req, res) => {
