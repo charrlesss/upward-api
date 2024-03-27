@@ -15,6 +15,7 @@ const mapColumnsToKeys = (columns: string[], result: any) => {
   });
   return newResult;
 };
+
 ProductionReports.post("/production-report", async (req, res) => {
   const {
     dateFrom,

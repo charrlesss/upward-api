@@ -29,7 +29,6 @@ const letterList = [
   "Y",
   "Z",
 ];
-
 type excelParams = {
   workbook: exceljs.Workbook;
   column: string;
@@ -47,7 +46,6 @@ type excelParams = {
   sendFile(): void;
   letterList: Array<string>;
 };
-
 interface onEachCellParams extends excelParams {
   cell: exceljs.Cell;
   colIndex: number;
@@ -58,7 +56,6 @@ interface onEachRowParams extends excelParams {
   row: exceljs.Row;
   rowIndex: number;
 }
-
 export function exportToExcel({
   req,
   res,

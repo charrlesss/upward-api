@@ -2,7 +2,7 @@ import express from "express";
 import Authentication, { ValidateToken, logout } from "./Authentication";
 import Reference from "./Reference";
 import Task from "./Task";
-import Reports from "./Reports/Iindex";
+import Reports from "./Reports";
 import Template from "./Template";
 
 const router = express.Router();

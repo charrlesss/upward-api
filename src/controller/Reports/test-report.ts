@@ -2,12 +2,122 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { addCTPL } from "../../model/Reference/ctpl.model";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
-
+import { v4 as uuid } from "uuid";
 const testReport = express.Router();
 const prisma = new PrismaClient();
-
-testReport.post("/add-journal", async (req, res) => {
+let countResponse = 0;
+let prev = "";
+testReport.post("/add-client", async (req, res) => {
   const data = JSON.parse(req.body.dataString)[0];
+
+  var checkYear1 = prev.substring(2, 4);
+  var checkYear2 = data.DateIssued.substring(2, 4);
+
+  if (prev !== "" && checkYear1 !== checkYear2) {
+    countResponse = 1;
+  } else {
+    countResponse++;
+  }
+
+  const new_id = `C-${data.DateIssued}-${countResponse
+    .toString()
+    .padStart(3, "0")}`;
+  const old_id = data.IDNo;
+
+  const getSubAcctId = await prisma.sub_account.findMany({
+    where: { Acronym: data.Sub_Acct },
+  });
+
+  await prisma.id_from_2020.create({
+    data: {
+      new_id,
+      old_id,
+      type: "client",
+    },
+  });
+
+  const contact_details_id = uuid();
+
+  await prisma.contact_details.create({
+    data: {
+      contact_details_id,
+      mobile: data.Contact,
+    },
+  });
+
+  await prisma.entry_client.create({
+    data: {
+      entry_client_id: new_id,
+      address: data.Address,
+      company: data.Individual === 1 ? data.Firstname : "",
+      firstname: data.Individual === 0 ? data.Firstname : "",
+      lastname: data.Lastname,
+      middlename: data.Middle,
+      sub_account: getSubAcctId[0].Sub_Acct,
+      client_contact_details_id: contact_details_id,
+      option: data.Individual === 0 ? "individual" : "company",
+    },
+  });
+  prev = data.DateIssued;
+  res.send({
+    message: "test Report",
+  });
+});
+testReport.post("/add-agent", async (req, res) => {
+  const data = JSON.parse(req.body.dataString)[0];
+  var checkYear1 = prev.substring(2, 4);
+  var checkYear2 = data.DateIssued.substring(2, 4);
+
+  if (prev !== "" && checkYear1 !== checkYear2) {
+    countResponse = 1;
+  } else {
+    countResponse++;
+  }
+
+  const new_id = `A-${data.DateIssued}-${countResponse
+    .toString()
+    .padStart(3, "0")}`;
+  const old_id = data.IDNo;
+
+  const getSubAcctId = await prisma.sub_account.findMany({
+    where: { Acronym: data.Sub_Acct },
+  });
+
+  await prisma.id_from_2020.create({
+    data: {
+      new_id,
+      old_id,
+      type: "agent",
+    },
+  });
+
+  const contact_details_id = uuid();
+
+  await prisma.contact_details.create({
+    data: {
+      contact_details_id,
+      mobile: data.Contact,
+    },
+  });
+
+  await prisma.entry_agent.create({
+    data: {
+      entry_agent_id: new_id,
+      address: data.Address,
+      firstname: data.Firstname,
+      lastname: data.Lastname,
+      middlename: data.Middle,
+      sub_account: getSubAcctId[0].Sub_Acct,
+      agent_contact_details_id: contact_details_id,
+    },
+  });
+  prev = data.DateIssued;
+  res.send({
+    message: "test Report",
+  });
+});
+testReport.post("/add-journal", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
   console.log(`data :${req.body.count} :`, req.body.dataString);
   await prisma.journal.create({
     data: {
@@ -21,7 +131,6 @@ testReport.post("/add-journal", async (req, res) => {
     vehiclePolicy: [],
   });
 });
-
 function getZeroFirstInput(data: string) {
   let addZeroFromSeries = "";
   for (let i = 0; i < data.length; i++) {
@@ -47,12 +156,10 @@ testReport.post("/ctpl-registration", async (req, res) => {
   res.send({ message: "qweqwe" });
 });
 testReport.post("/add-policy", async (req, res) => {
-  const data = JSON.parse(req.body.dataString);
+  const data = JSON.parse(req.body.dataString)[0];
   console.log(`data :${req.body.count} :`, req.body.dataString);
   await prisma.policy.create({
-    data: {
-      ...data[0],
-    },
+    data,
   });
 
   res.send({
@@ -206,7 +313,6 @@ testReport.post("/add-bankaccounts", async (req, res) => {
     vehiclePolicy: [],
   });
 });
-
 testReport.post("/add-pettycash", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
   await prisma.petty_log.create({
@@ -220,7 +326,28 @@ testReport.post("/add-pettycash", async (req, res) => {
     vehiclePolicy: [],
   });
 });
+testReport.post("/add-books", async (req, res) => {
+  try {
+    const data = JSON.parse(req.body.dataString);
+    console.log(data)
+    await prisma.books.create({
+      data: {
+        ...data[0],
+      },
+    });
 
+    res.send({
+      message: "test Report",
+      vehiclePolicy: [],
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      vehiclePolicy: [],
+    });
+  }
+});
 testReport.post("/add-policy-account", async (req, res) => {
   try {
     const data = JSON.parse(req.body.dataString);
@@ -245,3 +372,4 @@ testReport.post("/add-policy-account", async (req, res) => {
 });
 
 export default testReport;
+

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import express, { Request, Response } from "express";
+import express from "express";
 import {
   format,
   startOfMonth,
@@ -42,7 +42,6 @@ ProductionReports.post("/get-production-report", async (req, res) => {
       dateFrom = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
       dateTo = format(new Date(req.body.dateTo), "yyyy-MM-dd");
     }
-
     const reportString = `CALL ProductionReport('${dateFrom}','${dateTo}','${
       req.body.account
     }','${req.body.policy}', ${req.body.format2 === "All" ? 0 : 1}, '${
@@ -88,7 +87,7 @@ ProductionReports.post("/get-production-report", async (req, res) => {
     const report = mapColumnsToKeys(dataCol, data);
     res.send({
       success: true,
-      message: "successfully get production report ",
+      message: "Successfully get production report ",
       report,
     });
   } catch (err: any) {
@@ -150,4 +149,5 @@ ProductionReports.post("/export-excel-production-report", async (req, res) => {
     },
   });
 });
+
 export default ProductionReports;

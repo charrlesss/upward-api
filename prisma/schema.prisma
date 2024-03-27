@@ -53,7 +53,7 @@ model subline_line {
 }
 
 model rates {
-  ID          String   @id @default(uuid())
+  ID        String   @id @default(uuid())
   Account   String?  @db.VarChar(250)
   Line      String?  @db.VarChar(250)
   Type      String?  @db.VarChar(250)
@@ -352,9 +352,9 @@ model booklet {
 model books {
   Code       String  @id @db.VarChar(5)
   Number     BigInt
-  Book_Code  String  @map("Book Code") @db.VarChar(5)
-  Books_Desc String  @map("Books Desc") @db.VarChar(50)
-  Hide_Code  String  @map("Hide Code") @db.VarChar(5)
+  Book_Code  String   @db.VarChar(5)
+  Books_Desc String  @db.VarChar(50)
+  Hide_Code  String  @db.VarChar(5)
   Default    Boolean
   Hide       Boolean
 }
@@ -1134,4 +1134,11 @@ model system_logs {
   user_id      String   @db.Text
   account_type String   @db.Text
   module       String   @db.Text
+}
+
+model id_from_2020 {
+  old_id String @db.Text
+  new_id String @db.Text
+  type   String @db.Text
+  id_id  Int    @id @default(autoincrement())
 }

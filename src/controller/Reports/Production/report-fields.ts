@@ -3,7 +3,6 @@ import express from "express";
 
 const ReportFields = express.Router();
 const prisma = new PrismaClient();
-
 ReportFields.get("/report-fields/accounts", async (req, res) => {
   res.send({
     accounts: await prisma.$queryRawUnsafe(
@@ -11,7 +10,6 @@ ReportFields.get("/report-fields/accounts", async (req, res) => {
     ),
   });
 });
-
 ReportFields.get("/report-fields/policy", async (req, res) => {
   res.send({
     policy: await prisma.$queryRawUnsafe(
@@ -32,17 +30,14 @@ ReportFields.get("/report-fields/policy", async (req, res) => {
     ),
   });
 });
-
 export default ReportFields;
-
-
 export const mapColumnsToKeys = (columns: string[], result: any) => {
-    const newResult = result.map((item: any) => {
-      const newItem: any = {};
-      for (let i = 0; i < columns.length; i++) {
-        newItem[columns[i]] = item[`f${i}`];
-      }
-      return newItem;
-    });
-    return newResult;
-  };
+  const newResult = result.map((item: any) => {
+    const newItem: any = {};
+    for (let i = 0; i < columns.length; i++) {
+      newItem[columns[i]] = item[`f${i}`];
+    }
+    return newItem;
+  });
+  return newResult;
+};
