@@ -126,9 +126,10 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
         SELECT
           a.GL_Acct,
           a.Sub_Acct,
+          a.mShort,
           MAX(b.ShortName) as mSub_Acct,
-          Sum(a.mDebit) AS Debit,
-          Sum(a.mCredit) AS Credit,
+          FORMAT(Sum(a.mDebit), 2)   AS Debit,
+          FORMAT(Sum(a.mCredit), 2)  AS Credit,
           IF(CAST(Left(a.GL_Acct,1) AS UNSIGNED)<=3 Or CAST(Left(a.GL_Acct,1) AS UNSIGNED)=7,
               Sum(a.mDebit)-Sum(a.mCredit),
               Sum(a.mCredit)-Sum(a.mDebit)
@@ -138,7 +139,9 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           LEFT JOIN upward_insurance.sub_account b on a.Sub_Acct =  b.Acronym
       WHERE
           (a.Source_Type <> 'BF' AND a.Source_Type <>'BFD' AND a.Source_Type <>'BFS') AND
-          a.Date_Entry <= '2024-01-01' AND ${
+          a.Date_Entry >= '${dateFrom}' AND 
+          a.Date_Entry <= '${dateTo}'
+          AND ${
             req.body.format === 1
               ? req.body.account !== ""
                 ? ` a.GL_Acct = '${req.body.account}'  AND `
@@ -160,20 +163,22 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
       GROUP BY
           a.GL_Acct, a.Sub_Acct
       ORDER BY
-          a.GL_Acct ASC;`;
+          a.GL_Acct ${req.body.order}, ${
+        req.body.sort === "Name" ? ` mSub_Acct ` : " a.Sub_Acct "
+      } ${req.body.order}`;
     }
     if (req.body.subsi === 1) {
       qry = `
       SELECT
-          LEFT(a.GL_Acct,1) AS 'Group Header',
+          LEFT(a.GL_Acct,1) AS Group_Header,
           LEFT(a.GL_Acct,4) AS Header,
           a.GL_Acct,
-          b.Short AS 'mShort',
+          b.Acct_Title  AS 'mShort',
           MAX(a.Branch_Code) AS Sub_Acct,
           d.Shortname AS 'mID',
           a.ID_No AS ID_No,
-          SUM(Debit) AS Debit,
-          SUM(Credit) AS Credit,
+          FORMAT(Sum(Debit), 2) AS Debit,
+          FORMAT(Sum(Credit), 2) AS Credit,
           IF(CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) = 7, SUM(Debit)-SUM(Credit), SUM(Credit)-SUM(Debit)) AS Balance
       FROM upward_insurance.journal a
       INNER JOIN upward_insurance.chart_account b ON b.Acct_Code = a.GL_Acct
@@ -195,7 +200,8 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
         WHERE
           a.Source_Type NOT IN ('BF','BFD','BFS') 
           AND d.Shortname IS NOT NULL 
-          AND a.Date_Entry <= '2024-01-01'
+          AND a.Date_Entry >= '${dateFrom}'  
+          AND a.Date_Entry <= '${dateTo}'
           ${
             req.body.format === 1
               ? req.body.account !== ""
@@ -213,24 +219,29 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
         HAVING
           IF(CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) = 7, SUM(Debit)-SUM(Credit), SUM(Credit)-SUM(Debit)) <> 0
         ORDER BY
-          'Group Header', Header, GL_Acct;
+        Group_Header ${req.body.order}, Header ${req.body.order}, GL_Acct ${
+        req.body.order
+      }, ${req.body.sort === "Name" ? " mID " : " a.ID_No "} ${req.body.order};
 `;
     }
     if (req.body.subsi === 2) {
       qry = `
       SELECT
+         MAX(d.Acct_Title) as mShort,
           a.GL_Acct,
           a.Sub_Acct,
           a.ID_No,
           c.AccountCode AS mID,
-          SUM(a.mDebit) AS Debit,
-          SUM(a.mCredit) AS Credit,
+          FORMAT(SUM(a.mDebit),2) AS Debit,
+          FORMAT(SUM(a.mCredit),2) AS Credit,
           IF(CAST(LEFT(GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(GL_Acct,1) AS UNSIGNED) = 7, SUM(a.mDebit)-SUM(a.mCredit), SUM(a.mCredit)-SUM(a.mDebit)) AS Balance
       FROM upward_insurance.qryjournal  a
       LEFT JOIN upward_insurance.policy b ON a.ID_No = b.PolicyNo
       INNER JOIN upward_insurance.policy_account c ON b.Account = c.Account
+      LEFT JOIN upward_insurance.chart_account d on a.GL_Acct = d.Acct_Code
       WHERE 
-      a.Date_Entry <= '2024-01-01'
+      a.Date_Entry >= '${dateFrom}'  
+      AND a.Date_Entry <= '${dateTo}'
       ${
         req.body.format === 1
           ? req.body.account !== ""
@@ -250,40 +261,12 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           a.GL_Acct,
           a.ID_No
       HAVING
-          IF(CAST(LEFT(GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(GL_Acct,1) AS UNSIGNED) = 7, SUM(a.mDebit)-SUM(a.mCredit), SUM(a.mCredit)-SUM(a.mDebit)) <> 0;
+          IF(CAST(LEFT(GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(GL_Acct,1) AS UNSIGNED) = 7, SUM(a.mDebit)-SUM(a.mCredit), SUM(a.mCredit)-SUM(a.mDebit)) <> 0
+      ORDER BY a.GL_Acct ${req.body.order}, ${
+        req.body.sort === "Name" ? " mID " : " a.ID_No "
+      } ${req.body.order} ;
       `;
     }
-
-    const sub_acct = [
-      "GL_Acct",
-      "Sub_Acct",
-      "mSub_Acct",
-      "Debit",
-      "Credit",
-      "Balance",
-    ];
-    const id = [
-      "Group Header",
-      "Header",
-      "GL_Acct",
-      "mShort",
-      "Sub_Acct",
-      "mID",
-      "ID_No",
-      "Debit",
-      "Credit",
-      "Balance",
-    ];
-    const insurance = [
-      "GL_Acct",
-      "Sub_Acct",
-      "ID_No",
-      "mID",
-      "Debit",
-      "Credit",
-      "Balance",
-    ];
-
 
     const report = await prisma.$queryRawUnsafe(qry);
     res.send({
