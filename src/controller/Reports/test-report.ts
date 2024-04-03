@@ -370,6 +370,28 @@ testReport.post("/add-policy-account", async (req, res) => {
     });
   }
 });
+testReport.post("/add-xsubsidiary", async (req, res) => {
+  try {
+    const data = JSON.parse(req.body.dataString);
+
+    await prisma.xsubsidiary.create({
+      data: {
+        ...data[0],
+      },
+    });
+
+    res.send({
+      message: "test Report",
+      vehiclePolicy: [],
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      vehiclePolicy: [],
+    });
+  }
+});
 
 export default testReport;
 
