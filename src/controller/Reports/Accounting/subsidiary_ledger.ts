@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 let dt: any = [];
 
 SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
-
   let account: string = req.body.account;
   let DateFrom: any = format(new Date(req.body.dateFrom), "MM/dd/yyyy");
   let DateTo: any = format(new Date(req.body.dateTo), "MM/dd/yyyy");
@@ -17,10 +16,9 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
   let Balance = 0;
   let sFilter = " ";
   let Qry = "";
-
+  const balanceForwarded: any = [];
   const report: any = [];
   if (account === "") account = "ALL";
-  console.log(account)
   try {
     switch (subsi) {
       case 0:
@@ -124,7 +122,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         if (dt.length > 0) {
           for (let i = 0; i < dt.length; i++) {
             const xsubsidiary_id = uuidV4();
-            report.push({
+            balanceForwarded.push({
               xsubsidiary_id,
               Date_Entry: format(new Date(DateFrom), "yyyy-MM-dd"),
               Sort_Number: 1,
@@ -142,11 +140,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         break;
       case 1:
-        sFilter = `${
-          subsi_options.toLowerCase() === "all"
-            ? ""
-            : ` AND qryJournal.ID_No = '${subsi_options}'  `
-        }`;
+        sFilter = ` AND qryJournal.ID_No = '${subsi_options}'  `;
         // Balances
         if (account !== "ALL") {
           if (
@@ -252,7 +246,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               ${sFilter}
             GROUP BY qryJournal.GL_Acct
             ORDER BY qryJournal.GL_Acct`;
-            console.log(Qry)
+            console.log(Qry);
             dt = await prisma.$queryRawUnsafe(Qry);
           }
         }
@@ -260,7 +254,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         if (dt.length > 0) {
           for (let i = 0; i < dt.length; i++) {
             const xsubsidiary_id = uuidV4();
-            report.push({
+            balanceForwarded.push({
               xsubsidiary_id,
               Date_Entry: format(new Date(DateFrom), "yyyy-MM-dd"),
               Sort_Number: 1,
@@ -278,11 +272,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         break;
       case 2:
-        sFilter = `${
-          subsi_options.toLowerCase() === "all"
-            ? ""
-            : ` AND qryJournal.Sub_Acct = '${subsi_options}' `
-        }`;
+        sFilter = ` AND qryJournal.Sub_Acct = '${subsi_options}' `;
         // Balances
         if (account !== "ALL") {
           if (
@@ -387,12 +377,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             dt = await prisma.$queryRawUnsafe(Qry);
           }
         }
-
         if (dt.length > 0) {
           for (let i = 0; i < dt.length; i++) {
             const xsubsidiary_id = uuidV4();
-
-            report.push({
+            balanceForwarded.push({
               xsubsidiary_id,
               Date_Entry: format(new Date(DateFrom), "yyyy-MM-dd"),
               Sort_Number: 1,
@@ -410,7 +398,6 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         break;
     }
-    console.log(report)
     //Transaction
     if (account !== "ALL") {
       Qry = `
@@ -488,7 +475,6 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
        qryJournal.Date_Entry, qryJournal.Number, qryJournal.Source_No, qryJournal.Auto`;
       dt = await prisma.$queryRawUnsafe(Qry);
     }
-
     if (dt.length > 0) {
       let dtBal: any = [];
       let lastAcct = "";
@@ -497,7 +483,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         const xsubsidiary_id = uuidV4();
         if (lastAcct !== chkNull(dt[i].GL_Acct)) {
           lastAcct = chkNull(dt[i].GL_Acct);
-          dtBal = report.filter(
+          dtBal = balanceForwarded.filter(
             (itms: any) =>
               itms.GL_Acct === lastAcct &&
               itms.Explanation === "Balance Forwarded"
@@ -510,6 +496,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         Balance =
           Balance + (parseFloat(dt[i].mDebit) - parseFloat(dt[i].mCredit));
+
         const fieldList = ["Explanations", "Payee", "Remarks"];
         switch (fieldList[field]) {
           case "Explanations":
@@ -524,7 +511,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         report.push({
           xsubsidiary_id: xsubsidiary_id,
-          Date_Entry: new Date(dt[i].Date_Entry).toISOString(),
+          Date_Entry: format(new Date(dt[i].Date_Entry), "yyyy-MM-dd"),
           Sort_Number: Number(dt[i].Number),
           Source_Type: dt[i]["Hide_Code"],
           Source_No: dt[i].Source_No,
@@ -537,36 +524,15 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
           cSub_Acct: clrStr(dt[i].mSub_Acct),
           cID_No: clrStr(dt[i].mID),
           Debit: dt[i].mDebit,
-          Credit: null,
-          Bal: parseFloat(
-            (parseFloat(dt[i].mDebit) - parseFloat(dt[i].mCredit)).toFixed(4)
-          ),
-          Balance: parseFloat(parseFloat(Balance.toString())?.toFixed(4)),
-          Check_Date: dt[i].Check_Date ? `${dt[i].Check_Date}` : null,
-          Check_No: dt[i].Check ? `${dt[i].Check}` : null,
-          Check_Bank: dt[i].Bank ? `${clrStr(dt[i].Bank)}` : null,
-          Address: fieldList[field],
-          Particulars: sParticular,
-        });
-
-        report.push({
-          xsubsidiary_id: xsubsidiary_id,
-          Date_Entry: new Date(dt[i].Date_Entry).toISOString(),
-          Sort_Number: Number(dt[i].Number),
-          Source_Type: dt[i]["Hide_Code"],
-          Source_No: dt[i].Source_No,
-          Explanation: clrStr(dt[i].Explanation),
-          Payto: clrStr(dt[i].Payto),
-          GL_Acct: chkNull(dt[i].GL_Acct),
-          Sub_Acct: dt[i].Sub_Acct,
-          ID_No: clrStr(dt[i].ID_No),
-          cGL_Acct: clrStr(chkNull(dt[i].mShort)),
-          cSub_Acct: clrStr(dt[i].mSub_Acct),
-          cID_No: clrStr(dt[i].mID),
-          Debit: null,
           Credit: dt[i].mCredit,
-          Bal: parseFloat(dt[i].mDebit) - parseFloat(dt[i].mCredit),
-          Balance: parseFloat(parseFloat(Balance.toString())?.toFixed(4)),
+          Bal: Math.abs(
+            parseFloat(
+              (parseFloat(dt[i].mDebit) - parseFloat(dt[i].mCredit)).toFixed(4)
+            )
+          ),
+          Balance: Math.abs(
+            parseFloat(parseFloat(Balance.toString())?.toFixed(4))
+          ),
           Check_Date: dt[i].Check_Date ? `${dt[i].Check_Date}` : null,
           Check_No: dt[i].Check ? `${dt[i].Check}` : null,
           Check_Bank: dt[i].Bank ? `${clrStr(dt[i].Bank)}` : null,
@@ -578,7 +544,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
     res.send({
       message: "Successuflly Get Report",
       success: true,
-      report,
+      report: JSON.stringify(report),
     });
   } catch (err: any) {
     console.log(err.message);

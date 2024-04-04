@@ -84,19 +84,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
     let dateFrom = "";
     let dateTo = "";
     let qry = "";
-    //{
-    //  format: 0,
-    //  account: '',
-    //  account_title: '',
-    //  dateFormat: 'Yearly',
-    //  dateFrom: '2024-03-27T06:40:54.964Z',
-    //  dateTo: '2024-03-27T06:40:54.964Z',
-    //  yearCount: '1',
-    //  subsi: 0,
-    //  subsi_options: 'All',
-    //  sort: 'Name',
-    //  order: 'asc'
-    //}
+   
     if (req.body.dateFormat === "Daily") {
       dateFrom = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
       dateTo = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
