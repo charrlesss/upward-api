@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { format } from "date-fns";
 import { v4 as uuidV4 } from "uuid";
+
+
 const SubsidiaryLedger = express.Router();
 const prisma = new PrismaClient();
 let dt: any = [];
