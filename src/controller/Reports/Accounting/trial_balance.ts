@@ -13,15 +13,15 @@ TrialBalance.post("/trial-balance-report", async (req, res) => {
     let currText = "";
     let prevText = "";
     const DateFrom = format(dateFrom, "yyyy-MM-dd");
-    const DateTo = addMonths(dateFrom, 1);
+    const DateTo = format(addMonths(dateFrom, 1), "yyyy-MM-dd");
     const SubAcctParam = req.body.sub_acct.toUpperCase();
 
     if (SubAcctParam === "ALL") {
       prevText = `
-        SELECT 
-          GL_Acct as GL_Acct, 
-          SUM(IFNULL(Debit, 0)) as Debit, 
-          SUM(IFNULL(Credit, 0)) as Credit, 
+        SELECT
+          GL_Acct as GL_Acct,
+          SUM(IFNULL(Debit, 0)) as Debit,
+          SUM(IFNULL(Credit, 0)) as Credit,
           SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
         FROM Journal
         WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
@@ -29,10 +29,10 @@ TrialBalance.post("/trial-balance-report", async (req, res) => {
         GROUP BY GL_Acct`;
     } else {
       prevText = `
-        SELECT 
-          GL_Acct as GL_Acct, 
-          SUM(IFNULL(Debit, 0)) as Debit, 
-          SUM(IFNULL(Credit, 0)) as Credit, 
+        SELECT
+          GL_Acct as GL_Acct,
+          SUM(IFNULL(Debit, 0)) as Debit,
+          SUM(IFNULL(Credit, 0)) as Credit,
           SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
         FROM Journal
         WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
@@ -68,15 +68,15 @@ TrialBalance.post("/trial-balance-report", async (req, res) => {
        SELECT
           Acct_Code AS Code,
           Acct_Title AS Title,
-          FORMAT((IFNULL(Prev.Debit, 0) ),2)AS PrevDebit,
-          FORMAT((IFNULL(Prev.Credit, 0) ),2) AS PrevCredit,
-          FORMAT((IFNULL(Prev.Balance, 0) ),2) AS PrevBalance,
-          FORMAT((IFNULL(Curr.Debit, 0) ),2)   AS CurrDebit,
-          FORMAT((IFNULL(Curr.Credit, 0) ),2) AS CurrCredit,
-          FORMAT((IFNULL(Curr.Balance, 0) ),2) AS CurrBalance,
-          FORMAT((IFNULL(Prev.Debit, 0) + IFNULL(Curr.Debit, 0) ),2) AS BalDebit,
-          FORMAT((IFNULL(Prev.Credit, 0) + IFNULL(Curr.Credit, 0)),2)  AS BalCredit,
-          FORMAT((IFNULL(Prev.Balance, 0) + IFNULL(Curr.Balance, 0) ),2) AS TotalBalance
+          IFNULL(Prev.Debit, 0) AS PrevDebit,
+          IFNULL(Prev.Credit, 0)  AS PrevCredit,
+          IFNULL(Prev.Balance, 0)  AS PrevBalance,
+          IFNULL(Curr.Debit, 0)    AS CurrDebit,
+          IFNULL(Curr.Credit, 0)  AS CurrCredit,
+          IFNULL(Curr.Balance, 0)  AS CurrBalance,
+          IFNULL(Prev.Debit, 0) + IFNULL(Curr.Debit, 0)  AS BalDebit,
+          IFNULL(Prev.Credit, 0) + IFNULL(Curr.Credit, 0)  AS BalCredit,
+          IFNULL(Prev.Balance, 0) + IFNULL(Curr.Balance, 0)  AS TotalBalance
       FROM
           chart_account
           LEFT JOIN (${currText}) Curr ON chart_account.Acct_Code = Curr.GL_Acct
@@ -84,7 +84,8 @@ TrialBalance.post("/trial-balance-report", async (req, res) => {
     	WHERE IFNULL(Prev.Balance, 0) <> 0 OR IFNULL(Curr.Balance, 0) <> 0
     	ORDER BY chart_account.Acct_Code;
     `;
-    
+
+    console.log(qry)
     const report = await prisma.$queryRawUnsafe(qry);
     res.send({
       message: "Successfully get Report",
