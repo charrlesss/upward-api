@@ -11,6 +11,7 @@ import {
   getCollections,
   getSearchCollection,
   getTransactionBanksDetails,
+  getTransactionBanksDetailsDebit,
   getTransactionDescription,
   postTransactionBanksDetails,
   updateCollectionIDSequence,
@@ -144,7 +145,7 @@ Collection.post("/update-collection", async (req, res) => {
     if (!(await saveUserLogsCode(req, "edit", req.body.ORNo, "Collection"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
+
     await deleteCollection(req.body.ORNo);
     AddCollection(req);
     res.send({
@@ -166,7 +167,6 @@ async function AddCollection(req: any) {
 
   const TotalRows =
     debit.length >= credit.length ? debit.length : credit.length;
-
 
   for (let i = 0; i <= TotalRows - 1; i++) {
     let Payment = "";
@@ -190,14 +190,16 @@ async function AddCollection(req: any) {
     let CRInvoiceNo = "";
 
     if (i <= debit.length - 1) {
-     const [transaction] = await postTransactionBanksDetails(debit[i].TC) as Array<any> 
-     Payment = debit[i].Payment;
+      const [transaction] = (await getTransactionBanksDetailsDebit(
+        debit[i].TC
+      )) as Array<any>;
+      Payment = debit[i].Payment;
       Debit = debit[i].Amount;
       CheckNo = debit[i].Check_No;
       CheckDate = debit[i].Check_Date;
       Bank = debit[i].Bank_Branch;
-      DRCode =  transaction.Acct_Code;
-      DRTitle =  transaction.Acct_Title;
+      DRCode = transaction.Acct_Code;
+      DRTitle = transaction.Acct_Title;
       SlipCode = debit[i].Deposit_Slip;
       DRCtr = debit[i].Cntr;
       DRRemarks = debit[i].Remarks;
@@ -266,10 +268,12 @@ async function AddCollection(req: any) {
       }
     }
   }
+
   await deleteFromJournalToCollection(req.body.ORNo);
   for (let i = 0; i <= debit.length - 1; i++) {
-
-    const [transaction] = await postTransactionBanksDetails(debit[i].TC) as Array<any>
+    const [transaction] = (await getTransactionBanksDetailsDebit(
+      debit[i].TC
+    )) as Array<any>;
 
     const Payment = debit[i].Payment;
     const Debit = debit[i].Amount;
@@ -282,7 +286,7 @@ async function AddCollection(req: any) {
 
     await createJournal({
       Branch_Code: "HO",
-      Date_Entry: format(new Date(req.body.Date), "MM/dd/yyyy"),
+      Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
       Source_Type: "OR",
       Source_No: req.body.ORNo.toUpperCase(),
       Explanation: `${Payment} Collection at Head Office`,
@@ -306,14 +310,15 @@ async function AddCollection(req: any) {
     const Purpose = credit[i].transaction;
     const Credit = credit[i].amount;
     const CRRemarks = credit[i].Remarks;
-    const CRCode = credit[i].Title;
-    const CRTitle = credit[i].TC;
+    const CRCode = credit[i].Code;
+    const CRTitle = credit[i].Title;
     const CRVatType = credit[i].VATType;
     const CRInvoiceNo = credit[i].invoiceNo;
+    const TC = credit[i].TC;
 
     await createJournal({
       Branch_Code: "HO",
-      Date_Entry: format(new Date(req.body.Date), "MM/dd/yyyy"),
+      Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
       Source_Type: "OR",
       Source_No: req.body.ORNo.toUpperCase(),
       GL_Acct: CRCode,
@@ -325,7 +330,7 @@ async function AddCollection(req: any) {
       cSub_Acct: "Upward Insurance Agency",
       Credit: Credit.replaceAll(",", ""),
       Remarks: CRRemarks,
-      TC: CRTitle,
+      TC: TC,
       VAT_Type: CRVatType,
       OR_Invoice_No: CRInvoiceNo,
       Source_No_Ref_ID: "",
@@ -333,8 +338,3 @@ async function AddCollection(req: any) {
   }
 }
 export default Collection;
-
-
-    
-    
-    

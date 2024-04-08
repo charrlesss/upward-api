@@ -39,6 +39,19 @@ export async function getTransactionBanksDetails() {
         a.code = 'CHK' OR a.code = 'CSH'`;
   return await prisma.$queryRawUnsafe(query);
 }
+
+export async function getTransactionBanksDetailsDebit(code:string) {
+  const query = `SELECT 
+            *
+        FROM
+            upward_insurance.transaction_code a
+                LEFT JOIN
+            upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+        WHERE
+        a.code = '${code}'`;
+  return await prisma.$queryRawUnsafe(query);
+}
+
 export async function postTransactionBanksDetails(code:string) {
   const query = `SELECT 
             *
@@ -47,7 +60,7 @@ export async function postTransactionBanksDetails(code:string) {
                 LEFT JOIN
             upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
         WHERE
-         a.code = '${code}'`;
+         a.Acct_Code = '${code}'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
