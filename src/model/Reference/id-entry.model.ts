@@ -556,10 +556,6 @@ export async function deleteEntry(entry: string, id: string) {
 export async function getClientInIdEntry(where: string) {
   return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 export async function getSubAccounts() {
   return await prisma.$queryRawUnsafe(` 
   SELECT 
