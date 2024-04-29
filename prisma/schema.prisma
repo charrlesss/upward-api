@@ -176,7 +176,7 @@ model policy {
   Account      String   @db.VarChar(20)
   SubAcct      String   @default("") @db.VarChar(20)
   PolicyType   String?  @db.VarChar(20)
-  PolicyNo     String   @id @db.VarChar(20)
+  PolicyNo     String   @id @db.VarChar(255)
   DateIssued   DateTime @db.DateTime(6)
   TotalPremium Decimal  @default(0.0000) @db.Decimal(19, 4)
   Vat          Decimal  @default(0.0000) @db.Decimal(19, 4)

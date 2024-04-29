@@ -1,8 +1,17 @@
 import { PrismaClient } from "@prisma/client";
+<<<<<<< HEAD
 const prisma = new PrismaClient();
 
 export async function getPdcPolicyIdAndCLientId(search: String) {
   const query = ` CALL client_ids('${search}')`;
+=======
+import { client_ids } from "../../db/stored-procedured";
+const prisma = new PrismaClient();
+
+export async function getPdcPolicyIdAndCLientId(search: string) {
+  const query = `${client_ids(search)}`;
+  console.log(query)
+>>>>>>> origin/master
   return await prisma.$queryRawUnsafe(query);
 }
 

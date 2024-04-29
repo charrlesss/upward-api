@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { format } from "date-fns";
 import { v4 as uuidV4 } from "uuid";
+import { qryJournal } from "../../../model/db/views";
 
 
 const SubsidiaryLedger = express.Router();
@@ -39,7 +40,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit,
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-              FROM upward_insurance.qryJournal
+              FROM (${qryJournal()}) qryJournal
             WHERE 
             ((qryJournal.Source_Type = 'BF' OR qryJournal.Source_Type = 'AB') 
             AND (qryJournal.Date_Query >= '
@@ -60,7 +61,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM upward_insurance.qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
             ((qryJournal.Source_Type <> 'BFD' AND qryJournal.Source_Type <> 'BFS') 
             AND (qryJournal.Date_Query >= '${new Date(
@@ -89,7 +90,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM upward_insurance.qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE ((qryJournal.Source_Type = 'BF' OR qryJournal.Source_Type = 'AB') 
             AND (qryJournal.Date_Query >= '${new Date(
               DateFrom
@@ -107,7 +108,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM upward_insurance.qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE ((qryJournal.Source_Type <> 'BFD' AND qryJournal.Source_Type <> 'BFS') 
               AND (qryJournal.Date_Query >= '${new Date(
                 DateFrom
@@ -158,7 +159,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct,
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit,
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
               (
                (qryJournal.Source_Type = 'BFD' OR qryJournal.Source_Type = 'AB') 
@@ -180,7 +181,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE (
               (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFS')
@@ -213,7 +214,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE (
               (qryJournal.Source_Type = 'BFD' OR qryJournal.Source_Type = 'AB') 
               AND (qryJournal.Date_Query >= '${new Date(
@@ -233,7 +234,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
               (
                (qryJournal.Source_Type <> 'BF' 
@@ -290,7 +291,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type = 'BFS' OR qryJournal.Source_Type = 'AB') 
@@ -311,7 +312,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit,
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFD') 
@@ -342,7 +343,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type = 'BFS' OR qryJournal.Source_Type = 'AB') 
@@ -362,7 +363,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               qryJournal.GL_Acct, 
               SUM(IFNULL(qryJournal.mDebit, 0)) AS mDebit, 
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
-            FROM qryJournal
+            FROM (${qryJournal()}) qryJournal
             WHERE 
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type <> 'BF' 
@@ -422,7 +423,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
           IFNULL(qryJournal.Checked,'') AS Checked,
           IFNULL(qryJournal.Bank, '') AS Bank,
           IFNULL(qryJournal.Remarks, '') AS Remarks
-      FROM qryJournal
+      FROM (${qryJournal()}) qryJournal
       WHERE
           ((qryJournal.Date_Entry >= '${format(
             new Date(DateFrom),
@@ -462,7 +463,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         qryJournal.Checked,
         qryJournal.Bank,
         qryJournal.Remarks
-      FROM qryJournal
+      FROM (${qryJournal()}) qryJournal
       WHERE
         ((qryJournal.Date_Entry >= '${format(new Date(DateFrom), "yyyy-MM-dd")}'
         AND qryJournal.Date_Entry <= '${format(

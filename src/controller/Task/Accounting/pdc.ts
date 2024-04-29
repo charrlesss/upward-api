@@ -97,7 +97,6 @@ PDC.post("/update-pdc", async (req, res) => {
     if (!(await saveUserLogsCode(req, "edit", req.body.Ref_No, "PDC"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
     if ((await findPdc(req.body.Ref_No)).length <= 0) {
       return res.send({
         message: "REF No. you try to update is not exist!",
@@ -170,18 +169,9 @@ PDC.post("/update-pdc", async (req, res) => {
 PDC.get("/search-pdc-policy-id", async (req, res) => {
   try {
     const { searchPdcPolicyIds } = req.query;
-    const data = await getPdcPolicyIdAndCLientId(searchPdcPolicyIds as string);
-    const dataCol = [
-      "Type",
-      "IDNo",
-      "sub_account",
-      "Name",
-      "client_id",
-      "ID",
-      "sub_account_ShortName",
-      "address",
-    ];
-    const clientsId = mapColumnsToKeys(dataCol, data);
+    const clientsId = await getPdcPolicyIdAndCLientId(
+      searchPdcPolicyIds as string
+    ); 
 
     res.send({
       clientsId,
@@ -203,7 +193,6 @@ PDC.get("/search-pdc-banks", async (req, res) => {
     res.send({ message: error.message, success: false, bondsPolicy: null });
   }
 });
-
 PDC.get("/pdc-new-ref-number", async (req, res) => {
   try {
     res.send({

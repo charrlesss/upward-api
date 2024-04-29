@@ -8,8 +8,8 @@ import {
   endOfYear,
   startOfYear,
 } from "date-fns";
-import { mapColumnsToKeys } from "./report-fields";
 import { exportToExcel } from "./report-to-excel";
+import { ProductionReport } from "../../../model/db/stored-procedured";
 
 const ProductionReports = express.Router();
 const prisma = new PrismaClient();
@@ -42,49 +42,17 @@ ProductionReports.post("/get-production-report", async (req, res) => {
       dateFrom = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
       dateTo = format(new Date(req.body.dateTo), "yyyy-MM-dd");
     }
-    const reportString = `CALL ProductionReport('${dateFrom}','${dateTo}','${
-      req.body.account
-    }','${req.body.policy}', ${req.body.format2 === "All" ? 0 : 1}, '${
-      req.body.mortgagee
-    }', '${req.body.policyType}', '${req.body.sort}')`;
-    console.log(reportString);
-    const data = await prisma.$queryRawUnsafe(reportString);
-    const dataCol = [
-      "Mortgagee",
-      "IDNo",
-      "AssuredName",
-      "Account",
-      "PolicyType",
-      "PolicyNo",
-      "DateIssued",
-      "TotalPremium",
-      "Vat",
-      "DocStamp",
-      "FireTax",
-      "LGovTax",
-      "Notarial",
-      "Misc",
-      "TotalDue",
-      "TotalPaid",
-      "Discount",
-      "Sec4A",
-      "Sec4B",
-      "Sec4C",
-      "EffictiveDate",
-      "PLimit",
-      "InsuredValue",
-      "CoverNo",
-      "Remarks",
-      "EstimatedValue",
-      "Make",
-      "BodyType",
-      "PlateNo",
-      "ChassisNo",
-      "MotorNo",
-      "Mortgagee",
-      "Obligee",
-    ];
-    const report = mapColumnsToKeys(dataCol, data);
+    const reportString = ProductionReport(
+      dateFrom,
+      dateTo,
+      req.body.account.toUpperCase(),
+      req.body.policy,
+      req.body.format2 === "All" ? 0 : 1,
+      req.body.mortgagee,
+      req.body.policyType,
+      req.body.sort
+    );
+    const report = await prisma.$queryRawUnsafe(reportString);
     res.send({
       success: true,
       message: "Successfully get production report ",

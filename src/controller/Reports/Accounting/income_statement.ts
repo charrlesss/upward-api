@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { FinancialStatement } from "./trial_balance";
 import { addMonths, format } from "date-fns";
+import {
+  FinancialStatement,
+  FinancialStatementSumm,
+} from "../../../model/db/stored-procedured";
 
 const IncomeStatement = express.Router();
 const prisma = new PrismaClient();
@@ -59,7 +62,6 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
           (${tmp}) tmp
       WHERE
           LEFT(Code, 1) >= '6'`;
-
       const tmp2 = `
     SELECT
         SubAccount,
@@ -70,7 +72,6 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
     GROUP BY
         SubAccount,
         H1`;
-
       const tmp3 = `
       SELECT
           SubAccount,
@@ -79,7 +80,6 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
         (${tmp2}) tmp2
       GROUP BY
           SubAccount`;
-
       sql = `
       SELECT
           tmp1.H1,
@@ -127,68 +127,5 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
     });
   }
 });
-
-export function FinancialStatementSumm(date: any, dateFormat: string) {
-  const dateFrom = new Date(date);
-  let DateFrom = "";
-  let DateTo = "";
-
-  if (dateFormat === "Daily") {
-    DateFrom = format(dateFrom, "yyyy-MM-dd");
-    DateTo = format(dateFrom, "yyyy-MM-dd");
-  } else {
-    DateFrom = format(dateFrom, "yyyy-MM-dd");
-    DateTo = format(addMonths(dateFrom, 1), "yyyy-MM-dd");
-  }
-
-  const prev = `
-  SELECT  
-      MAX(Sub_Acct) as Sub_Acct,  
-      GL_Acct, 
-      SUM(IFNULL(Debit, 0)) as Debit, 
-      SUM(IFNULL(Credit, 0)) as Credit, 
-      SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-  FROM Journal
-  WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
-  AND str_to_date(Date_Entry,'%Y-%m-%d') < '${DateFrom}'
-  GROUP BY GL_Acct
-`;
-  const curr = `
-  SELECT 
-      MAX(Sub_Acct) as Sub_Acct,  
-      GL_Acct, 
-      SUM(IFNULL(Debit, 0)) as Debit, 
-      SUM(IFNULL(Credit, 0)) as Credit, 
-      SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-  FROM Journal
-  WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
-  AND str_to_date(Date_Entry,'%Y-%m-%d') >= '${DateFrom}' AND str_to_date(Date_Entry,'%Y-%m-%d') <= '${DateTo}'
-  GROUP BY GL_Acct
-`;
-  const union_temp = `
-  SELECT * FROM (${prev}) Prev
-  UNION ALL
-  SELECT * FROM (${curr}) Curr
-`;
-  const total = `
-  SELECT GL_Acct, SUM(Debit) - SUM(Credit) AS Balance
-  FROM (${union_temp}) union_temp
-  GROUP BY GL_Acct
-`;
-  return `
-  SELECT SubAccount.Acronym AS SACode,
-         SubAccount.ShortName AS SubAccount,
-         Chart_Account.Acct_Code AS Code,
-         CONCAT(Chart_Account.Acct_Code, ' ', Acct_Title) AS Title,
-         SUM(Debit) - SUM(Credit) AS Balance,
-         total.Balance AS TotalBalance
-  FROM Chart_Account
-  LEFT JOIN (${union_temp}) union_temp ON Chart_Account.Acct_Code = union_temp.GL_Acct
-  LEFT JOIN Sub_Account SubAccount ON union_temp.Sub_Acct = SubAccount.Acronym
-  LEFT JOIN (${total}) total ON union_temp.GL_Acct = total.GL_Acct
-  GROUP BY union_temp.GL_Acct, SubAccount.Sub_Acct, SubAccount.ShortName, Chart_Account.Acct_Code, Acct_Title, total.Balance
-  HAVING SUM(Debit) - SUM(Credit) IS NOT NULL
-  ORDER BY Chart_Account.Acct_Code`;
-}
 
 export default IncomeStatement;

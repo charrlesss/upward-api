@@ -23,64 +23,6 @@ import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const VehiclePolicy = express.Router();
 
-// VehiclePolicy.get(
-//   "/get-vehicle-policy",
-//   async (req: Request, res: Response) => {
-//     const { vpolicySearch } = req.query;
-//     console.log(vpolicySearch);
-//     try {
-//       promiseAll([
-//         getSubAccount(),
-//         getTempPolicyID(),
-//         getPolicyAccount("COM"),
-//         getPolicyAccount("TPL"),
-//         getRates("COM"),
-//         getRates("TPL"),
-//         getMortgagee("COM"),
-//         getMortgagee("TPL"),
-//       ]).then(
-//         ([
-//           clients,
-//           agents,
-//           sub_account,
-//           tempPolicyId,
-//           com,
-//           tpl,
-//           rateCom,
-//           rateTpl,
-//           mortCom,
-//           mortTpl,
-//         ]: any) => {
-//           res.send({
-//             message: "Successfully get data",
-//             success: true,
-//             vehiclePolicy: {
-//               clients,
-//               agents,
-//               sub_account,
-//               tempPolicyId,
-//               policy_account: {
-//                 com,
-//                 tpl,
-//               },
-//               rate: {
-//                 com: rateCom,
-//                 tpl: rateTpl,
-//               },
-//               mortgagee: {
-//                 com: mortCom,
-//                 tpl: mortTpl,
-//               },
-//             },
-//           });
-//         }
-//       );
-//     } catch (error: any) {
-//       res.send({ message: error.message, success: false, vehiclePolicy: null });
-//     }
-//   }
-// );
-
 VehiclePolicy.get(
   "/get-vehicle-policy-temp-id",
   async (req: Request, res: Response) => {
@@ -599,4 +541,108 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     });
   }
 });
+
+export function sampleVPolicy() {
+  const data = [];
+  let generatedCodes = new Set();
+
+function generateUniqueString() {
+    while (true) {
+        // Generate random numbers
+        const randomNumber1 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const randomNumber2 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const randomNumber3 = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
+        
+        // Construct the unique string
+        const uniqueString = `PC-GA${randomNumber1}A${randomNumber2}-${randomNumber3}`;
+        
+        // Check if the code is already generated
+        if (!generatedCodes.has(uniqueString)) {
+            generatedCodes.add(uniqueString);
+            return uniqueString;
+        }
+    }
+}
+
+
+  for (let index = 0; index < 500; index++) {
+    data.push({
+      form_action: "REG",
+      form_type: "COM",
+      sub_account: "HO",
+      client_id: "C-0424-002",
+      client_name: "ALFRED ALMOETE ALMODIEL",
+      client_address:
+        "Ground Floor, Azure Business Center, 1197-A Epifanio de los Santos Ave, Quezon City, 1105 Metro Manila",
+      agent_id: "A-0424-002",
+      agent_name: "ARTEMIO JR. LIMOS JOSE",
+      agent_com: "0.00",
+      PolicyAccount: "MILESTONE GUARANTEE",
+      PolicyNo: generateUniqueString(),
+      CCN: "",
+      ORN: "",
+      rateCost: "",
+      DateFrom: "2024-05-26T06:47:27.483Z",
+      DateTo: "2025-05-26T06:47:27.483Z",
+      DateIssued: "2024-05-26T06:47:27.483Z",
+      Model: "2023",
+      Make: "ISUZU",
+      TB: "MUX P-VAN",
+      Color: "",
+      BLTFileNo: "",
+      PlateNo: "NGB4197",
+      ChassisNo: "NKR66E-7848797",
+      MotorNo: "4HF1-7858445",
+      AuthorizedCapacity: "",
+      UnladenWeigth: "",
+      TplType: "",
+      PremiumPaid: "0.00",
+      EVSV: "900000.00",
+      Aircon: "0.00",
+      Stereo: "0.00",
+      Magwheels: "0.00",
+      OthersRate: "0.00",
+      OthersDesc: "",
+      CompreType: "",
+      Deductible: "4500.00",
+      Towing: "500.00",
+      ARL: "5000.00",
+      BodyInjury: "200,000.00",
+      PropertyDamage: "200,000.00",
+      PersinalAccident: "100,000.00",
+      Denomination: "COM-Private Car",
+      Mortgagee: "EASTWEST BANK",
+      MortgageeForm: "true",
+      remarks: "C/O CHARLES",
+      SectionI_II: "0.00",
+      SectionIII: "2.50",
+      OwnDamage: "22500.00",
+      Theft: "0.00",
+      SectionIVA: "270.00",
+      SectionIVB: "1290.00",
+      PremiumOther: "375.00",
+      AOG: "4500.00",
+      AOGPercent: "0.50",
+      TotalPremium: "28935.00",
+      Vat: "3472.20",
+      DocStamp: "3616.88",
+      LocalGovTaxPercent: "0.75",
+      LocalGovTax: "217.01",
+      StradCom: "0.00",
+      TotalDue: "36241.09",
+      Type: "charles1",
+      Source_No_Ref_ID: "",
+      vehicle: "private",
+      mode: "add",
+      cStrArea: "Head Office",
+      strArea: "HO",
+    });
+  }
+
+  data.forEach(async (itm: any) => {
+    console.log(itm)
+    await insertNewVPolicy(itm);
+  });
+}
+
 export default VehiclePolicy;

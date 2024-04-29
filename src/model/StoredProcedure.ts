@@ -3,6 +3,10 @@ import { hashSync } from "bcrypt";
 
 const prisma = new PrismaClient();
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 export function getYear() {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -105,13 +109,21 @@ export async function createIdSequence() {
       {
         last_count: "0000",
         month: getMonth(),
+<<<<<<< HEAD
         type: 'pullout',
+=======
+        type: "pullout",
+>>>>>>> origin/master
         year: getYear(),
       },
       {
         last_count: "000",
         month: getMonth(),
+<<<<<<< HEAD
         type: 'check-postponement',
+=======
+        type: "check-postponement",
+>>>>>>> origin/master
         year: getYear(),
       },
     ],
@@ -191,6 +203,7 @@ export async function creatSampleUser() {
         AccountType: "ACCOUNTING",
         Password: password1,
         Username: "charles",
+<<<<<<< HEAD
         userConfirmationCode:userConfirmationCode1
       },
       {
@@ -198,6 +211,15 @@ export async function creatSampleUser() {
         Password: password2,
         Username: "buboy",
         userConfirmationCode:userConfirmationCode2
+=======
+        userConfirmationCode: userConfirmationCode1,
+      },
+      {
+        AccountType: "PRODUCTION",
+        Password: password2,
+        Username: "buboy",
+        userConfirmationCode: userConfirmationCode2,
+>>>>>>> origin/master
       },
     ],
   });
@@ -1137,3 +1159,19 @@ export async function createBank() {
     data: banks,
   });
 }
+<<<<<<< HEAD
+=======
+
+export function createsampleData() {
+  createIdSequence();
+  creatSampleUser();
+  creatSampleSubAccount();
+  createSublineLine();
+  createPrefix();
+  createCTPLType();
+  createPolicyAccount();
+  creatRates();
+  createMortgagee();
+  createBank();
+}
+>>>>>>> origin/master

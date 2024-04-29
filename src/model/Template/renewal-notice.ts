@@ -1,4 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+<<<<<<< HEAD
+=======
+import { TemplateRenewalNotice } from "../db/stored-procedured";
+>>>>>>> origin/master
 const prisma = new PrismaClient();
 
 export async function getClients(search: string) {
@@ -76,6 +80,12 @@ LIMIT 500
 }
 
 export async function getSelectedClient(policyType: string, policyNo: string) {
+<<<<<<< HEAD
   const query = ` call template_renewal_notice('${policyType}','${policyNo}');`;
+=======
+  const query = TemplateRenewalNotice(policyType,policyNo);
+
+  console.log(query)
+>>>>>>> origin/master
   return await prisma.$queryRawUnsafe(query);
 }
