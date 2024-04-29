@@ -211,7 +211,7 @@ export function client_ids(search: string) {
   `;
   return `
         SELECT 
-            a.IDType,
+            a.IDType as Type,
             a.IDNo,
             a.sub_account,
             a.Shortname as Name,
@@ -222,7 +222,7 @@ export function client_ids(search: string) {
         ${selectClient}
         union all
         SELECT 
-            'Policy ID' AS IDType,
+            'Policy ID' AS Type,
             aa.PolicyNo as IDNo,
             bb.sub_account,
             bb.Shortname,

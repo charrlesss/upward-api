@@ -139,7 +139,7 @@ export function qryJournal() {
         a.Credit AS mCredit,
         a.TC,
         a.Remarks,
-        f.Book_Code,
+        f.Books_Desc,
         f.Hide_Code,
         f.Number,
         f.Book_Code,
@@ -154,6 +154,6 @@ export function qryJournal() {
     LEFT OUTER JOIN upward_insurance.sub_account c ON a.Sub_Acct = c.Acronym
     LEFT OUTER JOIN (${selectClient}) d ON a.ID_No = d.IDNo
     LEFT OUTER JOIN upward_insurance.chart_account e ON a.GL_Acct = e.Acct_Code
-    LEFT OUTER JOIN upward_insurance.books f ON a.Source_Type = f.Code;
+    LEFT OUTER JOIN upward_insurance.books f ON a.Source_Type = f.Code
 `;
 }

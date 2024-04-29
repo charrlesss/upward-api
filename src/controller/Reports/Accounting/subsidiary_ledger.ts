@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { v4 as uuidV4 } from "uuid";
 import { qryJournal } from "../../../model/db/views";
 
-
 const SubsidiaryLedger = express.Router();
 const prisma = new PrismaClient();
 let dt: any = [];

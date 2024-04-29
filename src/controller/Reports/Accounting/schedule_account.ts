@@ -82,6 +82,62 @@ ScheduleAccounts.get("/get-sub-account-acronym", async (req, res) => {
 
 ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
   try {
+    const selectClient = `
+  SELECT 
+			"Client" as IDType,
+            aa.entry_client_id AS IDNo,
+			aa.sub_account,
+		   if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+           aa.entry_client_id as client_id  
+        FROM
+            upward_insurance.entry_client aa
+            union all
+      SELECT 
+			"Agent" as IDType,
+            aa.entry_agent_id AS IDNo,
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_agent_id as client_id  
+        FROM
+            upward_insurance.entry_agent aa
+            union all
+      SELECT 
+			"Employee" as IDType,
+            aa.entry_employee_id AS IDNo,
+			aa.sub_account,
+			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_employee_id as client_id
+        FROM
+            upward_insurance.entry_employee aa
+      union all
+      SELECT 
+			"Supplier" as IDType,
+            aa.entry_supplier_id AS IDNo,
+			aa.sub_account,
+			if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+             aa.entry_supplier_id as client_id
+        FROM
+            upward_insurance.entry_supplier aa
+            union all
+      SELECT 
+			"Fixed Assets" as IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+			aa.sub_account,
+			aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id as client_id
+        FROM
+            upward_insurance.entry_fixed_assets aa
+            union all
+      SELECT 
+			"Others" as IDType,
+            aa.entry_others_id AS IDNo,
+			aa.sub_account,
+			aa.description AS Shortname,
+            aa.entry_others_id as client_id
+        FROM
+            upward_insurance.entry_others aa
+  `;
+
     let dateFrom = "";
     let dateTo = "";
     let qry = "";
@@ -177,13 +233,13 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
             Shortname
         FROM
             upward_insurance.policy a
-        INNER JOIN upward_insurance.client_ids b ON b.IDNo = a.IDNo
+        INNER JOIN (${selectClient}) b ON b.IDNo = a.IDNo
         UNION ALL
         SELECT
             aa.IDNo,
             aa.Shortname
         FROM
-          upward_insurance.client_ids aa
+          (${selectClient}) aa
         ) d ON d.PolicyNo = a.ID_No
         WHERE
           a.Source_Type NOT IN ('BF','BFD','BFS') 
@@ -242,7 +298,6 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           ? ""
           : ` AND c.AccountCode = '${req.body.subsi_options}'`
       }
-
       GROUP BY
           c.AccountCode,
           a.Sub_Acct,
@@ -255,12 +310,13 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
       } ${req.body.order} ;
       `;
     }
-
-    const report = await prisma.$queryRawUnsafe(qry);
+    const report: any = await prisma.$queryRawUnsafe(qry);
+    const groupArray = FormatGroupArray(report);
+    console.log(groupArray);
     res.send({
       message: "Successfully Get Chart of Account!",
       success: true,
-      report,
+      report: groupArray,
     });
   } catch (err: any) {
     res.send({
@@ -270,5 +326,65 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
     });
   }
 });
+
+function FormatGroupArray(data: Array<any>) {
+  const groupedArray = data.reduce((acc: any, obj: any) => {
+    const key = obj.GL_Acct;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(obj);
+    return acc;
+  }, {});
+
+  const result = Object.values(groupedArray).map((group: any) => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let totalBalance = 0;
+    group.forEach((item: any) => {
+      totalDebit += parseFloat(item.Debit.toString().replace(/,/g, ""));
+      totalCredit += parseFloat(item.Credit.toString().replace(/,/g, ""));
+      totalBalance += parseFloat(item.Balance.toString().replace(/,/g, ""));
+    });
+
+    const HeaderItem = {
+      Group_Header: group[0].Group_Header,
+      Header: group[0].Header,
+      GL_Acct: group[0].GL_Acct,
+      mShort: `${group[0].GL_Acct}(${group[0].mShort})`,
+      Sub_Acct: "",
+      mID: "",
+      ID_No: "",
+      Debit: "",
+      Credit: "",
+      Balance: "",
+      ArrayHeader: true,
+    };
+
+    const footerItem = {
+      Group_Header: "",
+      Header: "",
+      GL_Acct: "",
+      mShort: "",
+      Sub_Acct: "",
+      mID: "",
+      ID_No: "",
+      Debit: formatNumberWithCommas(totalDebit),
+      Credit: formatNumberWithCommas(totalCredit),
+      Balance: formatNumberWithCommas(totalBalance),
+      ArrayFooter: true,
+    };
+    function formatNumberWithCommas(number: number) {
+      return number.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    return [HeaderItem, ...group, footerItem];
+  });
+  const rr = result.flat();
+  return rr;
+}
 
 export default ScheduleAccounts;
