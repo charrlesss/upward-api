@@ -87,7 +87,7 @@ export function FinancialStatement(
           chart_account
           LEFT JOIN (${currText}) Curr ON chart_account.Acct_Code = Curr.GL_Acct
           LEFT JOIN (${prevText}) Prev ON chart_account.Acct_Code = Prev.GL_Acct
-      WHERE IFNULL(Prev.Balance, 0) !==  0 OR IFNULL(Curr.Balance, 0) !==  0
+      WHERE IFNULL(Prev.Balance, 0) <>  0 OR IFNULL(Curr.Balance, 0) <>  0
       ORDER BY chart_account.Acct_Code
     `;
 }

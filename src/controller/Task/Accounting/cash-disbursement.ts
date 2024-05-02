@@ -83,7 +83,7 @@ CashDisbursement.post(
           VATItemNo: parseInt(item.TempID),
         });
         await AddNewJournalFromCashDisbursement({
-          Branch_Code: item.BranchCode,
+          Branch_Code: "HO",
           Date_Entry: req.body.dateEntry,
           Source_Type: "CV",
           Source_No: req.body.refNo,
@@ -100,7 +100,7 @@ CashDisbursement.post(
           Check_No: item.code === "1.01.10" ? item.checkNo : "",
           Check_Date: item.code === "1.01.10" ? item.checkDate : "",
           Remarks: item.remarks,
-          Sub_Acct: item.subAcct,
+          Sub_Acct: "HO",
           ID_No: item.IDNo,
           TC: item.TC_Code,
           VAT_Type: item.vatType,

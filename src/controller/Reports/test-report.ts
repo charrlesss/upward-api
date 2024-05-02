@@ -7,6 +7,19 @@ const testReport = express.Router();
 const prisma = new PrismaClient();
 let countResponse = 0;
 let prev = "";
+testReport.post("/add-petty-log", async (req, res) => {
+  const data = JSON.parse(req.body.dataString)[0];
+  console.log(`data :${req.body.count} :`, req.body.dataString);
+  await prisma.petty_log.create({
+    data,
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
 testReport.post("/add-client", async (req, res) => {
   const data = JSON.parse(req.body.dataString)[0];
 
@@ -63,6 +76,7 @@ testReport.post("/add-client", async (req, res) => {
     message: "test Report",
   });
 });
+
 testReport.post("/add-agent", async (req, res) => {
   const data = JSON.parse(req.body.dataString)[0];
   var checkYear1 = prev.substring(2, 4);
@@ -329,7 +343,7 @@ testReport.post("/add-pettycash", async (req, res) => {
 testReport.post("/add-books", async (req, res) => {
   try {
     const data = JSON.parse(req.body.dataString);
-    console.log(data)
+    console.log(data);
     await prisma.books.create({
       data: {
         ...data[0],
@@ -394,4 +408,3 @@ testReport.post("/add-xsubsidiary", async (req, res) => {
 });
 
 export default testReport;
-

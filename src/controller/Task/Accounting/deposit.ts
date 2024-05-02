@@ -301,7 +301,7 @@ async function addDeposit(req: any) {
   for (let i = 0; i < 2; i++) {
     if (Amount[i] !== 0) {
       addJournal({
-        Branch_Code: req.body.Sub_Acct,
+        Branch_Code: "HO",
         Date_Entry: req.body.depositdate,
         Source_Type: "DC",
         Source_No: req.body.depositSlip,
@@ -309,7 +309,7 @@ async function addDeposit(req: any) {
         Payto: i === 1 ? req.body.ShortName : "",
         GL_Acct: req.body.Account_ID,
         cGL_Acct: req.body.Short,
-        Sub_Acct: req.body.Sub_Acct,
+        Sub_Acct: "HO",
         cSub_Acct: req.body.Sub_ShortName,
         ID_No: req.body.IDNo,
         cID_No: req.body.ShortName,
@@ -323,7 +323,7 @@ async function addDeposit(req: any) {
     const IsCheck = selectedCollectionValue.Check_No !== "";
 
     addJournal({
-      Branch_Code: req.body.Sub_Acct,
+      Branch_Code: "HO",  
       Date_Entry: req.body.depositdate,
       Source_Type: "DC",
       Source_No: req.body.depositSlip,

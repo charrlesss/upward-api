@@ -55,14 +55,14 @@ GeneralJournal.post(
 
       req.body.generalJournal.forEach(async (item: any) => {
         await addJournalVoucher({
-          Branch_Code: item.BranchCode,
+          Branch_Code: "HO",
           Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
           Source_Type: "GL",
           Source_No: req.body.refNo,
           Explanation: req.body.explanation,
           GL_Acct: item.code,
           cGL_Acct: item.acctName,
-          cSub_Acct: item.subAcctName,
+          cSub_Acct: "HO",
           cID_No: item.ClientName,
           Debit: parseFloat(item.debit.replace(/,/g, "")),
           Credit: parseFloat(item.credit.replace(/,/g, "")),
@@ -75,14 +75,14 @@ GeneralJournal.post(
           VATItemNo: parseInt(item.TempID),
         });
         await addJournalFromJournalVoucher({
-          Branch_Code: item.BranchCode,
+          Branch_Code: "HO",
           Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
           Source_Type: "GL",
           Source_No: req.body.refNo,
           Explanation: req.body.explanation,
           GL_Acct: item.code,
           cGL_Acct: item.acctName,
-          cSub_Acct: item.subAcctName,
+          cSub_Acct: "HO",
           cID_No: item.ClientName,
           Debit: parseFloat(item.debit.replace(/,/g, "")),
           Credit: parseFloat(item.credit.replace(/,/g, "")),

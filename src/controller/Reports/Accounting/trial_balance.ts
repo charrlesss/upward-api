@@ -7,11 +7,13 @@ const prisma = new PrismaClient();
 
 TrialBalance.post("/trial-balance-report", async (req, res) => {
   try {
+    console.log(req.body);
     const qry = FinancialStatement(
       req.body.date,
       req.body.sub_acct,
       req.body.dateFormat
     );
+
     const report = await prisma.$queryRawUnsafe(qry);
     res.send({
       message: "Successfully get Report",

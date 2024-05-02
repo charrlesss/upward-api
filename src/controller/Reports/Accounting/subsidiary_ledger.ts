@@ -25,6 +25,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
     switch (subsi) {
       case 0:
         // Balances
+       
         if (account !== "ALL") {
           if (
             new Date(
@@ -42,11 +43,11 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               FROM (${qryJournal()}) qryJournal
             WHERE 
             ((qryJournal.Source_Type = 'BF' OR qryJournal.Source_Type = 'AB') 
-            AND (qryJournal.Date_Query >= '
+            AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '
             ${new Date(DateFrom).getFullYear()}-${
               new Date(DateFrom).getMonth() + 1
             }-01' 
-            AND qryJournal.Date_Query <= '${format(
+            AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
               new Date(DateTo),
               "yyyy-MM-dd"
             )}') 
@@ -63,10 +64,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             FROM (${qryJournal()}) qryJournal
             WHERE 
             ((qryJournal.Source_Type <> 'BFD' AND qryJournal.Source_Type <> 'BFS') 
-            AND (qryJournal.Date_Query >= '${new Date(
+            AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
               DateFrom
             ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-            AND qryJournal.Date_Query <= '${format(
+            AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
               new Date(DateTo),
               "yyyy-MM-dd"
             )}') AND (qryJournal.GL_Acct = '${account}'))
@@ -91,10 +92,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
             FROM (${qryJournal()}) qryJournal
             WHERE ((qryJournal.Source_Type = 'BF' OR qryJournal.Source_Type = 'AB') 
-            AND (qryJournal.Date_Query >= '${new Date(
+            AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
               DateFrom
             ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-            AND qryJournal.Date_Query <= '${format(
+            AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
               new Date(DateTo),
               "yyyy-MM-dd"
             )}'))
@@ -109,10 +110,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               SUM(IFNULL(qryJournal.mCredit, 0)) AS mCredit
             FROM (${qryJournal()}) qryJournal
             WHERE ((qryJournal.Source_Type <> 'BFD' AND qryJournal.Source_Type <> 'BFS') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -162,10 +163,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             WHERE 
               (
                (qryJournal.Source_Type = 'BFD' OR qryJournal.Source_Type = 'AB') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -184,10 +185,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             WHERE (
               (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFS')
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -216,10 +217,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             FROM (${qryJournal()}) qryJournal
             WHERE (
               (qryJournal.Source_Type = 'BFD' OR qryJournal.Source_Type = 'AB') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -238,10 +239,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               (
                (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFS') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -294,10 +295,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             WHERE 
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type = 'BFS' OR qryJournal.Source_Type = 'AB') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -315,10 +316,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             WHERE ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFD') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query < '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') < '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -346,10 +347,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
             WHERE 
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type = 'BFS' OR qryJournal.Source_Type = 'AB') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -367,10 +368,10 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
               ((qryJournal.Sub_Acct = '${subsi_options}') 
               AND (qryJournal.Source_Type <> 'BF' 
               AND qryJournal.Source_Type <> 'BFD') 
-              AND (qryJournal.Date_Query >= '${new Date(
+              AND ( date_format(qryJournal.Date_Query,'%Y-%m-%d') >= '${new Date(
                 DateFrom
               ).getFullYear()}-${new Date(DateFrom).getMonth() + 1}-01' 
-              AND qryJournal.Date_Query <= '${format(
+              AND  date_format(qryJournal.Date_Query,'%Y-%m-%d') <= '${format(
                 new Date(DateTo),
                 "yyyy-MM-dd"
               )}'))
@@ -424,11 +425,11 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
           IFNULL(qryJournal.Remarks, '') AS Remarks
       FROM (${qryJournal()}) qryJournal
       WHERE
-          ((qryJournal.Date_Entry >= '${format(
+          ((date_format(qryJournal.Date_Entry,'%Y-%m-%d') >= '${format(
             new Date(DateFrom),
             "yyyy-MM-dd"
           )}'
-          AND qryJournal.Date_Entry <= '${format(
+          AND date_format(qryJournal.Date_Entry,'%Y-%m-%d') <= '${format(
             new Date(DateTo),
             "yyyy-MM-dd"
           )}')
@@ -464,8 +465,11 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         qryJournal.Remarks
       FROM (${qryJournal()}) qryJournal
       WHERE
-        ((qryJournal.Date_Entry >= '${format(new Date(DateFrom), "yyyy-MM-dd")}'
-        AND qryJournal.Date_Entry <= '${format(
+        ((date_format(qryJournal.Date_Entry,'%Y-%m-%d') >= '${format(
+          new Date(DateFrom),
+          "yyyy-MM-dd"
+        )}'
+        AND date_format(qryJournal.Date_Entry,'%Y-%m-%d') <= '${format(
           new Date(DateTo),
           "yyyy-MM-dd"
         )}')
@@ -477,6 +481,8 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
        qryJournal.Date_Entry, qryJournal.Number, qryJournal.Source_No, qryJournal.Auto`;
       dt = await prisma.$queryRawUnsafe(Qry);
     }
+    console.log(Qry);
+
     if (dt.length > 0) {
       let dtBal: any = [];
       let lastAcct = "";
@@ -543,6 +549,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         });
       }
     }
+
     res.send({
       message: "Successuflly Get Report",
       success: true,

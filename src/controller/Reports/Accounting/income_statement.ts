@@ -112,7 +112,120 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
       `;
     }
     console.log(sql);
-    const report = await prisma.$queryRawUnsafe(sql);
+    const dataRes: any = await prisma.$queryRawUnsafe(sql);
+    const updatedDataRes = dataRes.map((obj: any) => ({
+      ...obj,
+      second: true,
+    }));
+
+    const groupedData = updatedDataRes.reduce((acc: any, obj: any) => {
+      const h1Value = obj.H1;
+      if (!acc[h1Value]) {
+        acc[h1Value] = [];
+      }
+      acc[h1Value].push(obj);
+      return acc;
+    }, {});
+    const incomeArray = groupedData["6"];
+    const expensesArray = groupedData["7"];
+    const income = [
+      {
+        Footer: "",
+        H1: "",
+        H2: "",
+        Code: "",
+        Title: "INCOME",
+        PrevBalance: "",
+        CurrBalance: "",
+        TotalBalance: "",
+        footer: true,
+        first: true,
+      },
+      ...arrangeArray(incomeArray),
+      {
+        Footer: "",
+        H1: "",
+        H2: "",
+        Code: "",
+        Title: "TOTAL INCOME",
+        PrevBalance: incomeArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["PrevBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        CurrBalance: incomeArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["CurrBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        TotalBalance: incomeArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["TotalBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        footer: true,
+        first: true,
+      },
+    ];
+    const expenses = [
+      {
+        Footer: "",
+        H1: "",
+        H2: "",
+        Code: "",
+        Title: "EXPENSES",
+        PrevBalance: "",
+        CurrBalance: "",
+        TotalBalance: "",
+        footer: true,
+        first: true,
+      },
+      ...arrangeArray(expensesArray),
+      {
+        Footer: "",
+        H1: "",
+        H2: "",
+        Code: "",
+        Title: "TOTAL EXPENSES",
+        PrevBalance: expensesArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["PrevBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        CurrBalance: expensesArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["CurrBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        TotalBalance: expensesArray.reduce((d: any, itms: any) => {
+          return (
+            d +
+            parseFloat(
+              Math.abs(itms["TotalBalance"]).toString()?.replace(/,/g, "")
+            )
+          );
+        }, 0),
+        footer: true,
+        first: true,
+      },
+    ];
+    const report = income.concat(expenses);
+
     res.send({
       message: "Successfully Get Report",
       success: true,
@@ -129,3 +242,53 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
 });
 
 export default IncomeStatement;
+
+function arrangeArray(dataArray: Array<any>) {
+  const groupedDataIncome = dataArray.reduce((acc: any, obj: any) => {
+    const key = obj.Footer;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(obj);
+    return acc;
+  }, {});
+
+  for (const group in groupedDataIncome) {
+    const groupTotal = groupedDataIncome[group].reduce(
+      (acc: any, obj: any) => {
+        acc.PrevBalance += Math.abs(
+          parseFloat(obj.PrevBalance.toString().replace(/,/g, "") || 0)
+        );
+        acc.CurrBalance += Math.abs(
+          parseFloat(obj.CurrBalance.toString().replace(/,/g, "") || 0)
+        );
+        acc.TotalBalance += Math.abs(
+          parseFloat(obj.TotalBalance.toString().replace(/,/g, "") || 0)
+        );
+        return acc;
+      },
+      {
+        PrevBalance: 0,
+        CurrBalance: 0,
+        TotalBalance: 0,
+      }
+    );
+
+    const summaryObject = {
+      Footer: "",
+      H1: "",
+      H2: "",
+      Code: "",
+      Title: group,
+      PrevBalance: groupTotal.PrevBalance.toString(),
+      CurrBalance: groupTotal.CurrBalance.toString(),
+      TotalBalance: groupTotal.TotalBalance.toString(),
+      footer: true,
+      third: true,
+    };
+
+    groupedDataIncome[group].push(summaryObject);
+  }
+
+  return Object.values(groupedDataIncome).flat();
+}
