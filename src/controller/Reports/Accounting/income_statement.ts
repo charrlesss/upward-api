@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { addMonths, format } from "date-fns";
 import {
   FinancialStatement,
   FinancialStatementSumm,
@@ -174,6 +173,7 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
         }, 0),
         footer: true,
         first: true,
+        totalIncome: true,
       },
     ];
     const expenses = [
@@ -222,10 +222,11 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
         }, 0),
         footer: true,
         first: true,
+        totalExpenses: true,
       },
     ];
     const report = income.concat(expenses);
-
+   
     res.send({
       message: "Successfully Get Report",
       success: true,
