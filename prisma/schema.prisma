@@ -1122,6 +1122,7 @@ enum users_AccountType {
   PRODUCTION
   ACCOUNTING
   ADMIN
+  CLAIMS
 }
 
 model system_logs {

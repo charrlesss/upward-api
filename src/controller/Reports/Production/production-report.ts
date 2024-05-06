@@ -52,6 +52,7 @@ ProductionReports.post("/get-production-report", async (req, res) => {
       req.body.policyType,
       req.body.sort
     );
+    console.log(reportString);
     const report = await prisma.$queryRawUnsafe(reportString);
     res.send({
       success: true,

@@ -183,8 +183,10 @@ export async function testJoin() {
 export async function creatSampleUser() {
   const password1 = hashSync("charles", 12);
   const password2 = hashSync("buboy", 12);
+  const password3 = hashSync("manok", 12);
   const userConfirmationCode1 = hashSync("manok", 12);
   const userConfirmationCode2 = hashSync("manok", 12);
+  
   const user = await prisma.users.createMany({
     data: [
       {
@@ -197,6 +199,12 @@ export async function creatSampleUser() {
         AccountType: "PRODUCTION",
         Password: password2,
         Username: "buboy",
+        userConfirmationCode: userConfirmationCode2,
+      },
+      {
+        AccountType: "CLAIMS",
+        Password: password3,
+        Username: "manok",
         userConfirmationCode: userConfirmationCode2,
       },
     ],

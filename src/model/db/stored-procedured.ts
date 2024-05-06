@@ -111,189 +111,189 @@ export function FinancialStatementSumm(date: any, dateFormat: string) {
         SUM(IFNULL(Debit, 0)) as Debit, 
         SUM(IFNULL(Credit, 0)) as Credit, 
         SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-    FROM Journal
-    WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
-    AND str_to_date(Date_Entry,'%Y-%m-%d') < '${DateFrom}'
-    GROUP BY GL_Acct
-  `;
+        FROM Journal
+        AND str_to_date(Date_Entry,'%Y-%m-%d') < '${DateFrom}'
+        GROUP BY GL_Acct
+        `;
   const curr = `
-    SELECT 
+        SELECT 
         MAX(Sub_Acct) as Sub_Acct,  
         GL_Acct, 
         SUM(IFNULL(Debit, 0)) as Debit, 
         SUM(IFNULL(Credit, 0)) as Credit, 
         SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-    FROM Journal
-    WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
-    AND str_to_date(Date_Entry,'%Y-%m-%d') >= '${DateFrom}' AND str_to_date(Date_Entry,'%Y-%m-%d') <= '${DateTo}'
-    GROUP BY GL_Acct
-  `;
+        FROM Journal
+        WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
+        AND str_to_date(Date_Entry,'%Y-%m-%d') >= '${DateFrom}' AND str_to_date(Date_Entry,'%Y-%m-%d') <= '${DateTo}'
+        GROUP BY GL_Acct
+        `;
   const union_temp = `
-    SELECT * FROM (${prev}) Prev
-    UNION ALL
-    SELECT * FROM (${curr}) Curr
-  `;
+        SELECT * FROM (${prev}) Prev
+        UNION ALL
+        SELECT * FROM (${curr}) Curr
+        `;
   const total = `
-    SELECT GL_Acct, SUM(Debit) - SUM(Credit) AS Balance
-    FROM (${union_temp}) union_temp
-    GROUP BY GL_Acct
-  `;
+        SELECT GL_Acct, SUM(Debit) - SUM(Credit) AS Balance
+        FROM (${union_temp}) union_temp
+        GROUP BY GL_Acct
+        `;
   return `
-    SELECT SubAccount.Acronym AS SACode,
-           SubAccount.ShortName AS SubAccount,
-           Chart_Account.Acct_Code AS Code,
-           CONCAT(Chart_Account.Acct_Code, ' ', Acct_Title) AS Title,
-           SUM(Debit) - SUM(Credit) AS Balance,
-           total.Balance AS TotalBalance
-    FROM Chart_Account
-    LEFT JOIN (${union_temp}) union_temp ON Chart_Account.Acct_Code = union_temp.GL_Acct
-    LEFT JOIN Sub_Account SubAccount ON union_temp.Sub_Acct = SubAccount.Acronym
-    LEFT JOIN (${total}) total ON union_temp.GL_Acct = total.GL_Acct
-    GROUP BY union_temp.GL_Acct, SubAccount.Sub_Acct, SubAccount.ShortName, Chart_Account.Acct_Code, Acct_Title, total.Balance
-    HAVING SUM(Debit) - SUM(Credit) IS NOT NULL
-    ORDER BY Chart_Account.Acct_Code`;
+        SELECT SubAccount.Acronym AS SACode,
+        SubAccount.ShortName AS SubAccount,
+        Chart_Account.Acct_Code AS Code,
+        CONCAT(Chart_Account.Acct_Code, ' ', Acct_Title) AS Title,
+        SUM(Debit) - SUM(Credit) AS Balance,
+        total.Balance AS TotalBalance
+        FROM Chart_Account
+        LEFT JOIN (${union_temp}) union_temp ON Chart_Account.Acct_Code = union_temp.GL_Acct
+        LEFT JOIN Sub_Account SubAccount ON union_temp.Sub_Acct = SubAccount.Acronym
+        LEFT JOIN (${total}) total ON union_temp.GL_Acct = total.GL_Acct
+        GROUP BY union_temp.GL_Acct, SubAccount.Sub_Acct, SubAccount.ShortName, Chart_Account.Acct_Code, Acct_Title, total.Balance
+        HAVING SUM(Debit) - SUM(Credit) IS NOT NULL
+        ORDER BY Chart_Account.Acct_Code`;
 }
 export function client_ids(search: string) {
   const selectClient = `
-  SELECT 
-			"Client" as IDType,
-            aa.entry_client_id AS IDNo,
-			aa.sub_account,
-		   if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-           aa.entry_client_id as client_id  
-        FROM
-            upward_insurance.entry_client aa
-            union all
-      SELECT 
-			"Agent" as IDType,
-            aa.entry_agent_id AS IDNo,
-			aa.sub_account,
-			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-            aa.entry_agent_id as client_id  
-        FROM
-            upward_insurance.entry_agent aa
-            union all
-      SELECT 
-			"Employee" as IDType,
-            aa.entry_employee_id AS IDNo,
-			aa.sub_account,
-			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-            aa.entry_employee_id as client_id
-        FROM
-            upward_insurance.entry_employee aa
-      union all
-      SELECT 
-			"Supplier" as IDType,
-            aa.entry_supplier_id AS IDNo,
-			aa.sub_account,
-			if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-             aa.entry_supplier_id as client_id
-        FROM
-            upward_insurance.entry_supplier aa
-            union all
-      SELECT 
-			"Fixed Assets" as IDType,
-            aa.entry_fixed_assets_id AS IDNo,
-			aa.sub_account,
-			aa.fullname AS Shortname,
-            aa.entry_fixed_assets_id as client_id
-        FROM
-            upward_insurance.entry_fixed_assets aa
-            union all
-      SELECT 
-			"Others" as IDType,
-            aa.entry_others_id AS IDNo,
-			aa.sub_account,
-			aa.description AS Shortname,
-            aa.entry_others_id as client_id
-        FROM
-            upward_insurance.entry_others aa
-  `;
-  return `
         SELECT 
-            a.IDType as Type,
-            a.IDNo,
-            a.sub_account,
-            a.Shortname as Name,
-            a.client_id,
-            LPAD(ROW_NUMBER() OVER (), 3, '0') AS ID
+        "Client" as IDType,
+        aa.entry_client_id AS IDNo,
+        aa.sub_account,
+        if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+        aa.entry_client_id as client_id  
         FROM
-        (
-        ${selectClient}
+        upward_insurance.entry_client aa
         union all
         SELECT 
-            'Policy ID' AS Type,
-            aa.PolicyNo as IDNo,
-            bb.sub_account,
-            bb.Shortname,
-            aa.IDNo as client_id
+        "Agent" as IDType,
+        aa.entry_agent_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+        aa.entry_agent_id as client_id  
         FROM
-            upward_insurance.policy aa
-        LEFT JOIN
-            (${selectClient}) bb ON aa.IDNo = bb.IDNo
+        upward_insurance.entry_agent aa
+        union all
+        SELECT 
+        "Employee" as IDType,
+        aa.entry_employee_id AS IDNo,
+        aa.sub_account,
+        CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+        aa.entry_employee_id as client_id
+        FROM
+        upward_insurance.entry_employee aa
+        union all
+        SELECT 
+        "Supplier" as IDType,
+        aa.entry_supplier_id AS IDNo,
+        aa.sub_account,
+        if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+        aa.entry_supplier_id as client_id
+        FROM
+        upward_insurance.entry_supplier aa
+        union all
+        SELECT 
+        "Fixed Assets" as IDType,
+        aa.entry_fixed_assets_id AS IDNo,
+        aa.sub_account,
+        aa.fullname AS Shortname,
+        aa.entry_fixed_assets_id as client_id
+        FROM
+        upward_insurance.entry_fixed_assets aa
+        union all
+        SELECT 
+        "Others" as IDType,
+        aa.entry_others_id AS IDNo,
+        aa.sub_account,
+        aa.description AS Shortname,
+        aa.entry_others_id as client_id
+        FROM
+        upward_insurance.entry_others aa
+        `;
+  return `
+        SELECT 
+        a.IDType as Type,
+        a.IDNo,
+        a.sub_account,
+        a.Shortname as Name,
+        a.client_id,
+        LPAD(ROW_NUMBER() OVER (), 3, '0') AS ID
+        FROM
+        (
+          ${selectClient}
+          union all
+          SELECT 
+          'Policy ID' AS Type,
+          aa.PolicyNo as IDNo,
+          bb.sub_account,
+          bb.Shortname,
+          aa.IDNo as client_id
+          FROM
+          upward_insurance.policy aa
+          LEFT JOIN
+          (${selectClient}) bb ON aa.IDNo = bb.IDNo
         ) a
         WHERE
         a.IDNo LIKE '%${search}%'
         OR a.Shortname LIKE '%${search}%'
         ORDER BY a.Shortname
         LIMIT 100
-    `;
+        `;
 }
 export function createTPLID() {
   return `
-  select
+        select
         concat(
-        'TP-',
-        right('000000',6 - LENGTH(CAST(CAST(substring(IF(
+          'TP-',
+          right('000000',6 - LENGTH(CAST(CAST(substring(IF(
             a.PolicyNo = '' OR a.PolicyNo IS NULL,'1',a.PolicyNo), 4) as SIGNED) + 1 As SIGNED))),
-        IF(
-            a.PolicyNo = '' OR a.PolicyNo IS NULL,
-            '1',
-            CAST(substring(a.PolicyNo,4) as SIGNED) +1
+            IF(
+              a.PolicyNo = '' OR a.PolicyNo IS NULL,
+              '1',
+              CAST(substring(a.PolicyNo,4) as SIGNED) +1
             )
-        ) AS tempPolicy_No
-  from (
-    SELECT  MAX(PolicyNo) as PolicyNo FROM upward_insurance.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
-  ) a
-      `;
+          ) AS tempPolicy_No
+          from (
+            SELECT  MAX(PolicyNo) as PolicyNo FROM upward_insurance.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
+          ) a
+          `;
 }
 export function id_entry(WhereIDEntry: string) {
   return `
-    select * from (SELECT 
-        CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
-        aa.entry_client_id AS IDNo,
-        aa.firstname,
-        aa.middlename,
-        aa.company,
-        aa.address,
-        aa.option AS options,
-        aa.sub_account,
-        aa.createdAt,
-        aa.update AS updatedAt,
-        aa.client_contact_details_id AS contact_details_id,
-        NULL AS description,
-        NULL AS remarks,
-        NULL AS VAT_Type,
-        NULL AS tin_no
-    FROM
-        upward_insurance.entry_client aa 
-    UNION ALL SELECT 
-        CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
-        aa.entry_agent_id AS IDNo,
-        aa.firstname,
-        aa.middlename,
-        NULL AS company,
-        aa.address,
-        NULL AS options,
-        NULL AS sub_account,
-        aa.createdAt,
-        aa.update AS updatedAt,
-        aa.agent_contact_details_id AS contact_details_id,
-        NULL AS description,
-        NULL AS remarks,
-        NULL AS VAT_Type,
-        NULL AS tin_no
-    FROM
+          select * from (SELECT 
+            CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+            aa.entry_client_id AS IDNo,
+            aa.firstname,
+            aa.middlename,
+            aa.company,
+            aa.address,
+            aa.option AS options,
+            aa.sub_account,
+            aa.createdAt,
+            aa.update AS updatedAt,
+            aa.client_contact_details_id AS contact_details_id,
+            NULL AS description,
+            NULL AS remarks,
+            NULL AS VAT_Type,
+            NULL AS tin_no
+            FROM
+            upward_insurance.entry_client aa 
+            UNION ALL SELECT 
+            CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+            aa.entry_agent_id AS IDNo,
+            aa.firstname,
+            aa.middlename,
+            NULL AS company,
+            aa.address,0
+            NULL AS options,
+            NULL AS sub_account,
+            aa.createdAt,
+            aa.update AS updatedAt,
+            aa.agent_contact_details_id AS contact_details_id,
+            WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
+            NULL AS description,
+            NULL AS remarks,
+            NULL AS VAT_Type,
+            NULL AS tin_no
+            FROM
         upward_insurance.entry_agent aa 
     UNION ALL SELECT 
         CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
@@ -440,7 +440,8 @@ export function ProductionReport(
         MotorNo,
         Mortgagee,
         VPolicy.Remarks as VRemarks
-    FROM Policy LEFT JOIN BPolicy ON Policy.PolicyNo = BPolicy.PolicyNo 
+    FROM Policy 
+    LEFT JOIN BPolicy ON Policy.PolicyNo = BPolicy.PolicyNo 
     LEFT JOIN VPolicy ON Policy.PolicyNo = VPolicy.PolicyNo 
     LEFT JOIN MPolicy ON Policy.PolicyNo = MPolicy.PolicyNo 
     LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo 

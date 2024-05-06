@@ -6,7 +6,7 @@ import path from "path";
 import cookieParser from "cookie-parser";
 import { sampleVPolicy } from "./src/controller/Task/Production/vehiclepolicy";
 
-// import { createsampleData } from "./src/model/StoredProcedure";
+// import { createsampleData ,creatSampleUser } from "./src/model/StoredProcedure";
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
@@ -37,6 +37,7 @@ async function main() {
     res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
   });
   // createsampleData()
+  // creatSampleUser()
 
   app.listen(PORT, () => console.log(`Listen in port ${PORT}`));
 }
