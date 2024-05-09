@@ -114,6 +114,12 @@ export async function createIdSequence() {
         type: "check-postponement",
         year: getYear(),
       },
+      {
+        last_count: "000",
+        month: getMonth(),
+        type: "claims",
+        year: getYear(),
+      },
     ],
   });
   console.log("new user : ", user);
@@ -186,7 +192,7 @@ export async function creatSampleUser() {
   const password3 = hashSync("manok", 12);
   const userConfirmationCode1 = hashSync("manok", 12);
   const userConfirmationCode2 = hashSync("manok", 12);
-  
+
   const user = await prisma.users.createMany({
     data: [
       {

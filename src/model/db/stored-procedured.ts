@@ -209,33 +209,35 @@ export function client_ids(search: string) {
         upward_insurance.entry_others aa
         `;
   return `
-        SELECT 
-        a.IDType as Type,
-        a.IDNo,
-        a.sub_account,
-        a.Shortname as Name,
-        a.client_id,
-        LPAD(ROW_NUMBER() OVER (), 3, '0') AS ID
-        FROM
-        (
-          ${selectClient}
-          union all
-          SELECT 
-          'Policy ID' AS Type,
-          aa.PolicyNo as IDNo,
-          bb.sub_account,
-          bb.Shortname,
-          aa.IDNo as client_id
-          FROM
-          upward_insurance.policy aa
-          LEFT JOIN
-          (${selectClient}) bb ON aa.IDNo = bb.IDNo
-        ) a
-        WHERE
-        a.IDNo LIKE '%${search}%'
-        OR a.Shortname LIKE '%${search}%'
-        ORDER BY a.Shortname
-        LIMIT 100
+  SELECT 
+    *
+FROM
+    (
+      SELECT 
+      *
+  FROM
+      (${selectClient}) a
+  WHERE
+      a.IDNo NOT IN 
+      (SELECT IDNo FROM upward_insurance.policy GROUP BY IDNo) 
+  UNION ALL SELECT 
+          'Policy' AS IDType,
+          a.PolicyNo AS IDNo,
+          b.sub_account,
+          b.Shortname,
+          a.IDNo AS client_id
+  FROM
+      upward_insurance.policy a
+  LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
+  WHERE
+      a.PolicyNo NOT IN 
+      (SELECT a.IDNo FROM (${selectClient}) a)
+  ) a
+WHERE
+  a.IDNo LIKE '%${search}%'
+	OR a.Shortname LIKE '%${search}%'
+ORDER BY a.Shortname
+LIMIT 50
         `;
 }
 export function createTPLID() {

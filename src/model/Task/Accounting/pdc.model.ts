@@ -3,9 +3,99 @@ import { client_ids } from "../../db/stored-procedured";
 const prisma = new PrismaClient();
 
 export async function getPdcPolicyIdAndCLientId(search: string) {
-  const query = `${client_ids(search)}`;
-  console.log(query)
-  return await prisma.$queryRawUnsafe(query);
+  const selectClient = `
+        SELECT 
+          "Client" as IDType,
+          aa.entry_client_id AS IDNo,
+          aa.sub_account,
+          if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+          aa.entry_client_id as client_id  
+        FROM
+        upward_insurance.entry_client aa
+        union all
+        SELECT 
+          "Agent" as IDType,
+          aa.entry_agent_id AS IDNo,
+          aa.sub_account,
+          CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+          aa.entry_agent_id as client_id  
+        FROM
+        upward_insurance.entry_agent aa
+        union all
+        SELECT 
+          "Employee" as IDType,
+          aa.entry_employee_id AS IDNo,
+          aa.sub_account,
+          CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+          aa.entry_employee_id as client_id
+        FROM
+        upward_insurance.entry_employee aa
+        union all
+        SELECT 
+          "Supplier" as IDType,
+          aa.entry_supplier_id AS IDNo,
+          aa.sub_account,
+          if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+          aa.entry_supplier_id as client_id
+        FROM
+        upward_insurance.entry_supplier aa
+        union all
+        SELECT 
+          "Fixed Assets" as IDType,
+          aa.entry_fixed_assets_id AS IDNo,
+          aa.sub_account,
+          aa.fullname AS Shortname,
+          aa.entry_fixed_assets_id as client_id
+        FROM
+        upward_insurance.entry_fixed_assets aa
+        union all
+        SELECT 
+          "Others" as IDType,
+          aa.entry_others_id AS IDNo,
+          aa.sub_account,
+          aa.description AS Shortname,
+          aa.entry_others_id as client_id
+        FROM
+        upward_insurance.entry_others aa
+  `;
+  const qry = `
+  SELECT 
+      a.IDType as Type,
+      a.IDNo,
+      a.sub_account,
+      a.Shortname as Name,
+      a.client_id,
+      a.ShortName as sub_shortname
+    FROM
+        (
+          SELECT 
+          *
+      FROM
+          (${selectClient}) a
+      WHERE
+          a.IDNo NOT IN 
+          (SELECT IDNo FROM upward_insurance.policy GROUP BY IDNo) 
+      UNION ALL SELECT 
+              'Policy' AS IDType,
+              a.PolicyNo AS IDNo,
+              b.sub_account,
+              b.Shortname,
+              a.IDNo AS client_id
+      FROM
+          upward_insurance.policy a
+      LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
+      WHERE
+          a.PolicyNo NOT IN 
+          (SELECT a.IDNo FROM (${selectClient}) a)
+      ) a
+    WHERE
+      a.IDNo LIKE '%${search}%'
+      OR a.Shortname LIKE '%${search}%'
+    ORDER BY a.Shortname
+    LIMIT 50`;
+
+  
+  return await prisma.$queryRawUnsafe(qry);
 }
 
 export async function getPdcBanks(search: string) {

@@ -87,6 +87,26 @@ WHERE
   return await prisma.$queryRawUnsafe(qry);
 }
 
+export async function claimnsPolicyComputationRemittance(id: string) {
+  const qry = `
+    SELECT 
+        IF(SUM(a.Debit) > SUM(a.Credit),
+        format(SUM(a.Debit),2),
+        format(SUM(a.Credit),2)) AS remitted
+  FROM
+      upward_insurance.journal a
+          LEFT JOIN
+      upward_insurance.policy b ON a.ID_No = b.IDNo
+  WHERE
+      a.Explanation LIKE '%remit%'
+          AND a.Source_Type = 'GL'
+          AND a.GL_Acct = '4.02.01'
+          AND b.PolicyNo = '${id}'
+  GROUP BY Source_No
+
+  `;
+  return await prisma.$queryRawUnsafe(qry);
+}
 export async function claimnsPolicyComputation(id: string) {
   const qry = `
   SELECT 
@@ -110,4 +130,24 @@ export async function claimnsPolicyComputation(id: string) {
 
   `;
   return await prisma.$queryRawUnsafe(qry);
+}
+
+export async function GenerateClaimsID() {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    concat(
+      DATE_FORMAT(NOW(), '%y%m'),
+      '-',
+      'C',
+      IF(a.year <> date_format(NOW(),'%y'),
+      '001', 
+        concat(
+          LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),
+          a.last_count + 1)
+        ) 
+      ) as id   
+  FROM
+    upward_insurance.id_sequence a
+  WHERE
+    a.type = 'claims'`);
 }

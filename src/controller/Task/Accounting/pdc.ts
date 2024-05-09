@@ -172,6 +172,7 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
     const clientsId = await getPdcPolicyIdAndCLientId(
       searchPdcPolicyIds as string
     ); 
+    console.log(clientsId)
 
     res.send({
       clientsId,
