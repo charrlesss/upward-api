@@ -1143,68 +1143,62 @@ model id_from_2020 {
   id_id  Int    @id @default(autoincrement())
 }
 
+
 model claims {
-  claims_id   String @id @default(uuid())
-  policy      String @db.VarChar(500)
-  claims_type String @db.VarChar(500)
-  status      String @db.VarChar(500)
-  date_report String @db.VarChar(500)
+  claims_id    String   @id @default(uuid())
+  policy       String?  @db.VarChar(500)
+  claim_type   String?  @db.VarChar(500)
+  insurance    String?  @db.VarChar(500)
+  PolicyNo     String?  @db.VarChar(500)
+  PlateNo      String?  @db.VarChar(500)
+  Model        String?  @db.VarChar(500)
+  BodyType     String?  @db.VarChar(500)
+  Make         String?  @db.VarChar(500)
+  ChassisNo    String?  @db.VarChar(500)
+  MotorNo      String?  @db.VarChar(500)
+  ORNo         String?  @db.VarChar(500)
+  CoverNo      String?  @db.VarChar(500)
+  BLTFileNo    String?  @db.VarChar(500)
+  AssuredName  String?  @db.VarChar(500)
+  IDNo         String?  @db.VarChar(500)
+  totaDue      Decimal  @default(0.0000) @db.Decimal(19, 4)
+  totalpaid    Decimal  @default(0.0000) @db.Decimal(19, 4)
+  balance      Decimal  @default(0.0000) @db.Decimal(19, 4)
+  remitted     Decimal  @default(0.0000) @db.Decimal(19, 4)
+  Account      String?  @db.VarChar(500)
+  status       String?  @db.VarChar(500)
+  dateReported DateTime
+  dateAccident DateTime
+  createdAt    DateTime
 }
 
-model claims_policy {
-  claims_policy_id String  @id @default(uuid())
-  policy_no        String  @db.VarChar(500)
-  assured_name     String  @db.VarChar(500)
-  account          String  @db.VarChar(500)
-  model            String  @db.VarChar(500)
-  plate_no         String  @db.VarChar(500)
-  chassis_no       String  @db.VarChar(500)
-  motor_no         String  @db.VarChar(500)
-  cover_no         String  @db.VarChar(500)
-  blt_file_no      String  @db.VarChar(500)
-  body_type        String  @db.VarChar(500)
-  make             String  @db.VarChar(500)
-  or_no            String  @db.VarChar(500)
-  total_due        Decimal @default(0.0000) @db.Decimal(19, 4)
-  total_paid       Decimal @default(0.0000) @db.Decimal(19, 4)
-  total_balance    Decimal @default(0.0000) @db.Decimal(19, 4)
-  total_remitted   Decimal @default(0.0000) @db.Decimal(19, 4)
-  claims_id        String  @db.VarChar(500)
-}
-
-model claims_basic_documents {
-  claims_basic_documents_id String @id @default(uuid())
-  policy_file               String @db.Text
-  endorcement               String @db.Text
-  opp                       String @db.Text
-  or_cr                     String @db.Text
-  dl_or                     String @db.Text
-  pr                        String @db.Text
-  da                        String @db.Text
-  sm_cn                     String @db.Text
-  claims_id                 String @unique @db.VarChar(500)
-}
-
-
-model claims_others_documents {
-  claims_others_documents_id String  @id @default(uuid())
-  ct1_1                      String? @db.Text
-  ct1_2                      String? @db.Text
-  ct2_1                      String? @db.Text
-  ct2_2                      String? @db.Text
-  ct2_3                      String? @db.Text
-  ct2_4                      String? @db.Text
-  ct3_1                      String? @db.Text
-  ct3_2                      String? @db.Text
-  ct3_3                      String? @db.Text
-  ct3_4                      String? @db.Text
-  ct3_5                      String? @db.Text
-  ct4_1                      String? @db.Text
-  ct4_2                      String? @db.Text
-  ct4_3                      String? @db.Text
-  ct4_4                      String? @db.Text
-  ct4_5                      String? @db.Text
-  ct5_1                      String? @db.Text
-  ct5_2                      String? @db.Text
-  ct5_3                      String? @db.Text
+model claims_documents {
+  claims_id   String  @id @default(uuid())
+  policyFile  String? @db.Text
+  endorsement String? @db.Text
+  OPP         String? @db.Text
+  ORCR        String? @db.Text
+  DLOR        String? @db.Text
+  PR          String? @db.Text
+  DA          String? @db.Text
+  SMCN        String? @db.Text
+  ct1_1       String? @db.Text
+  ct1_2       String? @db.Text
+  ct2_1       String? @db.Text
+  ct2_2       String? @db.Text
+  ct2_3       String? @db.Text
+  ct2_4       String? @db.Text
+  ct3_1       String? @db.Text
+  ct3_2       String? @db.Text
+  ct3_3       String? @db.Text
+  ct3_4       String? @db.Text
+  ct3_5       String? @db.Text
+  ct4_1       String? @db.Text
+  ct4_2       String? @db.Text
+  ct4_3       String? @db.Text
+  ct4_4       String? @db.Text
+  ct4_5       String? @db.Text
+  ct5_1       String? @db.Text
+  ct5_2       String? @db.Text
+  ct5_3       String? @db.Text
 }

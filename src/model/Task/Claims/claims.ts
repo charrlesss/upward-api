@@ -151,3 +151,58 @@ export async function GenerateClaimsID() {
   WHERE
     a.type = 'claims'`);
 }
+
+export async function createClaim({ claimData, documentData }: any) {
+  await prisma.claims.create({ data: claimData });
+  await prisma.claims_documents.create({ data: documentData });
+}
+export async function updateClaim({ claimData, documentData, claims_id }: any) {
+  await prisma.claims.update({
+    data: claimData,
+    where: {
+      claims_id,
+    },
+  });
+  await prisma.claims_documents.update({
+    data: documentData,
+    where: {
+      claims_id,
+    },
+  });
+}
+
+export async function updateClaimIDSequence(data: any) {
+  console.log(data);
+  return await prisma.$queryRawUnsafe(`
+      update upward_insurance.id_sequence a
+      set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
+      where a.type ='claims'
+    `);
+}
+
+export async function searchClaims(search: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+    *
+   FROM upward_insurance.claims a 
+   left join upward_insurance.claims_documents b on a.claims_id = b.claims_id
+   where 
+    a.claims_id like '%${search}%'
+    OR a.AssuredName like '%${search}%'
+    OR a.PolicyNo like '%${search}%'
+    OR a.ChassisNo like '%${search}%'
+    OR a.MotorNo like '%${search}%'
+    OR a.Make like '%${search}%'
+    OR a.PlateNo like '%${search}%'
+    OR a.IDNo like '%${search}%'
+    OR a.BLTFileNo like '%${search}%'
+    OR a.BodyType like '%${search}%'
+    OR a.CoverNo like '%${search}%'
+    OR a.ORNo like '%${search}%'
+    OR a.Account like '%${search}%'
+    OR a.Model like '%${search}%'
+  ORDER BY a.AssuredName asc
+  LIMIT 50
+  ;
+  `);
+}
