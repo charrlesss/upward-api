@@ -357,10 +357,28 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
 
 Claim.get("/claims/search-claims", async (req, res) => {
   try {
+    const data = (await searchClaims(
+      req.query.searchClaims as string
+    )) as Array<any>;
+    let claims = [];
+    if (data.length > 0) {
+      const bal = (await claimnsPolicyComputation(
+        data[0].PolicyNo
+      )) as Array<any>;
+      const remit = (await claimnsPolicyComputationRemittance(
+        data[0].PolicyNo
+      )) as Array<any>;
+      claims.push({
+        ...data[0],
+        ...bal[0],
+        ...remit[0],
+      });
+    }
+
     res.send({
       message: "Successfully search claim",
       success: true,
-      claims: await searchClaims(req.query.searchClaims as string),
+      claims,
     });
   } catch (error: any) {
     console.log(error.message);

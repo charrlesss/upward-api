@@ -125,7 +125,7 @@ export async function claimnsPolicyComputation(id: string) {
         journal a
     GROUP BY ID_No) AS c ON a.ID_No = c.ID_No
   WHERE
-    a.ID_No = '${id}' and b.PolicyNo  = '${id}'
+    b.PolicyNo  = '${id}'
   GROUP BY a.ID_No;
 
   `;
