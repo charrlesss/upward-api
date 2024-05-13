@@ -1148,6 +1148,8 @@ model claims {
   claims_id    String   @id @default(uuid())
   policy       String?  @db.VarChar(500)
   claim_type   String?  @db.VarChar(500)
+  department   String?  @db.VarChar(500)
+  remarks   String?  @db.VarChar(500)
   insurance    String?  @db.VarChar(500)
   PolicyNo     String?  @db.VarChar(500)
   PlateNo      String?  @db.VarChar(500)

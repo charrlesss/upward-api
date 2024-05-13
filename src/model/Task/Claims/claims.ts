@@ -5,7 +5,6 @@ export async function getInsuranceList() {
   const qry = `SELECT distinct Account FROM upward_insurance.policy_account;`;
   return await prisma.$queryRawUnsafe(qry);
 }
-
 export async function claimsPolicy(search: string) {
   const qry = `
   SELECT 
@@ -21,7 +20,8 @@ export async function claimsPolicy(search: string) {
   a.CoverNo,
   a.BLTFileNo,
   c.Shortname AS AssuredName,
-  c.IDNo
+  c.IDNo,
+  d.*
 FROM
   upward_insurance.vpolicy a
       LEFT JOIN
@@ -70,6 +70,9 @@ FROM
           aa.entry_others_id AS client_id
   FROM
       upward_insurance.entry_others aa) c ON b.IDNo = c.IDNo
+  LEFT JOIN (
+    ${comnputationQry()}
+  ) d on a.PolicyNo = d.PolicyNo
 WHERE
       a.PolicyNo LIKE '%${search}%' 
       OR a.ORNo LIKE '%${search}%'
@@ -87,51 +90,59 @@ WHERE
   return await prisma.$queryRawUnsafe(qry);
 }
 
-export async function claimnsPolicyComputationRemittance(id: string) {
-  const qry = `
-    SELECT 
-        IF(SUM(a.Debit) > SUM(a.Credit),
-        format(SUM(a.Debit),2),
-        format(SUM(a.Credit),2)) AS remitted
-  FROM
-      upward_insurance.journal a
+function comnputationQry() {
+  return `
+  SELECT 
+      format(MIN(b.TotalDue),2) as totaDue,
+      if( MAX(ifnull(d.remitted,0)) > 0, format((SUM(a.Credit) - MIN(b.TotalDue) - MIN(ifnull(d.remitted,0))),2) ,format(SUM(a.Credit) - MIN(b.TotalDue),2)) AS  totalpaid,
+      if(MAX(ifnull(d.remitted,0)) > 0 , format(MIN(b.TotalDue) - (SUM(a.Credit) - MIN(b.TotalDue) - MAX(ifnull(d.remitted,0))),2) , format(MIN(b.TotalDue) - (MIN(c.accountTotal) - MIN(b.TotalDue)),2))  as balance,
+      format(MAX(ifnull(d.remitted,0)),2) as remitted ,
+      MAX(b.PolicyNo) as PolicyNo
+    FROM
+      journal a
           LEFT JOIN
-      upward_insurance.policy b ON a.ID_No = b.IDNo
-  WHERE
-      a.Explanation LIKE '%remit%'
-          AND a.Source_Type = 'GL'
-          AND a.GL_Acct = '4.02.01'
-          AND b.PolicyNo = '${id}'
-  GROUP BY Source_No
-
+      policy b ON a.ID_No = b.PolicyNo OR  a.ID_No = b.IDNo 
+          LEFT JOIN
+      (
+      SELECT 
+          ID_No,
+              IF(SUM(Credit) = SUM(Debit), SUM(Credit), IF(SUM(a.credit) > SUM(a.debit), SUM(a.credit), SUM(a.debit))) AS accountTotal
+        FROM
+          journal a
+    GROUP BY ID_No) AS c ON a.ID_No = c.ID_No 
+        left join (
+        SELECT 
+          IF(SUM(a.Debit) > SUM(a.Credit),
+          SUM(a.Debit),
+          SUM(a.Credit)) AS remitted,
+                MIN(b.PolicyNo) as PolicyNo,
+                   MIN(a.ID_No) as ID_No
+        FROM
+          upward_insurance.journal a
+            LEFT JOIN
+          upward_insurance.policy b ON a.ID_No = b.IDNo
+        WHERE
+          a.Explanation LIKE '%remit%'
+            AND a.Source_Type = 'GL'
+            AND a.GL_Acct = '4.02.01'
+            
+        GROUP BY Source_No
+      ) d on a.ID_No = d.ID_No OR a.ID_No = d.PolicyNo
+    WHERE
+    
+       (a.Source_Type = 'PL' OR  a.Source_Type = 'OR' OR a.Source_Type = 'GL')
+    GROUP BY a.ID_No
   `;
-  return await prisma.$queryRawUnsafe(qry);
 }
 export async function claimnsPolicyComputation(id: string) {
   const qry = `
-  SELECT 
-    format(MIN(b.TotalDue),2) as totaDue,
-    format(SUM(a.Credit) - MIN(b.TotalDue),2) AS  totalpaid,
-    format(MIN(b.TotalDue) - (MIN(c.accountTotal) - MIN(b.TotalDue)),2) balance
-  FROM
-    journal a
-        LEFT JOIN
-    policy b ON a.ID_No = b.PolicyNo OR  a.ID_No = b.IDNo 
-        LEFT JOIN
-    (SELECT 
-        ID_No,
-            IF(SUM(Credit) = SUM(Debit), SUM(Credit), IF(SUM(a.credit) > SUM(a.debit), SUM(a.credit), SUM(a.debit))) AS accountTotal
-    FROM
-        journal a
-    GROUP BY ID_No) AS c ON a.ID_No = c.ID_No
-  WHERE
-    b.PolicyNo  = '${id}'
-  GROUP BY a.ID_No;
-
+  select  * from (
+    ${comnputationQry()}
+  ) d
+  where d.PolicyNo = '${id}'
   `;
   return await prisma.$queryRawUnsafe(qry);
 }
-
 export async function GenerateClaimsID() {
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -151,7 +162,6 @@ export async function GenerateClaimsID() {
   WHERE
     a.type = 'claims'`);
 }
-
 export async function createClaim({ claimData, documentData }: any) {
   await prisma.claims.create({ data: claimData });
   await prisma.claims_documents.create({ data: documentData });
@@ -170,7 +180,6 @@ export async function updateClaim({ claimData, documentData, claims_id }: any) {
     },
   });
 }
-
 export async function updateClaimIDSequence(data: any) {
   console.log(data);
   return await prisma.$queryRawUnsafe(`
@@ -179,30 +188,63 @@ export async function updateClaimIDSequence(data: any) {
       where a.type ='claims'
     `);
 }
-
 export async function searchClaims(search: string) {
-  return await prisma.$queryRawUnsafe(`
+  const qry = `
   SELECT 
-    *
-   FROM upward_insurance.claims a 
-   left join upward_insurance.claims_documents b on a.claims_id = b.claims_id
-   where 
-    a.claims_id like '%${search}%'
-    OR a.AssuredName like '%${search}%'
-    OR a.PolicyNo like '%${search}%'
-    OR a.ChassisNo like '%${search}%'
-    OR a.MotorNo like '%${search}%'
-    OR a.Make like '%${search}%'
-    OR a.PlateNo like '%${search}%'
-    OR a.IDNo like '%${search}%'
-    OR a.BLTFileNo like '%${search}%'
-    OR a.BodyType like '%${search}%'
-    OR a.CoverNo like '%${search}%'
-    OR a.ORNo like '%${search}%'
-    OR a.Account like '%${search}%'
-    OR a.Model like '%${search}%'
-  ORDER BY a.AssuredName asc
+  *
+  FROM
+  upward_insurance.claims a
+  LEFT JOIN
+  upward_insurance.claims_documents b ON a.claims_id = b.claims_id 
+  left join
+  (
+    select * from (
+    SELECT 
+    PolicyNo, DateFrom, DateTo
+    FROM
+    upward_insurance.vpolicy
+    UNION all
+    SELECT 
+    PolicyNo, DateFrom, DateTo
+    FROM
+    upward_insurance.fpolicy
+    UNION all
+    SELECT 
+    PolicyNo, PeriodFrom as DateFrom, PeriodTo as DateTo
+    FROM 
+    upward_insurance.papolicy
+    UNION all
+    SELECT 
+    PolicyNo, DateFrom, DateTo
+    FROM
+    upward_insurance.mpolicy
+    UNION all
+    SELECT 
+    PolicyNo, PeriodFrom as DateFrom, PeriodTo as DateTo
+    FROM
+    upward_insurance.msprpolicy
+    ) c
+  ) d on a.PolicyNo = d.PolicyNo
+  left join (${comnputationQry()}) e on a.PolicyNo = e.PolicyNo
+  WHERE
+  a.claims_id LIKE '%${search}%'
+  OR a.AssuredName LIKE '%${search}%'
+  OR a.PolicyNo LIKE '%${search}%'
+  OR a.ChassisNo LIKE '%${search}%'
+  OR a.MotorNo LIKE '%${search}%'
+  OR a.Make LIKE '%${search}%'
+  OR a.PlateNo LIKE '%${search}%'
+  OR a.IDNo LIKE '%${search}%'
+  OR a.BLTFileNo LIKE '%${search}%'
+  OR a.BodyType LIKE '%${search}%'
+  OR a.CoverNo LIKE '%${search}%'
+  OR a.ORNo LIKE '%${search}%'
+  OR a.Account LIKE '%${search}%'
+  OR a.Model LIKE '%${search}%'
+  ORDER BY a.AssuredName ASC
   LIMIT 50
-  ;
-  `);
+`;
+
+console.log(qry)
+  return await prisma.$queryRawUnsafe(qry);
 }

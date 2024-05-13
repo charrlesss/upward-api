@@ -1,8 +1,6 @@
 import express from "express";
 import {
   GenerateClaimsID,
-  claimnsPolicyComputation,
-  claimnsPolicyComputationRemittance,
   claimsPolicy,
   createClaim,
   getInsuranceList,
@@ -10,7 +8,6 @@ import {
   updateClaim,
   updateClaimIDSequence,
 } from "../../../model/Task/Claims/claims";
-import promiseAll from "../../../lib/promise-all";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -117,6 +114,9 @@ Claim.post(
       req.body.dateAccident = new Date(req.body.dateAccident).toISOString();
       delete req.body.search;
       delete req.body.mode;
+      delete req.body.DateFrom;
+      delete req.body.DateTo;
+
       const date = new Date();
       await createClaim({
         claimData: {
@@ -257,6 +257,9 @@ Claim.post(
         delete req.body.mode;
         delete req.body.claims_id;
         delete req.body.userCodeConfirmation;
+        delete req.body.DateFrom;
+        delete req.body.DateTo;
+
         const date = new Date();
         await updateClaim({
           claims_id,
@@ -311,36 +314,6 @@ Claim.get("/claims/get-policy", async (req, res) => {
     res.send({ message: error.message, success: false, insurance: [] });
   }
 });
-Claim.post("/claims/get-policy-computation", async (req, res) => {
-  try {
-    const data = req.body.data[0];
-    promiseAll([
-      claimnsPolicyComputation(data.PolicyNo),
-      claimnsPolicyComputationRemittance(data.PolicyNo),
-    ]).then(([getComputation, getRemittance]: any) => {
-      let remitted = "0.00";
-      if (getRemittance.length > 0) {
-        remitted = getRemittance[0].remitted;
-      }
-      const policyComputation = getComputation[0];
-      const selectedData = {
-        ...data,
-        ...policyComputation,
-        remitted,
-      };
-      setTimeout(() => {
-        res.send({
-          message: "Successfully get insurance list",
-          success: true,
-          selectedData,
-        });
-      }, 5000);
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
-  }
-});
 
 Claim.get("/claims/get-claims-id", async (req, res) => {
   try {
@@ -357,28 +330,10 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
 
 Claim.get("/claims/search-claims", async (req, res) => {
   try {
-    const data = (await searchClaims(
-      req.query.searchClaims as string
-    )) as Array<any>;
-    let claims = [];
-    if (data.length > 0) {
-      const bal = (await claimnsPolicyComputation(
-        data[0].PolicyNo
-      )) as Array<any>;
-      const remit = (await claimnsPolicyComputationRemittance(
-        data[0].PolicyNo
-      )) as Array<any>;
-      claims.push({
-        ...data[0],
-        ...bal[0],
-        ...remit[0],
-      });
-    }
-
     res.send({
       message: "Successfully search claim",
       success: true,
-      claims,
+      claims: await searchClaims(req.query.searchClaims as string),
     });
   } catch (error: any) {
     console.log(error.message);
