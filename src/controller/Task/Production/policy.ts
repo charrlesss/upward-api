@@ -10,6 +10,8 @@ import {
   getPolicyAccounts,
   policyAccounts,
   policyTypes,
+  getPolicyAccountType,
+  getPolicyAccountByBonds,
 } from "../../../model/Task/Production/policy";
 import { getRateType } from "../../../model/Task/Production/fire-policy";
 const Policy = express.Router();
@@ -23,6 +25,7 @@ Policy.get("/get-clients", async (req, res) => {
       clients: await getClients(clientSearch as string),
     });
   } catch (err: any) {
+    console.log(err);
     res.send({ message: "SERVER:ERROR", success: false, clients: [] });
   }
 });
@@ -83,12 +86,29 @@ Policy.get("/policy-accounts-by-line", async (req, res) => {
     });
   }
 });
-Policy.post("/policy-type-by-line", async (req, res) => {
+
+Policy.get("/get-policy-account-types", async (req, res) => {
   try {
     res.send({
       message: "successfully get policy account",
       success: true,
-      policyTypes: await policyTypes(req.body.Line,req.body.Account),
+      getPolicyAccountType: await getPolicyAccountType(),
+    });
+  } catch (err: any) {
+    res.send({
+      message: err.message,
+      success: false,
+      policyTypes: [],
+    });
+  }
+});
+
+Policy.get("/get-policy-account-bonds", async (req, res) => {
+  try {
+    res.send({
+      message: "successfully get policy account",
+      success: true,
+      getPolicyAccountByBonds: await getPolicyAccountByBonds(),
     });
   } catch (err: any) {
     res.send({

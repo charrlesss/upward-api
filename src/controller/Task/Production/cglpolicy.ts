@@ -12,6 +12,7 @@ import { getMSPRRate } from "../../../model/Task/Production/mspr-policy";
 import {
   createCGLPolicy,
   deleteCGLPolicy,
+  deletePolicyByCGL,
   searchCGLPolicy,
 } from "../../../model/Task/Production/cgl-policy";
 import {
@@ -92,7 +93,7 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
     if (!(await saveUserLogsCode(req, "edit", PolicyNo, "CGL Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
+
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "CGL")) as Array<any>)[0];
 
@@ -108,13 +109,13 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
-    //delete policy
-    await deletePolicy(PolicyAccount, "CGL", PolicyNo);
-    // //delete CGL policy
-    await deleteCGLPolicy(PolicyAccount, PolicyNo);
-    // //delete journal
+    await deleteCGLPolicy(PolicyNo);
+    await deletePolicyByCGL(PolicyNo);
     await deleteJournalBySource(PolicyNo, "PL");
 
+    req.body.sumInsured = parseFloat(
+      req.body.sumInsured.toString().replace(/,/, "")
+    ).toFixed(2);
     // insert CGL policy
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
 
@@ -131,10 +132,8 @@ CGLPolicy.post("/delete-cgl-policy", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    //delete policy
-    await deletePolicy(PolicyAccount, "CGL", PolicyNo);
-    //delete CGL policy
-    await deleteCGLPolicy(PolicyAccount, PolicyNo);
+    await deleteCGLPolicy(PolicyNo);
+    await deletePolicyByCGL(PolicyNo);
     res.send({ message: "Delete CGL Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -162,6 +161,8 @@ async function insertCGLPolicy({
   premisisOperation,
   strArea,
   cStrArea,
+  address,
+  sumInsured,
 }: any) {
   //   create  Policy
   await createPolicy({
@@ -194,6 +195,8 @@ async function insertCGLPolicy({
     PeriodTo: DateTo,
     LimitA: blPremium,
     LimitB: pdPremium,
+    address,
+    sumInsured,
   });
 
   //debit

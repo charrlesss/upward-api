@@ -1,4 +1,4 @@
-  import express, { Request, Response } from "express";
+import express, { Request, Response } from "express";
 import {
   getTPL_IDS,
   findPolicy,
@@ -9,20 +9,17 @@ import {
   deletePolicy,
   createPolicy,
   createVehiclePolicy,
-  createJournal,
   createJournalInVP,
   updateJournalByPolicy,
   getTempPolicyID,
   searchDataVPolicy,
+  deletePolicyByVehicle,
 } from "../../../model/Task/Production/vehicle-policy";
-import promiseAll from "../../../lib/promise-all";
-
 import { getAgents, getClients } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const VehiclePolicy = express.Router();
-
 VehiclePolicy.get(
   "/get-vehicle-policy-temp-id",
   async (req: Request, res: Response) => {
@@ -37,7 +34,6 @@ VehiclePolicy.get(
     }
   }
 );
-
 VehiclePolicy.get(
   "/search-client-vehicle-policy",
   async (req: Request, res: Response) => {
@@ -54,7 +50,6 @@ VehiclePolicy.get(
     }
   }
 );
-
 VehiclePolicy.get(
   "/search-agent-vehicle-policy",
   async (req: Request, res: Response) => {
@@ -71,7 +66,6 @@ VehiclePolicy.get(
     }
   }
 );
-
 VehiclePolicy.get(
   "/tpl-ids-vehicle-policy",
   async (req: Request, res: Response) => {
@@ -86,7 +80,6 @@ VehiclePolicy.get(
     }
   }
 );
-
 async function insertNewVPolicy({
   form_action,
   form_type,
@@ -400,78 +393,19 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
   const {
-    form_action,
     form_type,
     sub_account,
     client_id,
-    client_name,
-    client_address,
-    agent_id,
-    agent_name,
-    agent_com,
     PolicyAccount,
     PolicyNo,
-    CCN,
-    ORN,
-    DateFrom,
-    DateTo,
-    DateIssued,
-    Model,
-    Make,
-    TB,
-    Color,
-    BLTFileNo,
-    PlateNo,
-    ChassisNo,
-    MotorNo,
-    AuthorizedCapacity,
-    UnladenWeigth,
-    TplType,
-    PremiumPaid,
-    EVSV,
-    Aircon,
-    Stereo,
-    Magwheels,
-    OthersRate,
-    OthersDesc,
-    CompreType,
-    Deductible,
-    Towing,
-    ARL,
-    BodyInjury,
-    PropertyDamage,
-    PersinalAccident,
     Denomination,
-    Mortgagee,
-    MortgageeForm,
-    SectionI_II,
-    SectionIII,
-    OwnDamage,
-    Theft,
-    SectionIVA,
-    SectionIVB,
-    PremiumOther,
-    AOG,
-    AOGPercent,
-    TotalPremium,
-    Vat,
-    DocStamp,
-    LocalGovTax,
-    StradCom,
-    TotalDue,
-    Type,
-    LocalGovTaxPercent,
-    rateCost,
-    Source_No_Ref_ID,
   } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "Vehicle Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-
     //get Commision rate
     const rate = (
       (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
@@ -482,28 +416,23 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
         success: false,
       });
     }
-
     const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-
     //delete policy
-    await deletePolicy(PolicyAccount, form_type, PolicyNo);
+    await deletePolicyByVehicle(form_type, PolicyNo);
     //delete v policy
-    await deleteVehiclePolicy(PolicyAccount, form_type, PolicyNo);
+    await deleteVehiclePolicy(form_type, PolicyNo);
     //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
-
     // insert policy
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
-
     res.send({ message: "Update Journal Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
   }
 });
-
 VehiclePolicy.get("/tpl-search-vehicle-policy", async (req, res) => {
   const { form_type, form_action, search } = req.query;
   const getSearch = await searchDataVPolicy(
@@ -525,9 +454,9 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicy(PolicyAccount, form_type, PolicyNo);
+    await deletePolicyByVehicle(form_type, PolicyNo);
     // //delete v policy
-    await deleteVehiclePolicy(PolicyAccount, form_type, PolicyNo);
+    await deleteVehiclePolicy(form_type, PolicyNo);
 
     await saveUserLogs(req, PolicyNo, "delete", "Vehicle Policy");
     res.send({
@@ -541,29 +470,33 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     });
   }
 });
-
 export function sampleVPolicy() {
   const data = [];
   let generatedCodes = new Set();
 
-function generateUniqueString() {
+  function generateUniqueString() {
     while (true) {
-        // Generate random numbers
-        const randomNumber1 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        const randomNumber2 = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        const randomNumber3 = Math.floor(Math.random() * 10000000).toString().padStart(7, '0');
-        
-        // Construct the unique string
-        const uniqueString = `PC-GA${randomNumber1}A${randomNumber2}-${randomNumber3}`;
-        
-        // Check if the code is already generated
-        if (!generatedCodes.has(uniqueString)) {
-            generatedCodes.add(uniqueString);
-            return uniqueString;
-        }
-    }
-}
+      // Generate random numbers
+      const randomNumber1 = Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, "0");
+      const randomNumber2 = Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, "0");
+      const randomNumber3 = Math.floor(Math.random() * 10000000)
+        .toString()
+        .padStart(7, "0");
 
+      // Construct the unique string
+      const uniqueString = `PC-GA${randomNumber1}A${randomNumber2}-${randomNumber3}`;
+
+      // Check if the code is already generated
+      if (!generatedCodes.has(uniqueString)) {
+        generatedCodes.add(uniqueString);
+        return uniqueString;
+      }
+    }
+  }
 
   for (let index = 0; index < 500; index++) {
     data.push({
@@ -640,7 +573,7 @@ function generateUniqueString() {
   }
 
   data.forEach(async (itm: any) => {
-    console.log(itm)
+    console.log(itm);
     await insertNewVPolicy(itm);
   });
 }

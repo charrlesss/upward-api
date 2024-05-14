@@ -1,17 +1,18 @@
-
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function createCGLPolicy(data: any) {
-    return await prisma.cglpolicy.create({ data });
-  }
-  
-  export async function searchCGLPolicy(search:string) {
-    const query = `
+  return await prisma.cglpolicy.create({ data });
+}
+
+export async function searchCGLPolicy(search: string) {
+  const query = `
       select a.*,b.*, 
         if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
         concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
-        c.address
+        c.address,
+        format(a.sumInsured,2) as sumInsured,
+        a.address  as cgl_address
         FROM upward_insurance.cglpolicy a
         left join upward_insurance.policy b
         on a.PolicyNo = b.PolicyNo 
@@ -24,20 +25,23 @@ export async function createCGLPolicy(data: any) {
         c.middlename like '%${search}%' 
       limit 100
       `;
-    return await prisma.$queryRawUnsafe(query);
-  }
-  
-  
-  export async function deleteCGLPolicy(
-    Acount: string,
-    PolicyNo: string
-  ) {
-    const query = `
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function deleteCGLPolicy(PolicyNo: string) {
+  const query = `
     delete from upward_insurance.cglpolicy 
     where 
-    Account = '${Acount}' 
-    and PolicyNo = '${PolicyNo}'
+     PolicyNo = '${PolicyNo}' 
     `;
-    return await prisma.$queryRawUnsafe(query);
-  }
-  
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function deletePolicyByCGL(PolicyNo: string) {
+  const query = `
+    delete from upward_insurance.policy 
+    where 
+    PolicyNo = '${PolicyNo}' and TRIM(PolicyType) = 'CGL'
+    `;
+  return await prisma.$queryRawUnsafe(query);
+}

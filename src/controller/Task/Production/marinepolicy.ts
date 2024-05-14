@@ -16,6 +16,7 @@ import {
   searchMarinePolicy,
   getWords,
   deleteMarinePolicy,
+  deletePolicyFromMarine,
 } from "../../../model/Task/Production/marine-policy";
 
 import {
@@ -104,7 +105,7 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "Marine Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
+
     //get Commision rate
     const rate = (
       (await getMarineRate(PolicyAccount, "Marine")) as Array<any>
@@ -122,9 +123,9 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, "MAR", PolicyNo);
+    await deletePolicyFromMarine(PolicyNo);
     //delete m policy
-    await deleteMarinePolicy(PolicyAccount, PolicyNo);
+    await deleteMarinePolicy(PolicyNo);
     //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
@@ -144,9 +145,9 @@ MarinePolicy.post("/delete-marine-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicy(PolicyAccount, "MAR", PolicyNo);
+    await deletePolicyFromMarine(PolicyNo);
     // //delete m policy
-    await deleteMarinePolicy(PolicyAccount, PolicyNo);
+    await deleteMarinePolicy(PolicyNo);
 
     res.send({
       message: "Delete Marine Policy Successfully",

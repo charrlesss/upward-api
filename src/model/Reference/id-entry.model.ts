@@ -13,6 +13,7 @@ interface DataEntryClientTypes {
   middlename?: string;
   lastname?: string;
   company?: string;
+  sale_officer?: string;
 }
 
 interface EntryEmployeeType {
@@ -83,7 +84,8 @@ const queryList: any = {
             b.mobile,
             b.telephone,
             concat(c.Acronym,'-',c.ShortName) as NewShortName,
-            c.Sub_Acct as sub_account
+            c.Sub_Acct as sub_account,
+            a.sale_officer
         FROM
         upward_insurance.entry_client a
             LEFT JOIN
@@ -315,6 +317,7 @@ async function updateClient(data: DataEntryClientTypes) {
     \`address\`='${data.address}',
     \`option\`='${data.option}',
     \`sub_account\`='${data.sub_account}',
+    \`sale_officer\`='${data.sale_officer}',
     \`update\`=NOW()
     where 
       \`entry_client_id\`= '${data.entry_client_id}'

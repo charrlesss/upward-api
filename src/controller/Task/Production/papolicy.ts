@@ -13,6 +13,8 @@ import {
   createPAPolicy,
   searchPAPolicy,
   deletePAPolicy,
+  deletePolicyByPAPolicy,
+  findPAPolicy,
 } from "../../../model/Task/Production/pa-ppolicy";
 
 import {
@@ -67,6 +69,9 @@ PAPolicy.post("/add-pa-policy", async (req, res) => {
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
+    req.body.sumInsured = parseFloat(
+      req.body.sumInsured.toString().replace(/,/, "")
+    ).toFixed(2);
     await insertPaPolicy({ ...req.body, cStrArea, strArea });
     await saveUserLogs(req, PolicyNo, "add", "PA Policy");
     res.send({ message: "Create PA Policy Successfully", success: true });
@@ -94,7 +99,6 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "PA Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "PA")) as Array<any>)[0];
     if (rate === null || rate === undefined) {
@@ -110,13 +114,13 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, "PA", PolicyNo);
+    await deletePolicyByPAPolicy(PolicyNo);
     // //delete PA policy
-    await deletePAPolicy(PolicyAccount, PolicyNo);
+    await deletePAPolicy(PolicyNo);
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
-    // insert fire policy
+    // insert pa policy
     await insertPaPolicy({ ...req.body, cStrArea, strArea });
 
     res.send({ message: "Update PA Policy Successfully", success: true });
@@ -134,9 +138,9 @@ PAPolicy.post("/delete-pa-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicy(PolicyAccount, "PA", PolicyNo);
+    await deletePolicyByPAPolicy(PolicyNo);
     //delete pa policy
-    await deletePAPolicy(PolicyAccount, PolicyNo);
+    await deletePAPolicy(PolicyNo);
 
     await saveUserLogs(req, PolicyNo, "delete", "PA Policy");
     res.send({ message: "Delete PA Policy Successfully", success: true });
@@ -165,6 +169,7 @@ async function insertPaPolicy({
   totalDue,
   strArea,
   cStrArea,
+  sumInsured,
 }: any) {
   //   create  Policy
   await createPolicy({
@@ -195,6 +200,7 @@ async function insertPaPolicy({
     Location: propertyInsured,
     PeriodFrom: DateFrom,
     PeriodTo: DateTo,
+    sumInsured,
   });
 
   //debit

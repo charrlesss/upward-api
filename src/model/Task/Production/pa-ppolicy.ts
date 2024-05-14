@@ -10,7 +10,8 @@ export async function searchPAPolicy(search: string) {
   select a.*,b.*, 
   if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
   concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
-  c.address
+  c.address,
+  format(a.sumInsured,2) as sumInsured
    FROM upward_insurance.papolicy a
   left join upward_insurance.policy b
   on a.PolicyNo = b.PolicyNo 
@@ -26,13 +27,28 @@ export async function searchPAPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePAPolicy(Acount: string, PolicyNo: string) {
+export async function deletePAPolicy(PolicyNo: string) {
   const query = `
   delete from upward_insurance.papolicy 
   where 
-  Account = '${Acount.trim()}' 
-  and PolicyNo = '${PolicyNo}'
+   PolicyNo = '${PolicyNo}' 
   `;
-  console.log(query);
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function findPAPolicy(PolicyNo: string) {
+  const query = `
+  select *  from upward_insurance.papolicy 
+  where 
+   PolicyNo = '${PolicyNo}' and TRIM(PolicyType) = 'PA'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function deletePolicyByPAPolicy(PolicyNo: string) {
+  const query = `
+  delete from upward_insurance.policy 
+  where 
+   PolicyNo = '${PolicyNo}'
+  `;
   return await prisma.$queryRawUnsafe(query);
 }

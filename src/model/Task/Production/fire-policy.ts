@@ -48,7 +48,8 @@ export async function searchFirePolicy(search: string) {
   select a.*,b.*, 
   if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
   concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
-  c.address
+  c.address,
+  c.sale_officer
    FROM upward_insurance.fpolicy a
   left join upward_insurance.policy b
   on a.PolicyNo = b.PolicyNo 
@@ -64,16 +65,20 @@ export async function searchFirePolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteFirePolicy(
-  subAccount: string,
-  policyNo: string
-) {
+export async function deleteFirePolicy(policyNo: string) {
   const query = `
   delete from upward_insurance.fpolicy 
   where 
-  Account = '${subAccount}' 
-  and PolicyNo = '${policyNo}'
+   PolicyNo = '${policyNo}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-       
+
+export async function deletePolicyFromFire(policyNo: string) {
+  const query = `
+  delete from upward_insurance.policy 
+  where 
+  PolicyType = 'FIRE' and PolicyNo = '${policyNo}'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}

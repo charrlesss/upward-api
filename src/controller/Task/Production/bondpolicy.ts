@@ -11,6 +11,8 @@ import {
 import {
   createBondsPolicy,
   deleteBondsPolicy,
+  deletePolicyFromBond,
+  getAllBondsType,
   getBondRate,
   searchBondsPolicy,
 } from "../../../model/Task/Production/bond-policy";
@@ -23,6 +25,23 @@ import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const BondPolicy = express.Router();
+
+BondPolicy.get("/get-bond-acc-type", async (req, res) => {
+  try {
+    const bonds = ((await getAllBondsType()) as any).map(
+      (d: any) => d.SublineName
+    );
+    const string = bonds.join(" = 1 AND ") + " = 1";
+    res.send({
+      message: "Create Bonds Policy Successfully",
+      string: `SELECT * FROM upward_insurance.policy_account a where ${string}`,
+      success: true,
+    });
+  } catch (err: any) {
+    console.log(err);
+    res.send({ message: err.message, success: false });
+  }
+});
 
 BondPolicy.get("/get-bonds-policy", (req, res) => {
   try {
@@ -83,6 +102,7 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
     await saveUserLogs(req, PolicyNo, "add", "Bonds Policy");
     res.send({ message: "Create Bonds Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err);
     res.send({ message: err.message, success: false });
   }
 });
@@ -108,7 +128,7 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     if (!(await saveUserLogsCode(req, "edit", PolicyNo, "Bonds Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
+
     //get Commision rate
     const rate = (
       (await getBondRate(PolicyAccount, policyType)) as Array<any>
@@ -127,17 +147,18 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, policyType, PolicyNo);
+    await deletePolicyFromBond(policyType, PolicyNo);
     // //delete v policy
-    await deleteBondsPolicy(PolicyAccount, policyType, PolicyNo);
+    await deleteBondsPolicy(policyType, PolicyNo);
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
     // insert fire policy
     await insertBondsPolicy({ ...req.body, cStrArea, strArea });
-    
+
     res.send({ message: "Update Bonds Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err);
     res.send({ message: err.message, success: false });
   }
 });
@@ -149,9 +170,9 @@ BondPolicy.post("/delete-bonds-policy", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
     //delete policy
-    await deletePolicy(PolicyAccount, policyType, PolicyNo);
+    await deletePolicyFromBond(policyType, PolicyNo);
     //delete v policy
-    await deleteBondsPolicy(PolicyAccount, policyType, PolicyNo);
+    await deleteBondsPolicy(policyType, PolicyNo);
     res.send({ message: "Delete Bonds Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

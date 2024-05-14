@@ -86,7 +86,7 @@ WHERE
       OR a.MotorNo LIKE '%${search}%'
       limit 50
   `;
-
+  console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }
 
@@ -94,7 +94,9 @@ function comnputationQry() {
   return `
   SELECT 
       format(MIN(b.TotalDue),2) as totaDue,
-      if( MAX(ifnull(d.remitted,0)) > 0, format((SUM(a.Credit) - MIN(b.TotalDue) - MIN(ifnull(d.remitted,0))),2) ,format(SUM(a.Credit) - MIN(b.TotalDue),2)) AS  totalpaid,
+      if( MAX(ifnull(d.remitted,0)) > 0,
+      if(SUM(a.Credit) - MIN(b.TotalDue) = 0, 0.00, format((SUM(a.Credit) - MIN(b.TotalDue) - MIN(ifnull(d.remitted,0))),2)),
+       format(SUM(a.Credit) - MIN(b.TotalDue),2)) AS  totalpaid,
       if(MAX(ifnull(d.remitted,0)) > 0 , format(MIN(b.TotalDue) - (SUM(a.Credit) - MIN(b.TotalDue) - MAX(ifnull(d.remitted,0))),2) , format(MIN(b.TotalDue) - (MIN(c.accountTotal) - MIN(b.TotalDue)),2))  as balance,
       format(MAX(ifnull(d.remitted,0)),2) as remitted ,
       MAX(b.PolicyNo) as PolicyNo
@@ -245,6 +247,6 @@ export async function searchClaims(search: string) {
   LIMIT 50
 `;
 
-console.log(qry)
+  console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }

@@ -12,6 +12,7 @@ import promiseAll from "../../../lib/promise-all";
 import {
   createFirePolicy,
   deleteFirePolicy,
+  deletePolicyFromFire,
   getRateType,
   searchFirePolicy,
 } from "../../../model/Task/Production/fire-policy";
@@ -27,7 +28,6 @@ import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 
 const FirePolicy = express.Router();
-
 FirePolicy.get("/get-fire-policy", async (req: Request, res: Response) => {
   try {
     promiseAll([
@@ -255,9 +255,9 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, "FIRE", PolicyNo);
+    await deletePolicyFromFire(PolicyNo);
     //delete v policy
-    await deleteFirePolicy(PolicyAccount, PolicyNo);
+    await deleteFirePolicy(PolicyNo);
     //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
@@ -268,7 +268,6 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 FirePolicy.post("/delete-fire-policy", async (req, res) => {
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
@@ -277,9 +276,9 @@ FirePolicy.post("/delete-fire-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicy(PolicyAccount, "FIRE", PolicyNo);
+    await deletePolicyFromFire(PolicyNo);
     // //delete v policy
-    await deleteFirePolicy(PolicyAccount, PolicyNo);
+    await deleteFirePolicy(PolicyNo);
     res.send({
       message: "Delete Fire Policy Successfully",
       success: true,

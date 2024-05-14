@@ -80,7 +80,7 @@ export async function getRate(account: string, line: string, type: string) {
   and trim(Line) = '${line}' 
   and trim(Type) = '${type}'
   `;
-  console.log(query)
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -94,6 +94,20 @@ export async function getClientById(entry_client_id: string) {
   upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
   where a.entry_client_id ='${entry_client_id}'
   `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function deletePolicyByVehicle(
+  form_type: string,
+  policyNo: string
+) {
+  const query = `
+  delete from upward_insurance.policy 
+  where 
+  PolicyType = '${form_type}' 
+  and PolicyNo = '${policyNo}'
+  `;
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -113,17 +127,11 @@ export async function deletePolicy(
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteVehiclePolicy(
-  subAccount: string,
-  form_type: string,
-  policyNo: string
-) {
+export async function deleteVehiclePolicy(form_type: string, policyNo: string) {
   const query = `
   delete from upward_insurance.vpolicy 
   where 
-  Account = '${subAccount}' 
-  and PolicyType = '${form_type}' 
-  and PolicyNo = '${policyNo}'
+   PolicyNo = '${policyNo}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -289,7 +297,8 @@ export async function searchDataVPolicy(
       b.*,
       if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
       c.address as address,
-      concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname
+      concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
+      c.sale_officer
     FROM
       upward_insurance.policy a
           LEFT JOIN

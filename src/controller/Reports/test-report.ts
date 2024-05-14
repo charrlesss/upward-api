@@ -77,6 +77,8 @@ testReport.post("/add-client", async (req, res) => {
   });
 });
 
+
+
 testReport.post("/add-agent", async (req, res) => {
   const data = JSON.parse(req.body.dataString)[0];
   var checkYear1 = prev.substring(2, 4);
@@ -292,6 +294,32 @@ testReport.post("/add-chart-account", async (req, res) => {
     vehiclePolicy: [],
   });
 });
+
+testReport.post("/add-rates", async (req, res) => {
+  const data = JSON.parse(req.body.dataString);
+  const {
+    Account,
+    Line,
+    Type,
+    Rate
+  } = data[0]
+
+  await prisma.rates.create({
+    data: {
+      Account,
+      Line,
+      Type,
+      Rate
+    },
+  });
+
+  res.send({
+    message: "test Report",
+    vehiclePolicy: [],
+  });
+});
+
+
 testReport.post("/add-transaction-code", async (req, res) => {
   try {
     const data = JSON.parse(req.body.dataString);

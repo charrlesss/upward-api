@@ -7,6 +7,7 @@ export async function getClients(search: string, hasLimit: boolean = false) {
         a.entry_client_id,
         a.address,
         IF(a.company = '', concat(a.firstname,' ',a.middlename,' ',a.lastname), a.company) AS fullname,
+        a.sale_officer,
         'Client' AS entry_type
         FROM
         upward_insurance.entry_client a
@@ -16,8 +17,9 @@ export async function getClients(search: string, hasLimit: boolean = false) {
         OR a.lastname like '%${search}%'
         OR a.company like '%${search}%'
         ORDER BY a.createdAt desc
-        limit 250
+        limit 50
         `;
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -76,6 +78,18 @@ export async function policyTypes(Line: string, Account: string) {
         Account = '${Account}'
     GROUP BY TYPE
     ORDER BY TYPE asc
+  `);
+}
+
+export async function getPolicyAccountType() {
+  return await prisma.$queryRawUnsafe(`
+  select SubLineName from Subline where line = 'Bonds'
+  `);
+}
+
+export async function getPolicyAccountByBonds() {
+  return await prisma.$queryRawUnsafe(`
+  SELECT Account ,G02, G13, G16 FROM upward_insurance.policy_account WHERE G16 = 1 OR G02 = 1 OR G13 =1 ORDER BY Account
   `);
 }
 
