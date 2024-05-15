@@ -116,6 +116,8 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
     req.body.sumInsured = parseFloat(
       req.body.sumInsured.toString().replace(/,/, "")
     ).toFixed(2);
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString();
+
     // insert CGL policy
     await insertCGLPolicy({ ...req.body, cStrArea, strArea });
 

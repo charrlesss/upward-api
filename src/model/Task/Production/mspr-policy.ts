@@ -12,10 +12,14 @@ export async function createMSPRPolicy(data: any) {
 
 export async function searchMsprPolicy(search: string) {
   const query = `
-    select a.*,b.*, 
+    select 
+    a.*,
+    b.*, 
     if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
-    c.address
+    c.address,
+    c.sale_officer,
+    date_format(b.DateIssued , '%m/%d/%Y') as DateIssued
      FROM upward_insurance.msprpolicy a
     left join upward_insurance.policy b
     on a.PolicyNo = b.PolicyNo 
@@ -31,12 +35,21 @@ export async function searchMsprPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteMsprPolicy(Acount: string, PolicyNo: string) {
+export async function deleteMsprPolicy( PolicyNo: string) {
   const query = `
   delete from upward_insurance.msprpolicy 
   where 
-  Account = '${Acount}' 
-  and PolicyNo = '${PolicyNo}'
+  PolicyNo = '${PolicyNo}'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
+
+export async function deletePolicyFromMspr(policyNo: string) {
+  const query = `
+  delete from upward_insurance.policy 
+  where 
+  PolicyType = 'MSPR' and PolicyNo = '${policyNo}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }

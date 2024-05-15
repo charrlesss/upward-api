@@ -153,6 +153,8 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
+
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
     // insert fire policy
     await insertBondsPolicy({ ...req.body, cStrArea, strArea });
 

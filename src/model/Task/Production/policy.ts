@@ -81,6 +81,8 @@ export async function policyTypes(Line: string, Account: string) {
   `);
 }
 
+
+
 export async function getPolicyAccountType() {
   return await prisma.$queryRawUnsafe(`
   select SubLineName from Subline where line = 'Bonds'

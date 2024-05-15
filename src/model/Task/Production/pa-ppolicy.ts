@@ -11,7 +11,9 @@ export async function searchPAPolicy(search: string) {
   if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
   concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
   c.address,
-  format(a.sumInsured,2) as sumInsured
+  format(a.sumInsured,2) as sumInsured,
+  c.sale_officer,
+  date_format(b.DateIssued , '%m/%d/%Y') as DateIssued
    FROM upward_insurance.papolicy a
   left join upward_insurance.policy b
   on a.PolicyNo = b.PolicyNo 

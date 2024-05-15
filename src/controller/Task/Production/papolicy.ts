@@ -113,6 +113,8 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
+
     //delete policy
     await deletePolicyByPAPolicy(PolicyNo);
     // //delete PA policy

@@ -50,8 +50,7 @@ export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string) {
   const query = `
   delete from upward_insurance.bpolicy 
   where 
-   PolicyType = '${PolicyType}'
-  and PolicyNo = '${PolicyNo}'
+   PolicyNo = '${PolicyNo}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -63,7 +62,7 @@ export async function deletePolicyFromBond(
   const query = `
   delete from upward_insurance.policy 
   where 
-  PolicyType = '${policyType}' and PolicyNo = '${PolicyNo}'
+  PolicyType in (SELECT SublineName FROM upward_insurance.subline where Line = 'Bonds') and PolicyNo = '${PolicyNo}'
   `;
   return await prisma.$queryRawUnsafe(query);
 }

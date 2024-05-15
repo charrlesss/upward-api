@@ -11,6 +11,7 @@ import {
 import {
   createMSPRPolicy,
   deleteMsprPolicy,
+  deletePolicyFromMspr,
   getMSPRRate,
   searchMsprPolicy,
 } from "../../../model/Task/Production/mspr-policy";
@@ -94,7 +95,7 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "MSPR Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    
+
     //get Commision rate
     const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
 
@@ -111,11 +112,13 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicy(PolicyAccount, "MSPR", PolicyNo);
+    await deletePolicyFromMspr(PolicyNo);
     // //delete v policy
-    await deleteMsprPolicy(PolicyAccount, PolicyNo);
+    await deleteMsprPolicy(PolicyNo);
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
+    
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
 
     // insert fire policy
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
@@ -128,16 +131,17 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
 });
 
 MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
-  const { PolicyAccount, PolicyNo, policyType } = req.body;
+  const { PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "MSPR Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
     //delete policy
-    await deletePolicy(PolicyAccount, policyType, PolicyNo);
-    //delete v policy
-    await deleteMsprPolicy(PolicyAccount, PolicyNo);
+    await deletePolicyFromMspr(PolicyNo);
+    // //delete v policy
+    await deleteMsprPolicy(PolicyNo);
+
     await saveUserLogs(req, PolicyNo, "delete", "MSPR Policy");
     res.send({ message: "Delete MSPR Policy Successfully", success: true });
   } catch (err: any) {
