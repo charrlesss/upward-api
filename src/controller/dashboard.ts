@@ -94,4 +94,30 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
   }
 });
 
+Dashboard.get("/get-claims-notice", async (req, res) => {
+  const qry = `SELECT 
+    a.claims_id,
+    a.PolicyNo,
+    a.AssuredName,
+    DATE_FORMAT(a.dateAccident, '%m/%d/%Y') AS dateAccident,
+    DATE_FORMAT(a.dateReported, '%m/%d/%Y') AS dateReported
+FROM
+    upward_insurance.claims a
+        LEFT JOIN
+    upward_insurance.claims_documents b ON a.claims_id = b.claims_id
+WHERE
+    status <> 1`;
+
+  try {
+    const claims = await prisma.$queryRawUnsafe(qry);
+    res.send({
+      message: `Successfully Get Claims Notice`,
+      claims,
+      success: true,
+    });
+  } catch (err: any) {
+    res.send({ message: err.message, success: false });
+  }
+});
+
 export default Dashboard;

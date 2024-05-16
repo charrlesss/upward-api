@@ -50,91 +50,110 @@ Claim.post(
   ]),
   async (req, res) => {
     try {
-      const claims_id = req.body.claims_id;
-      let objToSave = Object.keys(req.files as any).reduce(
-        (obj: any, value) => {
-          obj[value] = "";
-          return obj;
-        },
-        {}
-      );
-      Object.entries(req.files as any).forEach(([key, value]: any) => {
-        let specFolder = "";
-        const filesSave: any = [];
-        const basicDocumentFolder = [
-          "policyFile",
-          "endorsement",
-          "OPP",
-          "ORCR",
-          "DLOR",
-          "PR",
-          "DA",
-          "SMCN",
-        ];
-        if (basicDocumentFolder.includes(key)) {
-          specFolder = "Basic-Document";
-        } else {
-          specFolder = "Other-Document";
+      const originalDataBody = req.body;
+      const originalDataFile = req.files;
+      const reformattedData = [];
+      const length = originalDataBody.policy.length;
+      
+      for (let i = 0; i < length; i++) {
+        let newObj: any = {};
+        for (let key in originalDataBody) {
+          newObj[key] = originalDataBody[key][i];
         }
-        value.forEach((file: any) => {
-          const uniqueFilename = generateUniqueFilename(file.originalname);
-          const uploadDir = path.join(
-            "./static/claim-files",
-            claims_id,
-            specFolder
-          );
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          const filePath = path.join(uploadDir, uniqueFilename);
-          const fileStream = fs.createWriteStream(filePath);
-          filesSave.push({
-            fileName: file.originalname,
-            fileType: file.mimetype,
-            uniqueFilename,
-          });
-          fileStream.write(file.buffer);
-          fileStream.end();
-        });
-        objToSave[key] = JSON.stringify(filesSave);
-      });
-      req.body.totaDue = parseFloat(
-        req.body.totaDue.toString().replace(/,/g, "")
-      ).toFixed(2);
-      req.body.totalpaid = parseFloat(
-        req.body.totalpaid.toString().replace(/,/g, "")
-      ).toFixed(2);
-      req.body.balance = parseFloat(
-        req.body.balance.toString().replace(/,/g, "")
-      ).toFixed(2);
-      req.body.remitted = parseFloat(
-        req.body.remitted.toString().replace(/,/g, "")
-      ).toFixed(2);
-      req.body.dateReported = new Date(req.body.dateReported).toISOString();
-      req.body.dateAccident = new Date(req.body.dateAccident).toISOString();
-      delete req.body.search;
-      delete req.body.mode;
-      delete req.body.DateFrom;
-      delete req.body.DateTo;
+        reformattedData.push(newObj);
+      }
 
-      const date = new Date();
-      await createClaim({
-        claimData: {
-          ...req.body,
-          createdAt: date.toISOString(),
-        },
-        documentData: {
-          claims_id,
-          ...objToSave,
-        },
-      });
 
-      await updateClaimIDSequence({
-        last_count: claims_id.split("-")[1].split("C")[1],
-        year: date.getFullYear().toString().slice(-2),
-        month: (date.getMonth() + 1).toString().padStart(2, "0"),
-      });
-      await saveUserLogs(req, req.body.claims_id, "add", "Claims");
+
+      console.log(reformattedData);
+
+      // const claims_id = req.body.claims_id;
+      // let objToSave = Object.keys(req.files as any).reduce(
+      //   (obj: any, value) => {
+      //     obj[value] = "";
+      //     return obj;
+      //   },
+      //   {}
+      // );
+      // Object.entries(req.files as any).forEach(([key, value]: any) => {
+      //   let specFolder = "";
+      //   const filesSave: any = [];
+      //   const basicDocumentFolder = [
+      //     "policyFile",
+      //     "endorsement",
+      //     "OPP",
+      //     "ORCR",
+      //     "DLOR",
+      //     "PR",
+      //     "DA",
+      //     "SMCN",
+      //   ];
+      //   if (basicDocumentFolder.includes(key)) {
+      //     specFolder = "Basic-Document";
+      //   } else {
+      //     specFolder = "Other-Document";
+      //   }
+      //   value.forEach((file: any) => {
+      //     const uniqueFilename = generateUniqueFilename(file.originalname);
+      //     const uploadDir = path.join(
+      //       "./static/claim-files",
+      //       claims_id,
+      //       specFolder
+      //     );
+      //     if (!fs.existsSync(uploadDir)) {
+      //       fs.mkdirSync(uploadDir, { recursive: true });
+      //     }
+      //     const filePath = path.join(uploadDir, uniqueFilename);
+      //     const fileStream = fs.createWriteStream(filePath);
+      //     filesSave.push({
+      //       fileName: file.originalname,
+      //       fileType: file.mimetype,
+      //       uniqueFilename,
+      //     });
+      //     fileStream.write(file.buffer);
+      //     fileStream.end();
+      //   });
+      //   objToSave[key] = JSON.stringify(filesSave);
+      // });
+      // req.body.totaDue = parseFloat(
+      //   req.body.totaDue.toString().replace(/,/g, "")
+      // ).toFixed(2);
+      // req.body.totalpaid = parseFloat(
+      //   req.body.totalpaid.toString().replace(/,/g, "")
+      // ).toFixed(2);
+      // req.body.balance = parseFloat(
+      //   req.body.balance.toString().replace(/,/g, "")
+      // ).toFixed(2);
+      // req.body.remitted = parseFloat(
+      //   req.body.remitted.toString().replace(/,/g, "")
+      // ).toFixed(2);
+      // req.body.dateReported = new Date(req.body.dateReported).toISOString();
+      // req.body.dateAccident = new Date(req.body.dateAccident).toISOString();
+      // delete req.body.search;
+      // delete req.body.mode;
+      // delete req.body.DateFrom;
+      // delete req.body.DateTo;
+
+      // const date = new Date();
+      // await createClaim({
+      //   claimData: {
+      //     ...req.body,
+      //     createdAt: date.toISOString(),
+      //   },
+      //   documentData: {
+      //     claims_id,
+      //     ...objToSave,
+      //   },
+      // });
+
+      // await updateClaimIDSequence({
+      //   last_count: claims_id.split("-")[1].split("C")[1],
+      //   year: date.getFullYear().toString().slice(-2),
+      //   month: (date.getMonth() + 1).toString().padStart(2, "0"),
+      // });
+      // await saveUserLogs(req, req.body.claims_id, "add", "Claims");
+
+      
       res.send({
         message: "Claim is successfully save",
         success: true,
