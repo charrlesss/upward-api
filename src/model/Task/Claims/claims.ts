@@ -164,23 +164,30 @@ export async function GenerateClaimsID() {
   WHERE
     a.type = 'claims'`);
 }
-export async function createClaim({ claimData, documentData }: any) {
-  await prisma.claims.create({ data: claimData });
-  await prisma.claims_documents.create({ data: documentData });
+export async function createClaim({ claims, claims_details }: any) {
+  await prisma.claims.create({ data: claims });
+  await prisma.claims_details.create({ data: claims_details });
 }
+export async function createClaimDetails(data: any) {
+  await prisma.claims_details.create({ data });
+}
+export async function createClaims(data: any) {
+  await prisma.claims.create({ data });
+}
+
 export async function updateClaim({ claimData, documentData, claims_id }: any) {
-  await prisma.claims.update({
-    data: claimData,
-    where: {
-      claims_id,
-    },
-  });
-  await prisma.claims_documents.update({
-    data: documentData,
-    where: {
-      claims_id,
-    },
-  });
+  // await prisma.claims.update({
+  //   data: claimData,
+  //   where: {
+  //     claims_id,
+  //   },
+  // });
+  // await prisma.claims_documents.update({
+  //   data: documentData,
+  //   where: {
+  //     claims_id,
+  //   },
+  // });
 }
 export async function updateClaimIDSequence(data: any) {
   console.log(data);

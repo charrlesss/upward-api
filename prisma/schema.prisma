@@ -1148,14 +1148,44 @@ model id_from_2020 {
 }
 
 model claims {
-  claims_id    String   @id @default(uuid())
+  claims_id    String   @id
   remarks      String?  @db.Text
   dateReported DateTime
   dateAccident DateTime
-  createdAt    DateTime
+  createdAt    DateTime @default(now())
+  department   String?  @db.VarChar(500)
 }
 
 model claims_details {
+  claim_details_id String  @id @default(uuid())
+  claims_id        String? @db.Text
+  claims_no        String? @db.Text
+  policy           String? @db.VarChar(500)
+  claim_type       String? @db.VarChar(500)
+  insurance        String? @db.VarChar(500)
+  PolicyNo         String? @db.VarChar(500)
+  PlateNo          String? @db.VarChar(500)
+  Model            String? @db.VarChar(500)
+  BodyType         String? @db.VarChar(500)
+  Make             String? @db.VarChar(500)
+  ChassisNo        String? @db.VarChar(500)
+  MotorNo          String? @db.VarChar(500)
+  ORNo             String? @db.VarChar(500)
+  CoverNo          String? @db.VarChar(500)
+  BLTFileNo        String? @db.VarChar(500)
+  AssuredName      String? @db.VarChar(500)
+  IDNo             String? @db.VarChar(500)
+  totaDue          Decimal @default(0.0000) @db.Decimal(19, 4)
+  totalpaid        Decimal @default(0.0000) @db.Decimal(19, 4)
+  balance          Decimal @default(0.0000) @db.Decimal(19, 4)
+  remitted         Decimal @default(0.0000) @db.Decimal(19, 4)
+  Account          String? @db.VarChar(500)
+  status           String? @db.VarChar(500)
+  others           String? @db.Text
+  basic            String? @db.Text
+}
+
+model claims_details_v1 {
   claim_details_id String  @id @default(uuid())
   claims_id        String? @db.Text
   policy           String? @db.VarChar(500)
