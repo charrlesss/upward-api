@@ -2,11 +2,12 @@ import express from "express";
 import {
   GenerateClaimsID,
   claimsPolicy,
-  createClaim,
   createClaimDetails,
   createClaims,
+  deleteClaims,
   getInsuranceList,
   searchClaims,
+  selectedData,
   updateClaim,
   updateClaimIDSequence,
 } from "../../../model/Task/Claims/claims";
@@ -21,6 +22,18 @@ const uploadFile = multer();
 
 Claim.post("/claims/save", async (req, res) => {
   const data = req.body;
+  const isUpdateMode = req.body.mode === "update";
+
+  if (isUpdateMode) {
+    if (
+      !(await saveUserLogsCode(req, "update", req.body.claims_id, "Claims"))
+    ) {
+      return res.send({ message: "Invalid User Code", success: false });
+    }
+
+    await deleteClaims(req.body.claims_id);
+  }
+
   const files = req.body.claimsSubmited;
   const basicDocumentFolder = [
     "policyFile",
@@ -48,8 +61,8 @@ Claim.post("/claims/save", async (req, res) => {
       }
       const basic = UploadFile(basicFileCustom, uploadDir);
       const others = UploadFile(otherFileCustom, uploadDir);
-      policyState.claim_type = policyState.claim_type.toString();
-      policyState.status = policyState.status.toString();
+      policyState.claim_type = policyState.claim_type?.toString();
+      policyState.status = policyState.status?.toString();
       policyState.totaDue = parseFloat(
         policyState.totaDue.toString().replace(/,/g, "")
       ).toFixed(2);
@@ -62,22 +75,24 @@ Claim.post("/claims/save", async (req, res) => {
       policyState.remitted = parseFloat(
         policyState.remitted.toString().replace(/,/g, "")
       ).toFixed(2);
-      let obj = {
+
+      delete policyState.DateFrom;
+      delete policyState.DateTo;
+      await createClaimDetails({
         claim_details_id: uuidV4(),
         claims_id: data.claims_id,
         claims_no,
         basic: JSON.stringify(basic),
         others: JSON.stringify(others),
         ...policyState,
-      };
-      await createClaimDetails(obj);
+      });
     }
   );
   await createClaims({
     claims_id: data.claims_id,
     dateReported: new Date(data.dateReported).toISOString(),
     dateAccident: new Date(data.dateAccident).toISOString(),
-    department: data.department.toString(),
+    department: data.department?.toString(),
     remarks: data.remarks,
     createdAt: new Date().toISOString(),
   });
@@ -120,162 +135,22 @@ Claim.post("/claims/save", async (req, res) => {
   function padNumber(number: number, length: number) {
     return String(number).padStart(length, "0");
   }
-  const date = new Date();
-  await updateClaimIDSequence({
-    last_count: data.claims_id.split("-")[1].split("C")[1],
-    year: date.getFullYear().toString().slice(-2),
-    month: (date.getMonth() + 1).toString().padStart(2, "0"),
-  });
-  await saveUserLogs(req, req.body.claims_id, "add", "Claims");
+  if (!isUpdateMode) {
+    const date = new Date();
+    await saveUserLogs(req, req.body.claims_id, "add", "Claims");
+    await updateClaimIDSequence({
+      last_count: data.claims_id.split("-")[1].split("C")[1],
+      year: date.getFullYear().toString().slice(-2),
+      month: (date.getMonth() + 1).toString().padStart(2, "0"),
+    });
+  }
   res.send({
-    message: "Claim is successfully save",
+    message: isUpdateMode
+      ? "Claim is update successfully"
+      : "Claim is save successfully",
     success: true,
   });
 });
-// Claim.post(
-//   "/claims/test",
-//   uploadFile.fields([
-//     { name: "policyFile" },
-//     { name: "endorsement" },
-//     { name: "OPP" },
-//     { name: "ORCR" },
-//     { name: "DLOR" },
-//     { name: "PR" },
-//     { name: "DA" },
-//     { name: "SMCN" },
-//     { name: "ct1_1" },
-//     { name: "ct1_2" },
-//     { name: "ct2_1" },
-//     { name: "ct2_2" },
-//     { name: "ct2_3" },
-//     { name: "ct2_4" },
-//     { name: "ct3_1" },
-//     { name: "ct3_2" },
-//     { name: "ct3_3" },
-//     { name: "ct3_4" },
-//     { name: "ct3_5" },
-//     { name: "ct4_1" },
-//     { name: "ct4_2" },
-//     { name: "ct4_3" },
-//     { name: "ct4_4" },
-//     { name: "ct4_5" },
-//     { name: "ct5_1" },
-//     { name: "ct5_2" },
-//     { name: "ct5_3" },
-//   ]),
-//   async (req, res) => {
-//     try {
-//       const originalDataBody = req.body;
-//       const originalDataFile = req.files;
-//       const reformattedData = [];
-//       const length = originalDataBody.policy.length;
-//       for (let i = 0; i < length; i++) {
-//         let newObj: any = {};
-//         for (let key in originalDataBody) {
-//           newObj[key] = originalDataBody[key][i];
-//         }
-//         reformattedData.push(newObj);
-//       }
-
-//       console.log(reformattedData);
-//       console.log(originalDataFile);
-
-//       // const claims_id = req.body.claims_id;
-//       // let objToSave = Object.keys(req.files as any).reduce(
-//       //   (obj: any, value) => {
-//       //     obj[value] = "";
-//       //     return obj;
-//       //   },
-//       //   {}
-//       // );
-//       // Object.entries(req.files as any).forEach(([key, value]: any) => {
-//       //   let specFolder = "";
-//       //   const filesSave: any = [];
-//       //   const basicDocumentFolder = [
-//       //     "policyFile",
-//       //     "endorsement",
-//       //     "OPP",
-//       //     "ORCR",
-//       //     "DLOR",
-//       //     "PR",
-//       //     "DA",
-//       //     "SMCN",
-//       //   ];
-//       //   if (basicDocumentFolder.includes(key)) {
-//       //     specFolder = "Basic-Document";
-//       //   } else {
-//       //     specFolder = "Other-Document";
-//       //   }
-//       //   value.forEach((file: any) => {
-//       //     const uniqueFilename = generateUniqueFilename(file.originalname);
-//       //     const uploadDir = path.join(
-//       //       "./static/claim-files",
-//       //       claims_id,
-//       //       specFolder
-//       //     );
-//       //     if (!fs.existsSync(uploadDir)) {
-//       //       fs.mkdirSync(uploadDir, { recursive: true });
-//       //     }
-//       //     const filePath = path.join(uploadDir, uniqueFilename);
-//       //     const fileStream = fs.createWriteStream(filePath);
-//       //     filesSave.push({
-//       //       fileName: file.originalname,
-//       //       fileType: file.mimetype,
-//       //       uniqueFilename,
-//       //     });
-//       //     fileStream.write(file.buffer);
-//       //     fileStream.end();
-//       //   });
-//       //   objToSave[key] = JSON.stringify(filesSave);
-//       // });
-//       // req.body.totaDue = parseFloat(
-//       //   req.body.totaDue.toString().replace(/,/g, "")
-//       // ).toFixed(2);
-//       // req.body.totalpaid = parseFloat(
-//       //   req.body.totalpaid.toString().replace(/,/g, "")
-//       // ).toFixed(2);
-//       // req.body.balance = parseFloat(
-//       //   req.body.balance.toString().replace(/,/g, "")
-//       // ).toFixed(2);
-//       // req.body.remitted = parseFloat(
-//       //   req.body.remitted.toString().replace(/,/g, "")
-//       // ).toFixed(2);
-//       // req.body.dateReported = new Date(req.body.dateReported).toISOString();
-//       // req.body.dateAccident = new Date(req.body.dateAccident).toISOString();
-//       // delete req.body.search;
-//       // delete req.body.mode;
-//       // delete req.body.DateFrom;
-//       // delete req.body.DateTo;
-
-//       // const date = new Date();
-//       // await createClaim({
-//       //   claimData: {
-//       //     ...req.body,
-//       //     createdAt: date.toISOString(),
-//       //   },
-//       //   documentData: {
-//       //     claims_id,
-//       //     ...objToSave,
-//       //   },
-//       // });
-
-//       // await updateClaimIDSequence({
-//       //   last_count: claims_id.split("-")[1].split("C")[1],
-//       //   year: date.getFullYear().toString().slice(-2),
-//       //   month: (date.getMonth() + 1).toString().padStart(2, "0"),
-//       // });
-//       // await saveUserLogs(req, req.body.claims_id, "add", "Claims");
-
-//       res.send({
-//         message: "Claim is successfully save",
-//         success: true,
-//       });
-//     } catch (error: any) {
-//       console.log(error.message);
-//       res.send({ message: error.message, success: false, insurance: [] });
-//     }
-//   }
-// );
 Claim.post(
   "/claims/update",
   uploadFile.fields([
@@ -445,7 +320,6 @@ Claim.get("/claims/get-policy", async (req, res) => {
     res.send({ message: error.message, success: false, insurance: [] });
   }
 });
-
 Claim.get("/claims/get-claims-id", async (req, res) => {
   try {
     res.send({
@@ -458,7 +332,6 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
     res.send({ message: error.message, success: false, insurance: [] });
   }
 });
-
 Claim.get("/claims/search-claims", async (req, res) => {
   try {
     res.send({
@@ -466,6 +339,57 @@ Claim.get("/claims/search-claims", async (req, res) => {
       success: true,
       claims: await searchClaims(req.query.searchClaims as string),
     });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: error.message, success: false, insurance: [] });
+  }
+});
+Claim.post("/claims/selected-search-claims", async (req, res) => {
+  try {
+    setTimeout(async () => {
+      const selectedRowData = req.body.selectedRowData;
+      const claims_id = selectedRowData[0].claims_id;
+      const data: any = await selectedData(claims_id);
+      const formattedSelectedData: Array<any> = [];
+      data.forEach((list: any) => {
+        formattedSelectedData.push({
+          id: list.claims_no,
+          basicFileCustom: JSON.parse(list.basic),
+          otherFileCustom: JSON.parse(list.others),
+          policyState: {
+            policy: list.policy,
+            claim_type: parseInt(list.claim_type),
+            insurance: list.insurance,
+            PolicyNo: list.PolicyNo,
+            PlateNo: list.PlateNo,
+            Model: list.Model,
+            BodyType: list.BodyType,
+            Make: list.Make,
+            ChassisNo: list.ChassisNo,
+            MotorNo: list.MotorNo,
+            ORNo: list.ORNo,
+            CoverNo: list.CoverNo,
+            BLTFileNo: list.BLTFileNo,
+            AssuredName: list.AssuredName,
+            IDNo: list.IDNo,
+            totaDue: list.totaDue,
+            totalpaid: list.totalpaid,
+            balance: list.balance,
+            remitted: list.remitted,
+            Account: list.Account,
+            status: parseInt(list.status),
+            DateFrom: list.DateFrom,
+            DateTo: list.DateTo,
+          },
+        });
+      });
+      res.send({
+        message: "Successfully search claim",
+        success: true,
+        formattedSelectedData,
+        claims_id,
+      });
+    }, 1000);
   } catch (error: any) {
     console.log(error.message);
     res.send({ message: error.message, success: false, insurance: [] });

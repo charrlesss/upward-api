@@ -5,91 +5,111 @@ export async function getInsuranceList() {
   const qry = `SELECT distinct Account FROM upward_insurance.policy_account;`;
   return await prisma.$queryRawUnsafe(qry);
 }
+
 export async function claimsPolicy(search: string) {
   const qry = `
-  SELECT 
-  a.Account,
-  a.PolicyNo,
-  a.PlateNo,
-  a.Model,
-  a.BodyType,
-  a.Make,
-  a.ChassisNo,
-  a.MotorNo,
-  a.ORNo,
-  a.CoverNo,
-  a.BLTFileNo,
-  c.Shortname AS AssuredName,
-  c.IDNo,
-  d.*
-FROM
-  upward_insurance.vpolicy a
+  select * from (
+    SELECT 
+    a.PolicyType as policy,
+    ifnull(b.Account,'') as Account ,
+    ifnull(b.PlateNo,'') as PlateNo ,
+    ifnull(b.Model,'') as Model ,
+    ifnull(b.BodyType,'') as BodyType ,
+    ifnull(b.Make,'') as Make ,
+    ifnull(b.ChassisNo,'') as ChassisNo ,
+    ifnull(b.MotorNo,'') as MotorNo ,
+    ifnull(b.ORNo,'') as ORNo ,
+    ifnull(b.CoverNo,'') as CoverNo ,
+    ifnull(b.BLTFileNo,'') as BLTFileNo ,
+    a.PolicyNo ,
+    h.Shortname    AS AssuredName,
+    h.IDNo,
+    ifnull(b.DateFrom ,
+          ifnull(c.DateFrom ,
+          ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom))))) as DateFrom,
+    ifnull(b.DateTo ,
+    ifnull(c.DateTo ,
+    ifnull(d.DateTo ,ifnull(e.PeriodTo,ifnull(f.PeriodTo,g.PeriodTo))))) as DateTo,
+    i.totaDue,
+    i.totalpaid,
+    i.balance,
+    i.remitted
+    FROM upward_insurance.policy a
+    LEFT JOIN upward_insurance.vpolicy b on a.PolicyNo = b.PolicyNo
+    LEFT JOIN upward_insurance.fpolicy c on a.PolicyNo = c.PolicyNo
+    LEFT JOIN upward_insurance.mpolicy d on a.PolicyNo = d.PolicyNo
+    LEFT JOIN upward_insurance.msprpolicy e on a.PolicyNo = e.PolicyNo
+    LEFT JOIN upward_insurance.cglpolicy f on a.PolicyNo = f.PolicyNo
+    LEFT JOIN upward_insurance.papolicy g on a.PolicyNo = g.PolicyNo
       LEFT JOIN
-  upward_insurance.policy b ON a.PolicyNo = b.PolicyNo
-      LEFT JOIN
-  (SELECT 
-      'Client' AS IDType,
-          aa.entry_client_id AS IDNo,
-          aa.sub_account,
-          IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
-          aa.entry_client_id AS client_id
-  FROM
-      upward_insurance.entry_client aa UNION ALL SELECT 
-      'Agent' AS IDType,
-          aa.entry_agent_id AS IDNo,
-          aa.sub_account,
-          CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
-          aa.entry_agent_id AS client_id
-  FROM
-      upward_insurance.entry_agent aa UNION ALL SELECT 
-      'Employee' AS IDType,
-          aa.entry_employee_id AS IDNo,
-          aa.sub_account,
-          CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
-          aa.entry_employee_id AS client_id
-  FROM
-      upward_insurance.entry_employee aa UNION ALL SELECT 
-      'Supplier' AS IDType,
-          aa.entry_supplier_id AS IDNo,
-          aa.sub_account,
-          IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
-          aa.entry_supplier_id AS client_id
-  FROM
-      upward_insurance.entry_supplier aa UNION ALL SELECT 
-      'Fixed Assets' AS IDType,
-          aa.entry_fixed_assets_id AS IDNo,
-          aa.sub_account,
-          aa.fullname AS Shortname,
-          aa.entry_fixed_assets_id AS client_id
-  FROM
-      upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
-      'Others' AS IDType,
-          aa.entry_others_id AS IDNo,
-          aa.sub_account,
-          aa.description AS Shortname,
-          aa.entry_others_id AS client_id
-  FROM
-      upward_insurance.entry_others aa) c ON b.IDNo = c.IDNo
-  LEFT JOIN (
-    ${comnputationQry()}
-  ) d on a.PolicyNo = d.PolicyNo
-WHERE
-      a.PolicyNo LIKE '%${search}%' 
-      OR a.ORNo LIKE '%${search}%'
-      OR a.CoverNo LIKE '%${search}%'
-      OR a.Model LIKE '%${search}%'
-      OR a.Make LIKE '%${search}%'
-      OR a.BodyType LIKE '%${search}%'
-      OR a.BLTFileNo LIKE '%${search}%'
-      OR a.PlateNo LIKE '%${search}%'
-      OR a.ChassisNo LIKE '%${search}%'
-      OR a.MotorNo LIKE '%${search}%'
-      limit 50
+      (SELECT 
+          'Client' AS IDType,
+              aa.entry_client_id AS IDNo,
+              aa.sub_account,
+              IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
+              aa.entry_client_id AS client_id
+      FROM
+          upward_insurance.entry_client aa UNION ALL SELECT 
+          'Agent' AS IDType,
+              aa.entry_agent_id AS IDNo,
+              aa.sub_account,
+              CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
+              aa.entry_agent_id AS client_id
+      FROM
+          upward_insurance.entry_agent aa UNION ALL SELECT 
+          'Employee' AS IDType,
+              aa.entry_employee_id AS IDNo,
+              aa.sub_account,
+              CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
+              aa.entry_employee_id AS client_id
+      FROM
+          upward_insurance.entry_employee aa UNION ALL SELECT 
+          'Supplier' AS IDType,
+              aa.entry_supplier_id AS IDNo,
+              aa.sub_account,
+              IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
+              aa.entry_supplier_id AS client_id
+      FROM
+          upward_insurance.entry_supplier aa UNION ALL SELECT 
+          'Fixed Assets' AS IDType,
+              aa.entry_fixed_assets_id AS IDNo,
+              aa.sub_account,
+              aa.fullname AS Shortname,
+              aa.entry_fixed_assets_id AS client_id
+      FROM
+          upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
+          'Others' AS IDType,
+              aa.entry_others_id AS IDNo,
+              aa.sub_account,
+              aa.description AS Shortname,
+              aa.entry_others_id AS client_id
+      FROM
+          upward_insurance.entry_others aa) h ON a.IDNo = h.IDNo
+    LEFT JOIN (
+   ${comnputationQry()}
+    ) i on  a.PolicyNo = i.PolicyNo
+          where 
+          ifnull(b.DateFrom ,
+          ifnull(c.DateFrom ,
+          ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom)))))  is not null
+           AND TRIM(a.PolicyType) in ('TPL','COM','MAR','FIRE','PA','CGL') 
+    ) a
+        where  
+       a.PolicyNo LIKE '%${search}%' 
+          OR ifnull(a.ORNo ,'') LIKE '%${search}%'
+          OR ifnull(a.CoverNo,'')  LIKE '%${search}%'
+          OR ifnull(a.Model,'')  LIKE '%${search}%'
+          OR ifnull(a.Make,'')  LIKE '%${search}%'
+          OR ifnull(a.BodyType,'')  LIKE '%${search}%'
+          OR ifnull(a.BLTFileNo,'')  LIKE '%${search}%'
+          OR ifnull(a.PlateNo,'')  LIKE '%${search}%'
+          OR ifnull(a.ChassisNo,'')  LIKE '%${search}%'
+          OR ifnull(a.MotorNo,'')  LIKE '%${search}%' 
+          order by  a.PolicyNo asc
+          limit 20
   `;
-  console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }
-
 function comnputationQry() {
   return `
   SELECT 
@@ -174,7 +194,6 @@ export async function createClaimDetails(data: any) {
 export async function createClaims(data: any) {
   await prisma.claims.create({ data });
 }
-
 export async function updateClaim({ claimData, documentData, claims_id }: any) {
   // await prisma.claims.update({
   //   data: claimData,
@@ -200,60 +219,96 @@ export async function updateClaimIDSequence(data: any) {
 export async function searchClaims(search: string) {
   const qry = `
   SELECT 
-  *
+      a.claims_id,
+      MAX(b.AssuredName) AS AssuredName,
+      MAX(b.PolicyNo) AS PolicyNo,
+      MAX(b.ChassisNo) AS ChassisNo,
+      MAX(b.PlateNo) AS PlateNo,
+      MAX(b.claim_type) AS claim_type,
+      MAX(a.dateAccident) AS dateAccident,
+      MAX(a.dateReported) AS dateReported,
+      MAX(a.remarks) AS remarks,
+      MAX(a.department) AS department
   FROM
-  upward_insurance.claims a
-  LEFT JOIN
-  upward_insurance.claims_documents b ON a.claims_id = b.claims_id 
-  left join
-  (
-    select * from (
-    SELECT 
-    PolicyNo, DateFrom, DateTo
-    FROM
-    upward_insurance.vpolicy
-    UNION all
-    SELECT 
-    PolicyNo, DateFrom, DateTo
-    FROM
-    upward_insurance.fpolicy
-    UNION all
-    SELECT 
-    PolicyNo, PeriodFrom as DateFrom, PeriodTo as DateTo
-    FROM 
-    upward_insurance.papolicy
-    UNION all
-    SELECT 
-    PolicyNo, DateFrom, DateTo
-    FROM
-    upward_insurance.mpolicy
-    UNION all
-    SELECT 
-    PolicyNo, PeriodFrom as DateFrom, PeriodTo as DateTo
-    FROM
-    upward_insurance.msprpolicy
-    ) c
-  ) d on a.PolicyNo = d.PolicyNo
-  left join (${comnputationQry()}) e on a.PolicyNo = e.PolicyNo
+      upward_insurance.claims a
+          LEFT JOIN
+      upward_insurance.claims_details b ON a.claims_id = b.claims_id
   WHERE
-  a.claims_id LIKE '%${search}%'
-  OR a.AssuredName LIKE '%${search}%'
-  OR a.PolicyNo LIKE '%${search}%'
-  OR a.ChassisNo LIKE '%${search}%'
-  OR a.MotorNo LIKE '%${search}%'
-  OR a.Make LIKE '%${search}%'
-  OR a.PlateNo LIKE '%${search}%'
-  OR a.IDNo LIKE '%${search}%'
-  OR a.BLTFileNo LIKE '%${search}%'
-  OR a.BodyType LIKE '%${search}%'
-  OR a.CoverNo LIKE '%${search}%'
-  OR a.ORNo LIKE '%${search}%'
-  OR a.Account LIKE '%${search}%'
-  OR a.Model LIKE '%${search}%'
-  ORDER BY a.AssuredName ASC
-  LIMIT 50
+      a.claims_id LIKE '%${search}%'
+          OR b.AssuredName LIKE '%${search}%'
+          OR b.PolicyNo LIKE '%${search}%'
+          OR b.ChassisNo LIKE '%${search}%'
+          OR b.MotorNo LIKE '%${search}%'
+          OR b.Make LIKE '%${search}%'
+          OR b.PlateNo LIKE '%${search}%'
+          OR b.IDNo LIKE '%${search}%'
+          OR b.BLTFileNo LIKE '%${search}%'
+          OR b.BodyType LIKE '%${search}%'
+          OR b.CoverNo LIKE '%${search}%'
+          OR b.ORNo LIKE '%${search}%'
+          OR b.Account LIKE '%${search}%'
+          OR b.Model LIKE '%${search}%'
+  GROUP BY a.claims_id 
+  LIMIT 30
 `;
 
   console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
+}
+export async function selectedData(claims_id: string) {
+  return await prisma.$queryRawUnsafe(`
+  SELECT
+      a.claims_id,
+      a.policy,
+      a.claim_type,
+      a.insurance,
+      a.PolicyNo,
+      a.PlateNo,
+      a.Model,
+      a.BodyType,
+      a.Make,
+      a.ChassisNo,
+      a.MotorNo,
+      a.ORNo,
+      a.CoverNo,
+      a.BLTFileNo,
+      a.AssuredName,
+      a.IDNo,
+      a.Account,
+      a.status,
+      a.others,
+      a.basic,
+      a.claim_details_id,
+      a.claims_no,
+      i.totaDue,
+      i.totalpaid,
+      i.balance,
+      i.remitted,
+      ifnull(c.DateFrom ,
+      ifnull(d.DateFrom ,
+      ifnull(e.DateFrom ,ifnull(f.PeriodFrom,ifnull(g.PeriodFrom,h.PeriodFrom))))) as DateFrom,
+      ifnull(c.DateTo ,
+      ifnull(d.DateTo ,
+      ifnull(e.DateTo ,ifnull(f.PeriodTo,ifnull(g.PeriodTo,h.PeriodTo))))) as DateTo
+  FROM upward_insurance.claims_details a
+  LEFT JOIN  upward_insurance.policy b on a.PolicyNo = b.PolicyNo
+  LEFT JOIN upward_insurance.vpolicy c on a.PolicyNo = c.PolicyNo
+  LEFT JOIN upward_insurance.fpolicy d on a.PolicyNo = d.PolicyNo
+  LEFT JOIN upward_insurance.mpolicy e on a.PolicyNo = e.PolicyNo
+  LEFT JOIN upward_insurance.msprpolicy f on a.PolicyNo = f.PolicyNo
+  LEFT JOIN upward_insurance.cglpolicy g on a.PolicyNo = g.PolicyNo
+  LEFT JOIN upward_insurance.papolicy h on a.PolicyNo = h.PolicyNo
+  LEFT JOIN (${comnputationQry()}) i on a.PolicyNo = i.PolicyNo
+  where a.claims_id = '${claims_id}';
+  `);
+}
+export async function deleteClaims(claims_id: string) {
+  await prisma.$transaction([
+    prisma.claims.delete({ where: { claims_id } }),
+    prisma.claims_details.deleteMany({
+      where: {
+        claims_id,
+      },
+    }),
+  ]);
 }
