@@ -1148,12 +1148,13 @@ model id_from_2020 {
 }
 
 model claims {
-  claims_id    String   @id
-  remarks      String?  @db.Text
-  dateReported DateTime
-  dateAccident DateTime
-  createdAt    DateTime @default(now())
-  department   String?  @db.VarChar(500)
+  claims_id     String   @id
+  remarks       String?  @db.Text
+  dateReported  String?  @db.VarChar(500)
+  dateAccident  String?  @db.VarChar(500)
+  dateInspected String?  @db.VarChar(500)
+  createdAt     DateTime @default(now())
+  department    String?  @db.VarChar(500)
 }
 
 model claims_details {
@@ -1183,6 +1184,11 @@ model claims_details {
   status           String? @db.VarChar(500)
   others           String? @db.Text
   basic            String? @db.Text
+  DateReceived     String? @db.VarChar(500)
+  DateClaim        String? @db.VarChar(500)
+  AmountClaim      Decimal @default(0.0000) @db.Decimal(19, 4)
+  AmountApproved   Decimal @default(0.0000) @db.Decimal(19, 4)
+  NameTPPD         String? @db.Text
 }
 
 model claims_details_v1 {

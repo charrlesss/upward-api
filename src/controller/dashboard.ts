@@ -95,21 +95,48 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
 });
 
 Dashboard.get("/get-claims-notice", async (req, res) => {
+  const claimType = [
+    "OWN DAMAGE",
+    "LOST/CARNAP",
+    "VTPL-PROPERTY DAMAGE",
+    "VTPL-BODILY INJURY",
+    "THIRD PARTY-DEATH",
+  ];
+
+  const claimsStatus = [
+    "With Lacking Documents",
+    "With LOA",
+    "Submitted to Insurance Company",
+    "For Evaluation",
+    "For Inspection",
+    "For Check Prep",
+    "Denied",
+    "Done",
+    "",
+  ];
   const qry = `SELECT 
-    a.claims_id,
-    a.PolicyNo,
-    a.AssuredName,
-    DATE_FORMAT(a.dateAccident, '%m/%d/%Y') AS dateAccident,
-    DATE_FORMAT(a.dateReported, '%m/%d/%Y') AS dateReported
+  a.claims_id,
+  b.PolicyNo,
+  b.AssuredName,
+  DATE_FORMAT(a.dateAccident, '%m/%d/%Y') AS dateAccident,
+  DATE_FORMAT(a.dateReported, '%m/%d/%Y') AS dateReported,
+  b.status,
+  b.claim_type
 FROM
-    upward_insurance.claims a
-        LEFT JOIN
-    upward_insurance.claims_documents b ON a.claims_id = b.claims_id
+  upward_insurance.claims a
+      LEFT JOIN
+  upward_insurance.claims_details b ON a.claims_id = b.claims_id
 WHERE
-    status <> 1`;
+  status <> 1 and status <> 2`;
 
   try {
-    const claims = await prisma.$queryRawUnsafe(qry);
+    const claims: any = await prisma.$queryRawUnsafe(qry);
+    const claimsStatusSort = claimsStatus.sort();
+    claims.map((itm: any) => {
+      itm.status = claimsStatusSort[parseInt(itm.status?.toString())];
+      itm.claim_type = claimType[parseInt(itm.claim_type?.toString())];
+      return itm;
+    });
     res.send({
       message: `Successfully Get Claims Notice`,
       claims,

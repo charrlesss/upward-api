@@ -1,6 +1,7 @@
 import express from "express";
 import {
   GenerateClaimsID,
+  claimReport,
   claimsPolicy,
   createClaimDetails,
   createClaims,
@@ -17,6 +18,14 @@ import fs from "fs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { v4 as uuidV4 } from "uuid";
+import {
+  addYears,
+  endOfMonth,
+  endOfYear,
+  format,
+  startOfMonth,
+  startOfYear,
+} from "date-fns";
 const Claim = express.Router();
 const uploadFile = multer();
 
@@ -75,9 +84,22 @@ Claim.post("/claims/save", async (req, res) => {
       policyState.remitted = parseFloat(
         policyState.remitted.toString().replace(/,/g, "")
       ).toFixed(2);
+      if (policyState.AmountClaim === "") {
+        policyState.AmountClaim = "0";
+      }
+      if (policyState.AmountApproved === "") {
+        policyState.AmountApproved = "0";
+      }
+      policyState.AmountClaim = parseFloat(
+        policyState.AmountClaim.toString().replace(/,/g, "")
+      ).toFixed(2);
+      policyState.AmountApproved = parseFloat(
+        policyState.AmountApproved.toString().replace(/,/g, "")
+      ).toFixed(2);
 
       delete policyState.DateFrom;
       delete policyState.DateTo;
+
       await createClaimDetails({
         claim_details_id: uuidV4(),
         claims_id: data.claims_id,
@@ -90,8 +112,9 @@ Claim.post("/claims/save", async (req, res) => {
   );
   await createClaims({
     claims_id: data.claims_id,
-    dateReported: new Date(data.dateReported).toISOString(),
-    dateAccident: new Date(data.dateAccident).toISOString(),
+    dateReported: data.dateReported,
+    dateAccident: data.dateAccident,
+    dateInspected: data.dateInspected,
     department: data.department?.toString(),
     remarks: data.remarks,
     createdAt: new Date().toISOString(),
@@ -380,6 +403,11 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
             status: parseInt(list.status),
             DateFrom: list.DateFrom,
             DateTo: list.DateTo,
+            DateReceived: list.DateReceived,
+            DateClaim: list.DateClaim,
+            AmountClaim: list.AmountClaim,
+            AmountApproved: list.AmountApproved,
+            NameTPPD: list.NameTPPD,
           },
         });
       });
@@ -395,5 +423,70 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
     res.send({ message: error.message, success: false, insurance: [] });
   }
 });
+Claim.post("/claims/report-claim", async (req, res) => {
+  try {
+    const claimType = [
+      "OWN DAMAGE",
+      "LOST/CARNAP",
+      "VTPL-PROPERTY DAMAGE",
+      "VTPL-BODILY INJURY",
+      "THIRD PARTY-DEATH",
+    ];
+    console.log(req.body);
+    let whereStatement = "";
+    if (req.body.format === 5) {
+      whereStatement = ` AND claim_type = '${claimType[req.body.claim_type]}'`;
+    } else if (req.body.format === 6) {
+      whereStatement = ` AND PolicyNo = '${claimType[req.body.PolicyNo]}'`;
+    } else {
+      if (req.body.dateFormat === "Monthly") {
+        const date = new Date(req.body.dateFrom);
+        const firstDayOfMonth = startOfMonth(date);
+        const lastDayOfMonth = endOfMonth(date);
+        const formattedFirstDay = format(firstDayOfMonth, "yyyy-MM-dd");
+        const formattedLastDay = format(lastDayOfMonth, "yyyy-MM-dd");
+        whereStatement = selectByDate(formattedFirstDay, formattedLastDay);
+      } else if (req.body.dateFormat === "Yearly") {
+        req.body.dateFrom = new Date(req.body.dateFrom);
+        const firstDayOfFirstMonth = startOfYear(req.body.dateFrom);
+        const formattedFirstDay = format(firstDayOfFirstMonth, "yyyy-MM-dd");
+        const  formattedLastDay = format(
+          endOfMonth(
+            endOfYear(addYears(req.body.dateFrom, parseInt(req.body.yearCount)))
+          ),
+          "yyyy-MM-dd"
+        );
+        whereStatement = selectByDate(formattedFirstDay, formattedLastDay);
 
+      } else {
+        whereStatement = selectByDate(
+          format(new Date(req.body.dateFrom), "yyyy-MM-dd"),
+          format(new Date(req.body.dateTo), "yyyy-MM-dd")
+        );
+      }
+
+      function selectByDate(dateFrom: string, dateTo: string) {
+        let qry = "";
+        if (req.body.format == 0) {
+          qry = ` AND DATE_FORMAT(a.createdAt, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.createdAt, '%Y-%m-%d') <= '${dateTo}' `;
+        } else if (req.body.format == 1) {
+          qry = ` AND DATE_FORMAT(b.DateClaim, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.DateClaim, '%Y-%m-%d') <= '${dateTo}' `;
+        } else if (req.body.format == 2) {
+          qry = ` AND DATE_FORMAT(b.dateInspected, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.dateInspected, '%Y-%m-%d') <= '${dateTo}' `;
+        } else {
+          qry = ` AND DATE_FORMAT(a.DateReceived, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.DateReceived, '%Y-%m-%d') <= '${dateTo}' `;
+        }
+        return qry;
+      }
+    }
+    const report = await claimReport(whereStatement);
+    res.send({
+      message: "Successfully generate report",
+      success: true,
+      report,
+    });
+  } catch (err: any) {
+    res.send({ message: err.message, success: false });
+  }
+});
 export default Claim;

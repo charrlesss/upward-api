@@ -227,6 +227,7 @@ export async function searchClaims(search: string) {
       MAX(b.claim_type) AS claim_type,
       MAX(a.dateAccident) AS dateAccident,
       MAX(a.dateReported) AS dateReported,
+      MAX(a.dateInspected) AS dateInspected,
       MAX(a.remarks) AS remarks,
       MAX(a.department) AS department
   FROM
@@ -280,6 +281,11 @@ export async function selectedData(claims_id: string) {
       a.basic,
       a.claim_details_id,
       a.claims_no,
+      a.DateReceived,
+      a.DateClaim,
+      ifnull(format(a.AmountClaim ,2),'0.00') as AmountClaim,
+      ifnull(format(a.AmountApproved ,2),'0.00') as AmountApproved,
+      NameTPPD,
       i.totaDue,
       i.totalpaid,
       i.balance,
@@ -311,4 +317,66 @@ export async function deleteClaims(claims_id: string) {
       },
     }),
   ]);
+}
+function reportQry(header: string, where: string) {
+  return `
+  SELECT 
+  '${header}' AS UnitInsured,
+  '' AS PolicyNo,
+  '' AS ChassisNo,
+  '' AS PlateNo,
+  '' AS DateReceived,
+  '' AS DateClaim,
+  '' AS claim_type,
+  '' AS AmountClaim,
+  '' AS AmountApproved,
+  '' AS dateInspected,
+  '' AS NameTPPD,
+  '' AS status,
+  '1' AS header
+UNION ALL 
+SELECT * FROM (
+  SELECT 
+  IF(b.Model = '' AND b.Make = ''
+          AND b.BodyType = '',
+      '---',
+      CONCAT(b.Model, ' ', b.Make, ' ', b.BodyType)) AS UnitInsured,
+  b.PolicyNo,
+  IF(b.ChassisNo = '', '---', b.ChassisNo) AS ChassisNo,
+  IF(b.PlateNo = '', '---', b.PlateNo) AS PlateNo,
+  IF(b.DateReceived IS NULL,
+      '---',
+      DATE_FORMAT(b.DateReceived, '%m/%d/%Y')) AS DateReceived,
+  IF(b.DateClaim IS NULL,
+      '---',
+      DATE_FORMAT(b.DateClaim, '%m/%d/%Y')) AS DateClaim,
+  b.claim_type,
+  b.AmountClaim,
+  b.AmountApproved,
+  IF(a.dateInspected IS NULL,
+      '---',
+      DATE_FORMAT(a.dateInspected, '%m/%d/%Y')) AS dateInspected,
+  IF(b.NameTPPD = '', '---', b.NameTPPD) AS NameTPPD,
+  b.status,
+  '0' AS header
+FROM
+  upward_insurance.claims a
+      LEFT JOIN
+  upward_insurance.claims_details b ON a.claims_id = b.claims_id
+  ${where}
+  order by b.PolicyNo asc  
+) a
+  `;
+}
+
+export async function claimReport(addWhere:string) {
+  const qry = `
+    ${reportQry("ONGOING CLAIMS", ` where b.status <> 1 AND b.status <> 2 ${addWhere}`)}
+    union all
+    ${reportQry("DENIED CLAIMS", ` where b.status = 1 ${addWhere}`)}
+    union all
+    ${reportQry("SETTLED CLAIMS", ` where b.status = 2 ${addWhere}`)}
+  `;
+
+  return await prisma.$queryRawUnsafe(qry);
 }
