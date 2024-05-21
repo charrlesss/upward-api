@@ -9,10 +9,8 @@ import {
   getInsuranceList,
   searchClaims,
   selectedData,
-  updateClaim,
   updateClaimIDSequence,
 } from "../../../model/Task/Claims/claims";
-import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
@@ -27,12 +25,10 @@ import {
   startOfYear,
 } from "date-fns";
 const Claim = express.Router();
-const uploadFile = multer();
 
 Claim.post("/claims/save", async (req, res) => {
   const data = req.body;
   const isUpdateMode = req.body.mode === "update";
-
   if (isUpdateMode) {
     if (
       !(await saveUserLogsCode(req, "update", req.body.claims_id, "Claims"))
@@ -174,144 +170,7 @@ Claim.post("/claims/save", async (req, res) => {
     success: true,
   });
 });
-Claim.post(
-  "/claims/update",
-  uploadFile.fields([
-    { name: "policyFile" },
-    { name: "endorsement" },
-    { name: "OPP" },
-    { name: "ORCR" },
-    { name: "DLOR" },
-    { name: "PR" },
-    { name: "DA" },
-    { name: "SMCN" },
-    { name: "ct1_1" },
-    { name: "ct1_2" },
-    { name: "ct2_1" },
-    { name: "ct2_2" },
-    { name: "ct2_3" },
-    { name: "ct2_4" },
-    { name: "ct3_1" },
-    { name: "ct3_2" },
-    { name: "ct3_3" },
-    { name: "ct3_4" },
-    { name: "ct3_5" },
-    { name: "ct4_1" },
-    { name: "ct4_2" },
-    { name: "ct4_3" },
-    { name: "ct4_4" },
-    { name: "ct4_5" },
-    { name: "ct5_1" },
-    { name: "ct5_2" },
-    { name: "ct5_3" },
-  ]),
-  async (req, res) => {
-    try {
-      if (
-        !(await saveUserLogsCode(req, "update", req.body.claims_id, "Claims"))
-      ) {
-        return res.send({ message: "Invalid User Code", success: false });
-      }
-      const claims_id = req.body.claims_id;
-      const folderName = claims_id;
-      const folderPath = path.join("./static/claim-files", folderName);
-      fs.rm(folderPath, { recursive: true }, async (err) => {
-        if (err) {
-          console.error("Error removing folder:", err);
-          res.status(500).send("Error removing folder");
-          return;
-        }
-        let objToSave = Object.keys(req.files as any).reduce(
-          (obj: any, value) => {
-            obj[value] = "";
-            return obj;
-          },
-          {}
-        );
-        Object.entries(req.files as any).forEach(([key, value]: any) => {
-          let specFolder = "";
-          const filesSave: any = [];
-          const basicDocumentFolder = [
-            "policyFile",
-            "endorsement",
-            "OPP",
-            "ORCR",
-            "DLOR",
-            "PR",
-            "DA",
-            "SMCN",
-          ];
-          if (basicDocumentFolder.includes(key)) {
-            specFolder = "Basic-Document";
-          } else {
-            specFolder = "Other-Document";
-          }
-          value.forEach((file: any) => {
-            const uniqueFilename = generateUniqueFilename(file.originalname);
-            const uploadDir = path.join(
-              "./static/claim-files",
-              claims_id,
-              specFolder
-            );
-            if (!fs.existsSync(uploadDir)) {
-              fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            const filePath = path.join(uploadDir, uniqueFilename);
-            const fileStream = fs.createWriteStream(filePath);
-            filesSave.push({
-              fileName: file.originalname,
-              fileType: file.mimetype,
-              uniqueFilename,
-            });
-            fileStream.write(file.buffer);
-            fileStream.end();
-          });
-          objToSave[key] = JSON.stringify(filesSave);
-        });
-        req.body.totaDue = parseFloat(
-          req.body.totaDue.toString().replace(/,/g, "")
-        ).toFixed(2);
-        req.body.totalpaid = parseFloat(
-          req.body.totalpaid.toString().replace(/,/g, "")
-        ).toFixed(2);
-        req.body.balance = parseFloat(
-          req.body.balance.toString().replace(/,/g, "")
-        ).toFixed(2);
-        req.body.remitted = parseFloat(
-          req.body.remitted.toString().replace(/,/g, "")
-        ).toFixed(2);
-        req.body.dateReported = new Date(req.body.dateReported).toISOString();
-        req.body.dateAccident = new Date(req.body.dateAccident).toISOString();
-        delete req.body.search;
-        delete req.body.mode;
-        delete req.body.claims_id;
-        delete req.body.userCodeConfirmation;
-        delete req.body.DateFrom;
-        delete req.body.DateTo;
 
-        const date = new Date();
-        await updateClaim({
-          claims_id,
-          claimData: {
-            ...req.body,
-            createdAt: date.toISOString(),
-          },
-          documentData: {
-            claims_id,
-            ...objToSave,
-          },
-        });
-        res.send({
-          message: "Claim is successfully update",
-          success: true,
-        });
-      });
-    } catch (error: any) {
-      console.log(error.message);
-      res.send({ message: error.message, success: false, insurance: [] });
-    }
-  }
-);
 function generateUniqueFilename(originalFilename: string) {
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 8); // Generates a random alphanumeric string
@@ -425,19 +284,13 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
 });
 Claim.post("/claims/report-claim", async (req, res) => {
   try {
-    const claimType = [
-      "OWN DAMAGE",
-      "LOST/CARNAP",
-      "VTPL-PROPERTY DAMAGE",
-      "VTPL-BODILY INJURY",
-      "THIRD PARTY-DEATH",
-    ];
+ 
     console.log(req.body);
     let whereStatement = "";
     if (req.body.format === 5) {
-      whereStatement = ` AND claim_type = '${claimType[req.body.claim_type]}'`;
+      whereStatement = ` AND claim_type = ${req.body.claim_type}`;
     } else if (req.body.format === 6) {
-      whereStatement = ` AND PolicyNo = '${claimType[req.body.PolicyNo]}'`;
+      whereStatement = ` AND PolicyNo = '${req.body.PolicyNo}'`;
     } else {
       if (req.body.dateFormat === "Monthly") {
         const date = new Date(req.body.dateFrom);
@@ -472,14 +325,14 @@ Claim.post("/claims/report-claim", async (req, res) => {
         } else if (req.body.format == 1) {
           qry = ` AND DATE_FORMAT(b.DateClaim, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.DateClaim, '%Y-%m-%d') <= '${dateTo}' `;
         } else if (req.body.format == 2) {
-          qry = ` AND DATE_FORMAT(b.dateInspected, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.dateInspected, '%Y-%m-%d') <= '${dateTo}' `;
+          qry = ` AND DATE_FORMAT(a.dateInspected, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.dateInspected, '%Y-%m-%d') <= '${dateTo}' `;
         } else {
-          qry = ` AND DATE_FORMAT(a.DateReceived, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.DateReceived, '%Y-%m-%d') <= '${dateTo}' `;
+          qry = ` AND DATE_FORMAT(b.DateReceived, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.DateReceived, '%Y-%m-%d') <= '${dateTo}' `;
         }
         return qry;
       }
     }
-    const report = await claimReport(whereStatement);
+    const report = await claimReport(whereStatement ,req.body.status);
     res.send({
       message: "Successfully generate report",
       success: true,
