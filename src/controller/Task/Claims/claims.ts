@@ -50,9 +50,16 @@ Claim.post("/claims/save", async (req, res) => {
     "DA",
     "SMCN",
   ];
+  const insuranceDocuments = ["loa", "offerLetter", "CE"];
+
   files.forEach(
     async (
-      { basicFileCustom, otherFileCustom, policyState }: any,
+      {
+        basicFileCustom,
+        otherFileCustom,
+        insuranceFileCustom,
+        policyState,
+      }: any,
       index: number
     ) => {
       const claims_no = padNumber(index + 1, 3);
@@ -66,6 +73,8 @@ Claim.post("/claims/save", async (req, res) => {
       }
       const basic = UploadFile(basicFileCustom, uploadDir);
       const others = UploadFile(otherFileCustom, uploadDir);
+      const insuranceFile = UploadFile(insuranceFileCustom, uploadDir);
+
       policyState.claim_type = policyState.claim_type?.toString();
       policyState.status = policyState.status?.toString();
       policyState.totaDue = parseFloat(
@@ -102,10 +111,12 @@ Claim.post("/claims/save", async (req, res) => {
         claims_no,
         basic: JSON.stringify(basic),
         others: JSON.stringify(others),
+        insuranceFile: JSON.stringify(insuranceFile),
         ...policyState,
       });
     }
   );
+
   await createClaims({
     claims_id: data.claims_id,
     dateReported: data.dateReported,
@@ -115,12 +126,15 @@ Claim.post("/claims/save", async (req, res) => {
     remarks: data.remarks,
     createdAt: new Date().toISOString(),
   });
+
   function UploadFile(filesArr: Array<any>, uploadDir: string) {
     const obj: any = [];
     filesArr.forEach((file: any) => {
       let specFolder = "";
       if (basicDocumentFolder.includes(file.datakey)) {
         specFolder = "Basic-Document";
+      } else if (insuranceDocuments.includes(file.datakey)) {
+        specFolder = "Insurance-Document";
       } else {
         specFolder = "Other-Document";
       }
@@ -238,6 +252,7 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
           id: list.claims_no,
           basicFileCustom: JSON.parse(list.basic),
           otherFileCustom: JSON.parse(list.others),
+          insuranceFileCustom:JSON.parse(list.insuranceFile),
           policyState: {
             policy: list.policy,
             claim_type: parseInt(list.claim_type),
@@ -284,8 +299,6 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
 });
 Claim.post("/claims/report-claim", async (req, res) => {
   try {
- 
-    console.log(req.body);
     let whereStatement = "";
     if (req.body.format === 5) {
       whereStatement = ` AND claim_type = ${req.body.claim_type}`;
@@ -303,14 +316,13 @@ Claim.post("/claims/report-claim", async (req, res) => {
         req.body.dateFrom = new Date(req.body.dateFrom);
         const firstDayOfFirstMonth = startOfYear(req.body.dateFrom);
         const formattedFirstDay = format(firstDayOfFirstMonth, "yyyy-MM-dd");
-        const  formattedLastDay = format(
+        const formattedLastDay = format(
           endOfMonth(
             endOfYear(addYears(req.body.dateFrom, parseInt(req.body.yearCount)))
           ),
           "yyyy-MM-dd"
         );
         whereStatement = selectByDate(formattedFirstDay, formattedLastDay);
-
       } else {
         whereStatement = selectByDate(
           format(new Date(req.body.dateFrom), "yyyy-MM-dd"),
@@ -332,7 +344,7 @@ Claim.post("/claims/report-claim", async (req, res) => {
         return qry;
       }
     }
-    const report = await claimReport(whereStatement ,req.body.status);
+    const report = await claimReport(whereStatement, req.body.status);
     res.send({
       message: "Successfully generate report",
       success: true,

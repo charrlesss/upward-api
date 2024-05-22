@@ -1184,6 +1184,7 @@ model claims_details {
   status           String? @db.VarChar(500)
   others           String? @db.Text
   basic            String? @db.Text
+  insuranceFile    String? @db.Text
   DateReceived     String? @db.VarChar(500)
   DateClaim        String? @db.VarChar(500)
   AmountClaim      Decimal @default(0.0000) @db.Decimal(19, 4)

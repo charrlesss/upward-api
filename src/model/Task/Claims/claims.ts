@@ -235,7 +235,6 @@ export async function createClaims(data: any) {
 }
 
 export async function updateClaimIDSequence(data: any) {
-  console.log(data);
   return await prisma.$queryRawUnsafe(`
       update upward_insurance.id_sequence a
       set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
@@ -304,6 +303,7 @@ export async function selectedData(claims_id: string) {
       a.status,
       a.others,
       a.basic,
+      a.insuranceFile,
       a.claim_details_id,
       a.claims_no,
       a.DateReceived,
@@ -396,7 +396,6 @@ FROM
 
 export async function claimReport(addWhere: string, status: number) {
   let qry = "";
-  console.log(status);
   if (status === 0) {
     qry = `
     ${reportQry(
@@ -430,21 +429,3 @@ export async function claimReport(addWhere: string, status: number) {
 }
 
 
-// select 
-// a.TotalDue,
-// a.balance,
-// a.TotalDue - balance as  totalPaid,
-// a.PolicyNo
-//  from (
-// SELECT  
-// 	SUM(a.Debit) as Debit, 
-// 	SUM(a.Credit) as Credit,
-// 	b.PolicyNo,
-//     MAX(b.TotalDue) as TotalDue,
-//     if(SUM(a.Debit) > SUM(a.Credit), MAX(b.TotalDue) - SUM(a.Debit) , MAX(b.TotalDue) - SUM(a.Credit) ) as balance
-   
-// FROM upward_insurance.journal a
-// left join upward_insurance.policy b on a.ID_No = b.PolicyNo
-// where a.Source_Type = 'OR' and  a.GL_Acct = '1.03.01' and b.PolicyNo = 'CV-C-510571/23'
-// group by b.PolicyNo 
-// ) a
