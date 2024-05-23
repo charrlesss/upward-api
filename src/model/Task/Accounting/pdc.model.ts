@@ -94,7 +94,6 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
     ORDER BY a.Shortname
     LIMIT 50`;
 
-  
   return await prisma.$queryRawUnsafe(qry);
 }
 
@@ -109,6 +108,30 @@ export async function findPdc(Ref_No: string) {
   return await prisma.pdc.findMany({ where: { Ref_No } });
 }
 
+export async function pdcUploads(data: any) {
+  return await prisma.pdc_uploads.create({ data });
+}
+export async function pdcUploadsUpdate(data: any) {
+  return await prisma.pdc_uploads.updateMany({
+    data: {
+      upload: data.upload,
+    },
+    where: {
+      ref_no: data.ref_no,
+    },
+  });
+}
+
+export async function getPdcUpload(ref_no:string) {
+  return  await  prisma.$queryRawUnsafe(`
+  SELECT 
+    a.upload
+  FROM
+    upward_insurance.pdc_uploads a 
+  WHERE
+  a.Ref_No = '${ref_no}'
+  `)
+}
 export async function deletePdcByRefNo(Ref_No: string) {
   return await prisma.pdc.deleteMany({ where: { Ref_No } });
 }

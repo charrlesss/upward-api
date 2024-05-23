@@ -185,7 +185,7 @@ Claim.post("/claims/save", async (req, res) => {
   });
 });
 
-function generateUniqueFilename(originalFilename: string) {
+export function generateUniqueFilename(originalFilename: string) {
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 8); // Generates a random alphanumeric string
   const fileExtension = path.extname(originalFilename);

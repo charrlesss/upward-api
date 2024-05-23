@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import {
   createPDC,
   deletePdcByRefNo,
@@ -8,12 +8,17 @@ import {
   searchPDC,
   getSearchPDCheck,
   pdcIDGenerator,
+  pdcUploads,
+  pdcUploadsUpdate,
+  getPdcUpload,
 } from "../../../model/Task/Accounting/pdc.model";
 import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
-import { mapColumnsToKeys } from "../../Reports/Production/report-fields";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
-
+import path from "path";
+import fs from "fs";
+import { generateUniqueFilename } from "../Claims/claims";
+import { v4 as uuidV4 } from "uuid";
 const PDC = express.Router();
 
 PDC.post("/add-pdc", async (req, res) => {
@@ -30,9 +35,8 @@ PDC.post("/add-pdc", async (req, res) => {
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
-    checks.forEach(async (check: any, idx: number) => {
+    checks.forEach(async (check: any) => {
       newId = "chk-" + num.toString().padStart(count.length, "0");
-      console.log(newId);
       num++;
       if (check.DateDeposit === "") {
         await createPDC({
@@ -81,6 +85,17 @@ PDC.post("/add-pdc", async (req, res) => {
       "",
       req.body.Ref_No.split(".")[0]
     );
+    const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
+
+    if (fs.existsSync(uploadDir)) {
+      fs.rmSync(uploadDir, { recursive: true });
+    }
+    const files = UploadFile(req.body.fileToSave, uploadDir, res);
+    await pdcUploads({
+      pdc_upload_id:uuidV4(),
+      ref_no:req.body.Ref_No,
+      upload:JSON.stringify(files)
+    })
     const newPdcId = await pdcIDGenerator();
     await saveUserLogs(req, req.body.Ref_No, "add", "PDC");
     res.send({
@@ -160,6 +175,19 @@ PDC.post("/update-pdc", async (req, res) => {
         });
       }
     });
+
+    const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
+    if (fs.existsSync(uploadDir)) {
+      fs.rmSync(uploadDir, { recursive: true });
+    }
+    const files = UploadFile(req.body.fileToSave, uploadDir, res);
+    await pdcUploadsUpdate({
+      ref_no:req.body.Ref_No,
+      upload:JSON.stringify(files)
+    })
+
+
+
     await UpdateId("pdc", newId, month, year);
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
@@ -171,9 +199,7 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
     const { searchPdcPolicyIds } = req.query;
     const clientsId = await getPdcPolicyIdAndCLientId(
       searchPdcPolicyIds as string
-    ); 
-    console.log(clientsId)
-
+    );
     res.send({
       clientsId,
       success: true,
@@ -224,10 +250,43 @@ PDC.post("/get-search-pdc-check", async (req, res) => {
       message: "Search PDC Check Successfully",
       success: true,
       getSearchPDCCheck: searchPDCData,
+      upload: await getPdcUpload(req.body.ref_no)
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, getSearchPDCCheck: [] });
   }
 });
+
+function UploadFile(filesArr: Array<any>, uploadDir: string, res: Response) {
+  const obj: any = [];
+  filesArr.forEach((file: any) => {
+    let specFolder = "";
+
+    const uploadSpecFolder = path.join(uploadDir, specFolder);
+    const uniqueFilename = generateUniqueFilename(file.fileName);
+    if (!fs.existsSync(uploadSpecFolder)) {
+      fs.mkdirSync(uploadSpecFolder, { recursive: true });
+    }
+    const filePath = path.join(uploadSpecFolder, uniqueFilename);
+    const base64Data = file.fileContent.replace(/^data:.*;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    fs.writeFile(filePath, buffer, (err) => {
+      if (err) {
+        console.log("qweqw2");
+        console.log(err);
+        res.send({ message: err.message, success: false });
+        return;
+      }
+    });
+    obj.push({
+      fileName: file.fileName,
+      uniqueFilename,
+      datakey: file.datakey,
+      fileType: file.fileType,
+    });
+  });
+  return obj;
+}
 
 export default PDC;

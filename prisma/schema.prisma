@@ -765,6 +765,12 @@ model pdc {
   mark            String?   @db.VarChar(50)
 }
 
+model pdc_uploads {
+  pdc_upload_id String @id @default(uuid())
+  ref_no        String @db.VarChar(500)
+  upload        String @db.Text
+}
+
 model petty_cash {
   Branch_Code String?   @db.VarChar(250)
   PC_Date     DateTime? @db.DateTime(6)
