@@ -22,6 +22,7 @@ import sendEmail from "../../../lib/sendEmail";
 import { format } from "date-fns";
 import generateRandomNumber from "../../../lib/generateRandomNumber";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { VerifyToken } from "../../Authentication";
 
 const Pullout = express.Router();
 const PulloutRequest = express.Router();
@@ -75,6 +76,17 @@ PulloutRequest.post("/pullout/reqeust/selected-pnno", async (req, res) => {
 });
 PulloutRequest.post("/pullout/request/save", async (req, res) => {
   try {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+    
     const subtitle = `
     <h3>Check storage pullout</h3>
     <h3>Cancel Request</h3>
@@ -128,6 +140,17 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
 });
 PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
   try {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T CANCEL, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     const { RCPNo, selected } = req.body;
     const user = await getUserById((req.user as any).UserId);
     const approvalCode = null;
@@ -160,6 +183,7 @@ PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
   }
 });
 PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
+  
   try {
     const { onEditSearch: search } = req.query;
     res.send({
@@ -173,6 +197,18 @@ PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
   }
 });
 PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T APPROVED, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
+
   try {
     const { RCPNo, PNNo, client, reason, code, selected, approvedMode } =
       req.body;

@@ -9,18 +9,32 @@ import {
   deleteEntry,
   getAllSubAccount,
   getSubAccounts,
+  IDGenerator,
   searchEntry,
   updateEntry,
+  UpdateId,
 } from "../../model/Reference/id-entry.model";
-import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
+// import { IDGenerator, UpdateId } from "../../model/StoredProcedure";
 import { ExportToExcel } from "../../lib/exporttoexcel";
 import { mapDataBasedOnHeaders } from "../../lib/mapbaseonheader";
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const ID_Entry = express.Router();
 
 ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   const [s, ym, newCount] = req.body.entry_client_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -43,6 +57,16 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   const [s, ym, newCount] = req.body.entry_employee_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -70,6 +94,17 @@ ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   const [s, ym, newCount] = req.body.entry_agent_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -92,6 +127,16 @@ ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   const [s, ym, newCount] = req.body.entry_fixed_assets_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -119,6 +164,16 @@ ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   const [s, ym, newCount] = req.body.entry_supplier_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -146,6 +201,16 @@ ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   const [s, ym, newCount] = req.body.entry_others_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -168,6 +233,16 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
 });
 
 ID_Entry.post("/entry-update", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     const list = [
       { key: "entry_others_id", module: "Entry Others" },
@@ -367,7 +442,6 @@ ID_Entry.get("/export-entry", async (req, res) => {
     },
   };
   const { entry, entrySearch, isAll } = req.query;
-
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
@@ -382,11 +456,20 @@ ID_Entry.get("/export-entry", async (req, res) => {
       entry as string
     );
   }
-
   ExportToExcel(data, res);
 });
 
 ID_Entry.post("/entry-delete", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       !(await saveUserLogsCode(

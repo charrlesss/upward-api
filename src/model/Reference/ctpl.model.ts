@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
+// const prisma = new PrismaClient();
 
 interface CTPLType {
   Prefix: string;
@@ -15,6 +16,8 @@ export async function searchCTPL(
   ctplSearch: string,
   hasLimit: boolean = false
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
       SELECT 
           a.ctplId,
@@ -26,7 +29,7 @@ export async function searchCTPL(
           a.NumSeriesTo,
           (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
       FROM
-          upward_insurance.ctplregistration a
+            ctplregistration a
           where 
           a.Prefix like '%${ctplSearch}%'
           OR  a.Cost like '%${ctplSearch}%'
@@ -47,15 +50,23 @@ export async function searchCTPL(
   return convertCostToFixed(data);
 }
 export async function getPrefix() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctplprefix.findMany({ select: { prefixName: true } });
 }
 export async function getType() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctpltype.findMany({ select: { typeName: true } });
 }
 export async function addCTPL(data: CTPLType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctplregistration.create({ data });
 }
 export async function updateCTPL(data: CTPLType, ctplId: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctplregistration.update({
     data: {
       Prefix: data.Prefix,
@@ -65,10 +76,14 @@ export async function updateCTPL(data: CTPLType, ctplId: string) {
   });
 }
 export async function deleteCTPL(ctplId: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctplregistration.delete({ where: { ctplId } });
 }
 
 export async function findCtplById(ctplId: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.ctplregistration.findUnique({ where: { ctplId } });
 }
 export async function findCtplfExist(where: {
@@ -76,11 +91,13 @@ export async function findCtplfExist(where: {
   NumSeriesFrom: string;
   NumSeriesTo: string;
 }) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
         *
     FROM
-        upward_insurance.ctplregistration a
+          ctplregistration a
     WHERE
     a.Prefix = '${where.Prefix}'
         AND a.NumSeriesFrom = '${where.NumSeriesFrom}'

@@ -1,12 +1,17 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getInsuranceList() {
-  const qry = `SELECT distinct Account FROM upward_insurance.policy_account;`;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
+  const qry = `SELECT distinct Account FROM policy_account;`;
   return await prisma.$queryRawUnsafe(qry);
 }
 
 export async function claimsPolicy(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const qry = `
   select * from (
     SELECT 
@@ -34,13 +39,13 @@ export async function claimsPolicy(search: string) {
     i.totalpaid,
     i.balance,
     i.remitted
-    FROM upward_insurance.policy a
-    LEFT JOIN upward_insurance.vpolicy b on a.PolicyNo = b.PolicyNo
-    LEFT JOIN upward_insurance.fpolicy c on a.PolicyNo = c.PolicyNo
-    LEFT JOIN upward_insurance.mpolicy d on a.PolicyNo = d.PolicyNo
-    LEFT JOIN upward_insurance.msprpolicy e on a.PolicyNo = e.PolicyNo
-    LEFT JOIN upward_insurance.cglpolicy f on a.PolicyNo = f.PolicyNo
-    LEFT JOIN upward_insurance.papolicy g on a.PolicyNo = g.PolicyNo
+    FROM policy a
+    LEFT JOIN vpolicy b on a.PolicyNo = b.PolicyNo
+    LEFT JOIN fpolicy c on a.PolicyNo = c.PolicyNo
+    LEFT JOIN mpolicy d on a.PolicyNo = d.PolicyNo
+    LEFT JOIN msprpolicy e on a.PolicyNo = e.PolicyNo
+    LEFT JOIN cglpolicy f on a.PolicyNo = f.PolicyNo
+    LEFT JOIN papolicy g on a.PolicyNo = g.PolicyNo
       LEFT JOIN
       (SELECT 
           'Client' AS IDType,
@@ -49,42 +54,42 @@ export async function claimsPolicy(search: string) {
               IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
               aa.entry_client_id AS client_id
       FROM
-          upward_insurance.entry_client aa UNION ALL SELECT 
+          entry_client aa UNION ALL SELECT 
           'Agent' AS IDType,
               aa.entry_agent_id AS IDNo,
               aa.sub_account,
               CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
               aa.entry_agent_id AS client_id
       FROM
-          upward_insurance.entry_agent aa UNION ALL SELECT 
+          entry_agent aa UNION ALL SELECT 
           'Employee' AS IDType,
               aa.entry_employee_id AS IDNo,
               aa.sub_account,
               CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
               aa.entry_employee_id AS client_id
       FROM
-          upward_insurance.entry_employee aa UNION ALL SELECT 
+          entry_employee aa UNION ALL SELECT 
           'Supplier' AS IDType,
               aa.entry_supplier_id AS IDNo,
               aa.sub_account,
               IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
               aa.entry_supplier_id AS client_id
       FROM
-          upward_insurance.entry_supplier aa UNION ALL SELECT 
+          entry_supplier aa UNION ALL SELECT 
           'Fixed Assets' AS IDType,
               aa.entry_fixed_assets_id AS IDNo,
               aa.sub_account,
               aa.fullname AS Shortname,
               aa.entry_fixed_assets_id AS client_id
       FROM
-          upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
+          entry_fixed_assets aa UNION ALL SELECT 
           'Others' AS IDType,
               aa.entry_others_id AS IDNo,
               aa.sub_account,
               aa.description AS Shortname,
               aa.entry_others_id AS client_id
       FROM
-          upward_insurance.entry_others aa) h ON a.IDNo = h.IDNo
+          entry_others aa) h ON a.IDNo = h.IDNo
     LEFT JOIN (
    ${comnputationQry()}
     ) i on  a.PolicyNo = i.PolicyNo
@@ -140,9 +145,9 @@ function comnputationQry() {
   //               MIN(b.PolicyNo) as PolicyNo,
   //                  MIN(a.ID_No) as ID_No
   //       FROM
-  //         upward_insurance.journal a
+  //         journal a
   //           LEFT JOIN
-  //         upward_insurance.policy b ON a.ID_No = b.IDNo
+  //         policy b ON a.ID_No = b.IDNo
   //       WHERE
   //         a.Explanation LIKE '%remit%'
   //           AND a.Source_Type = 'GL'
@@ -163,7 +168,7 @@ function comnputationQry() {
     format(ifnull(a.TotalDue - b.balance , 0),2) as  totalpaid,
     a.PolicyNo,
     format(ifnull(c.remitted,0),2) as remitted
-    from upward_insurance.policy a
+    from policy a
     left join
     (
       SELECT  
@@ -172,8 +177,8 @@ function comnputationQry() {
         b.PolicyNo,
         MAX(b.TotalDue) as TotalDue,
         if(SUM(a.Debit) > SUM(a.Credit), MAX(b.TotalDue) - SUM(a.Debit) , MAX(b.TotalDue) - SUM(a.Credit) ) as balance
-      FROM upward_insurance.journal a
-      left join upward_insurance.policy b on a.ID_No = b.PolicyNo
+      FROM journal a
+      left join policy b on a.ID_No = b.PolicyNo
       where a.Source_Type = 'OR' and  a.GL_Acct = '1.03.01'
       group by b.PolicyNo 
     ) b on a.PolicyNo = b.PolicyNo
@@ -184,9 +189,9 @@ function comnputationQry() {
               SUM(a.Credit)) AS remitted,
           b.PolicyNo
             FROM
-              upward_insurance.journal a
+              journal a
                 LEFT JOIN
-              upward_insurance.policy b ON a.ID_No = b.PolicyNo
+              policy b ON a.ID_No = b.PolicyNo
             WHERE
               a.Explanation LIKE '%remit%'
                 AND a.Source_Type = 'GL'
@@ -196,6 +201,8 @@ function comnputationQry() {
   `
 }
 export async function claimnsPolicyComputation(id: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const qry = `
   select  * from (
     ${comnputationQry()}
@@ -205,6 +212,8 @@ export async function claimnsPolicyComputation(id: string) {
   return await prisma.$queryRawUnsafe(qry);
 }
 export async function GenerateClaimsID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     concat(
@@ -219,29 +228,39 @@ export async function GenerateClaimsID() {
         ) 
       ) as id   
   FROM
-    upward_insurance.id_sequence a
+    id_sequence a
   WHERE
     a.type = 'claims'`);
 }
 export async function createClaim({ claims, claims_details }: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.claims.create({ data: claims });
   await prisma.claims_details.create({ data: claims_details });
 }
 export async function createClaimDetails(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.claims_details.create({ data });
 }
 export async function createClaims(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.claims.create({ data });
 }
 
 export async function updateClaimIDSequence(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      update upward_insurance.id_sequence a
+      update id_sequence a
       set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
       where a.type ='claims'
     `);
 }
 export async function searchClaims(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const qry = `
   SELECT 
       a.claims_id,
@@ -256,9 +275,9 @@ export async function searchClaims(search: string) {
       MAX(a.remarks) AS remarks,
       MAX(a.department) AS department
   FROM
-      upward_insurance.claims a
+      claims a
           LEFT JOIN
-      upward_insurance.claims_details b ON a.claims_id = b.claims_id
+      claims_details b ON a.claims_id = b.claims_id
   WHERE
       a.claims_id LIKE '%${search}%'
           OR b.AssuredName LIKE '%${search}%'
@@ -281,6 +300,8 @@ export async function searchClaims(search: string) {
   return await prisma.$queryRawUnsafe(qry);
 }
 export async function selectedData(claims_id: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT
       a.claims_id,
@@ -321,19 +342,21 @@ export async function selectedData(claims_id: string) {
       ifnull(c.DateTo ,
       ifnull(d.DateTo ,
       ifnull(e.DateTo ,ifnull(f.PeriodTo,ifnull(g.PeriodTo,h.PeriodTo))))) as DateTo
-  FROM upward_insurance.claims_details a
-  LEFT JOIN  upward_insurance.policy b on a.PolicyNo = b.PolicyNo
-  LEFT JOIN upward_insurance.vpolicy c on a.PolicyNo = c.PolicyNo
-  LEFT JOIN upward_insurance.fpolicy d on a.PolicyNo = d.PolicyNo
-  LEFT JOIN upward_insurance.mpolicy e on a.PolicyNo = e.PolicyNo
-  LEFT JOIN upward_insurance.msprpolicy f on a.PolicyNo = f.PolicyNo
-  LEFT JOIN upward_insurance.cglpolicy g on a.PolicyNo = g.PolicyNo
-  LEFT JOIN upward_insurance.papolicy h on a.PolicyNo = h.PolicyNo
+  FROM claims_details a
+  LEFT JOIN  policy b on a.PolicyNo = b.PolicyNo
+  LEFT JOIN vpolicy c on a.PolicyNo = c.PolicyNo
+  LEFT JOIN fpolicy d on a.PolicyNo = d.PolicyNo
+  LEFT JOIN mpolicy e on a.PolicyNo = e.PolicyNo
+  LEFT JOIN msprpolicy f on a.PolicyNo = f.PolicyNo
+  LEFT JOIN cglpolicy g on a.PolicyNo = g.PolicyNo
+  LEFT JOIN papolicy h on a.PolicyNo = h.PolicyNo
   LEFT JOIN (${comnputationQry()}) i on a.PolicyNo = i.PolicyNo
   where a.claims_id = '${claims_id}';
   `);
 }
 export async function deleteClaims(claims_id: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.$transaction([
     prisma.claims.delete({ where: { claims_id } }),
     prisma.claims_details.deleteMany({
@@ -344,6 +367,8 @@ export async function deleteClaims(claims_id: string) {
   ]);
 }
 function reportQry(header: string, where: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return `
 SELECT * FROM (
   SELECT 
@@ -385,9 +410,9 @@ UNION ALL
   b.status,
   '0' AS header
 FROM
-  upward_insurance.claims a
+  claims a
       LEFT JOIN
-  upward_insurance.claims_details b ON a.claims_id = b.claims_id
+  claims_details b ON a.claims_id = b.claims_id
   ${where}
   order by PolicyNo asc
 ) a 
@@ -395,6 +420,8 @@ FROM
 }
 
 export async function claimReport(addWhere: string, status: number) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   let qry = "";
   if (status === 0) {
     qry = `

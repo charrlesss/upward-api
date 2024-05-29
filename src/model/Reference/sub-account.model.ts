@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
 
 interface SubAccountType {
   Acronym: string;
@@ -7,12 +7,18 @@ interface SubAccountType {
   Description: string;
 }
 export async function createSubAccount(data: SubAccountType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.sub_account.create({ data });
 }
 export async function updateSubAccount(data: SubAccountType, Sub_Acct: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.sub_account.update({ data, where: { Sub_Acct } });
 }
 export async function deleteSubAccount(Sub_Acct: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.sub_account.delete({ where: { Sub_Acct } });
 }
 
@@ -20,6 +26,8 @@ export async function searchSubAccount(
   subaccountSearch: string,
   hasLimit: boolean = false
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = ` 
   SELECT 
     a.Sub_Acct,
@@ -28,7 +36,7 @@ export async function searchSubAccount(
     a.Description,
     (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
   FROM
-  upward_insurance.sub_account a
+    sub_account a
   where 
   a.Acronym like '%${subaccountSearch}%'
   OR a.ShortName like '%${subaccountSearch}%'

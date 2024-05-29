@@ -6,8 +6,6 @@ import path from "path";
 import cookieParser from "cookie-parser";
 import { sampleVPolicy } from "./src/controller/Task/Production/vehiclepolicy";
 
-// import { createsampleData ,creatSampleUser } from "./src/model/StoredProcedure";
-
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
 
@@ -21,7 +19,7 @@ const corsOptions = {
 async function main() {
   const app = express();
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.json({limit: '1000mb'}));
+  app.use(express.json({ limit: "1000mb" }));
   app.use(cookieParser());
   app.use(cors(corsOptions));
   app.use(express.static(path.join(__dirname, "static")));
@@ -37,8 +35,7 @@ async function main() {
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
   });
-  // createsampleData()
-  // creatSampleUser()
+
 
   app.listen(PORT, () => console.log(`Listen in port ${PORT}`));
 }

@@ -21,6 +21,7 @@ import {
 } from "../../model/Task/Production/vehicle-policy";
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const CTPL = express.Router();
 function getZeroFirstInput(data: string) {
@@ -56,6 +57,17 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
 });
 
 CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     delete req.body.mode;
     delete req.body.search;
@@ -139,6 +151,16 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
 });
 
 CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     const tpldID = req.body.ctplId;
     if (!(await saveUserLogsCode(req, "delete", tpldID, "CTPL"))) {
@@ -164,6 +186,17 @@ CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
 });
 
 CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     const user = await getUserById((req.user as any).UserId);
     const { ctplId, ...rest } = req.body;

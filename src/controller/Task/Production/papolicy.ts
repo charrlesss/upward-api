@@ -23,6 +23,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const PAPolicy = express.Router();
 
@@ -47,7 +48,19 @@ PAPolicy.get("/get-pa-policy", (req, res) => {
 
 PAPolicy.post("/add-pa-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
-  console.log(req.body);
+
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   try {
     if (await findPolicy(PolicyNo)) {
       return res.send({
@@ -94,6 +107,18 @@ PAPolicy.get("/search-pa-policy", async (req, res) => {
 });
 
 PAPolicy.post("/update-pa-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "PA Policy"))) {
@@ -113,7 +138,7 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
-    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString();
 
     //delete policy
     await deletePolicyByPAPolicy(PolicyNo);
@@ -134,6 +159,18 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
 
 PAPolicy.post("/delete-pa-policy", async (req, res) => {
   const { PolicyAccount, PolicyNo } = req.body;
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "PA Policy"))) {
       return res.send({ message: "Invalid User Code", success: false });

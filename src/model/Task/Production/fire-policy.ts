@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
 
 export async function getRateType(Line: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     select Type from rates a where  a.Line ='${Line}' group by TYPE
   `);
@@ -23,6 +25,8 @@ export async function createFirePolicy({
   InsuredValue,
   Percentage,
 }: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.fpolicy.create({
     data: {
       PolicyNo,
@@ -44,17 +48,19 @@ export async function createFirePolicy({
 }
 
 export async function searchFirePolicy(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   select a.*,b.*, 
   if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
   concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
   c.address,
   c.sale_officer
-   FROM upward_insurance.fpolicy a
-  left join upward_insurance.policy b
+   FROM fpolicy a
+  left join policy b
   on a.PolicyNo = b.PolicyNo 
-  left join upward_insurance.entry_client c on b.IDNo = c.entry_client_id
-  left join upward_insurance.entry_agent d on b.AgentID = d.entry_agent_id
+  left join entry_client c on b.IDNo = c.entry_client_id
+  left join entry_agent d on b.AgentID = d.entry_agent_id
   where 
   a.PolicyNo like '%${search}%' or
   c.firstname like '%${search}%' or
@@ -66,8 +72,10 @@ export async function searchFirePolicy(search: string) {
 }
 
 export async function deleteFirePolicy(policyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.fpolicy 
+  delete from fpolicy 
   where 
    PolicyNo = '${policyNo}'
   `;
@@ -75,8 +83,10 @@ export async function deleteFirePolicy(policyNo: string) {
 }
 
 export async function deletePolicyFromFire(policyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.policy 
+  delete from policy 
   where 
   PolicyType = 'FIRE' and PolicyNo = '${policyNo}'
   `;

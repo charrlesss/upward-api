@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getClients(search: string, hasLimit: boolean = false) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
         SELECT
         a.entry_client_id,
@@ -10,7 +13,7 @@ export async function getClients(search: string, hasLimit: boolean = false) {
         a.sale_officer,
         'Client' AS entry_type
         FROM
-        upward_insurance.entry_client a
+          entry_client a
         where
         a.entry_client_id like '%${search}%'
         OR a.firstname like '%${search}%'
@@ -24,13 +27,15 @@ export async function getClients(search: string, hasLimit: boolean = false) {
 }
 
 export async function getAgents(search: string, hasLimit: boolean = false) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
       SELECT
       a.entry_agent_id,
       concat(a.firstname,' ',a.middlename,' ',a.lastname) as fullname,
       'Agent' AS entry_type
       FROM
-      upward_insurance.entry_agent a
+        entry_agent a
       where
       a.entry_agent_id like '%${search}%'
       OR a.firstname like '%${search}%'
@@ -42,6 +47,8 @@ export async function getAgents(search: string, hasLimit: boolean = false) {
 }
 
 export async function getPolicyAccount(type: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy_account.findMany({
     select: {
       Account: true,
@@ -55,11 +62,13 @@ export async function getPolicyAccount(type: string) {
 }
 
 export async function policyAccounts(Line: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         MAX(Account) as Account 
     FROM
-        upward_insurance.rates
+          rates
     WHERE
         Line = '${Line}'  
     GROUP BY Account
@@ -68,11 +77,13 @@ export async function policyAccounts(Line: string) {
   `);
 }
 export async function policyTypes(Line: string, Account: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
       TYPE
     FROM
-        upward_insurance.rates
+          rates
     WHERE
         Line = '${Line}' AND
         Account = '${Account}'
@@ -84,23 +95,29 @@ export async function policyTypes(Line: string, Account: string) {
 
 
 export async function getPolicyAccountType() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   select SubLineName from Subline where line = 'Bonds'
   `);
 }
 
 export async function getPolicyAccountByBonds() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-  SELECT Account ,G02, G13, G16 FROM upward_insurance.policy_account WHERE G16 = 1 OR G02 = 1 OR G13 =1 ORDER BY Account
+  SELECT Account ,G02, G13, G16 FROM  policy_account WHERE G16 = 1 OR G02 = 1 OR G13 =1 ORDER BY Account
   `);
 }
 
 export async function getPolicyAccounts(type: string, line: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     MAX(Account) as Account
   FROM
-    upward_insurance.rates
+      rates
   WHERE
   Line = '${line}'
       AND SUBSTRING(type, 1, 3) = '${type}'
@@ -110,6 +127,8 @@ export async function getPolicyAccounts(type: string, line: string) {
 }
 
 export async function getPolicyType(Line: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.subline.findMany({
     select: {
       SublineName: true,
@@ -121,18 +140,24 @@ export async function getPolicyType(Line: string) {
 }
 
 export async function getRates(type: string, Account: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  select distinct type from upward_insurance.rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}' and Account = '${Account}'
+  select distinct type from   rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}' and Account = '${Account}'
 `;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function getSubAccount() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  SELECT a.Acronym FROM upward_insurance.sub_account a order by Acronym;`;
+  SELECT a.Acronym FROM   sub_account a order by Acronym;`;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getMortgagee(type: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const equals: any = {
     COM: "Comprehensive",
     TPL: "TPL",

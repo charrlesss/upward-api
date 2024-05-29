@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
+// const prisma = new PrismaClient();
 
 interface DataEntryClientTypes {
   entry_client_id: string;
@@ -87,11 +88,11 @@ const queryList: any = {
             c.Sub_Acct as sub_account,
             a.sale_officer
         FROM
-        upward_insurance.entry_client a
+          entry_client a
             LEFT JOIN
-        upward_insurance.contact_details b ON a.client_contact_details_id = b.contact_details_id
+          contact_details b ON a.client_contact_details_id = b.contact_details_id
             LEFT JOIN
-        upward_insurance.sub_account c ON a.sub_account = c.Sub_Acct
+          sub_account c ON a.sub_account = c.Sub_Acct
         where 
         a.entry_client_id like '%${search}%'
         OR a.firstname like '%${search}%'
@@ -113,9 +114,9 @@ const queryList: any = {
         (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
         b.Sub_Acct as sub_account
     FROM
-    upward_insurance.entry_employee a
+      entry_employee a
         LEFT JOIN
-    upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
+      sub_account b ON a.sub_account = b.Sub_Acct
     where 
         a.entry_employee_id like '%${search}%'
         OR a.firstname like '%${search}%'
@@ -138,9 +139,9 @@ const queryList: any = {
       b.telephone,
       a.sub_account
     FROM
-    upward_insurance.entry_agent a
+      entry_agent a
       LEFT JOIN
-    upward_insurance.contact_details b ON a.agent_contact_details_id = b.contact_details_id
+      contact_details b ON a.agent_contact_details_id = b.contact_details_id
     where 
     a.entry_agent_id like '%${search}%'
     OR a.firstname like '%${search}%'
@@ -159,7 +160,7 @@ const queryList: any = {
       (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt,
       a.sub_account
     FROM
-    upward_insurance.entry_fixed_assets a 
+      entry_fixed_assets a 
     where
     a.entry_fixed_assets_id like '%${search}%'
     OR a.fullname like '%${search}%'
@@ -185,9 +186,9 @@ const queryList: any = {
       b.telephone,
       a.sub_account
     FROM
-    upward_insurance.entry_supplier a
+      entry_supplier a
       LEFT JOIN
-    upward_insurance.contact_details b ON a.supplier_contact_details_id = b.contact_details_id
+      contact_details b ON a.supplier_contact_details_id = b.contact_details_id
     where 
     a.entry_supplier_id like '%${search}%'
     OR a.firstname like '%${search}%'
@@ -206,7 +207,7 @@ const queryList: any = {
       a.sub_account,
       a.remarks
     FROM
-    upward_insurance.entry_others a
+      entry_others a
     where
     a.entry_others_id like '%${search}%'
     OR a.description like '%${search}%'
@@ -217,6 +218,8 @@ const queryList: any = {
 };
 
 export async function CreateClientEntry(data: DataEntryClientTypes) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const { email, telephone, mobile, ...rest } = data;
   await prisma.entry_client.create({
     data: {
@@ -232,12 +235,15 @@ export async function CreateClientEntry(data: DataEntryClientTypes) {
   });
 }
 export async function CreateEmployeeEntry(data: EntryEmployeeType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.entry_employee.create({
     data,
   });
 }
 export async function CreateAgentEntry(data: EntryAgentType) {
   const { email, telephone, mobile, ...rest } = data;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.entry_agent.create({
     data: {
@@ -253,12 +259,15 @@ export async function CreateAgentEntry(data: EntryAgentType) {
   });
 }
 export async function CreateFixedAssetstEntry(data: EntryFixedAssetsType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.entry_fixed_assets.create({
     data,
   });
 }
 export async function CreateSupplierEntry(data: EntrySupplierType) {
   const { email, telephone, mobile, ...rest } = data;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.entry_supplier.create({
     data: {
@@ -274,11 +283,15 @@ export async function CreateSupplierEntry(data: EntrySupplierType) {
   });
 }
 export async function CreateOtherEntry(data: EntryOthersType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.entry_others.create({
-    data
+    data,
   });
 }
 export async function getAllSubAccount() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
     SELECT 
         a.Sub_Acct,
@@ -290,6 +303,8 @@ export async function getAllSubAccount() {
   return await prisma.$queryRawUnsafe(query);
 }
 async function updateClient(data: DataEntryClientTypes) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const getEntryClient = await prisma.entry_client.findUnique({
     where: { entry_client_id: data.entry_client_id },
   });
@@ -352,10 +367,13 @@ async function updateEmployee(data: EntryEmployeeType) {
     where 
       \`entry_employee_id\`= '${data.entry_employee_id}'
    `;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.$queryRawUnsafe(query);
 }
 async function updateAgent(data: EntryAgentType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const getEntryClient = await prisma.entry_agent.findUnique({
     where: { entry_agent_id: data.entry_agent_id },
   });
@@ -401,10 +419,13 @@ async function updateFixedAssets(data: EntryFixedAssetsType) {
     where 
       \`entry_fixed_assets_id\`= '${data.entry_fixed_assets_id}'
    `;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.$queryRawUnsafe(query);
 }
 async function updateOthers(data: EntryOthersType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   update 
       \`entry_others\`
@@ -419,6 +440,8 @@ async function updateOthers(data: EntryOthersType) {
   await prisma.$queryRawUnsafe(query);
 }
 async function updateSupplier(data: EntrySupplierType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const getEntryClient = await prisma.entry_supplier.findUnique({
     where: { entry_supplier_id: data.entry_supplier_id },
   });
@@ -473,6 +496,8 @@ export async function searchEntry(
   search: string,
   hasLimit: boolean = false
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
     queryList[`${entry}`].query(search, hasLimit)
   );
@@ -500,6 +525,8 @@ export async function updateEntry(entry: string, data: any) {
   }
 }
 export async function deleteEntry(entry: string, id: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   switch (entry) {
     case "Client":
       await prisma.entry_client.delete({
@@ -557,14 +584,64 @@ export async function deleteEntry(entry: string, id: string) {
   }
 }
 export async function getClientInIdEntry(where: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
   return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
 }
 export async function getSubAccounts() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
   return await prisma.$queryRawUnsafe(` 
   SELECT 
     a.Sub_Acct,
     a.Acronym,
   CONCAT(a.Acronym, '-', a.ShortName) AS NewShortName
   FROM
-  upward_insurance.sub_account a`);
+    sub_account a`);
+}
+
+export async function IDGenerator(sign: string, type: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const lastSeq = await prisma.id_sequence.findFirst({ where: { type } });
+  const newCount = incrementLastCount(lastSeq?.last_count as string);
+  const newMonth = getMonth();
+  const newYear = getYear();
+  return `${sign}-${newMonth}${newYear}-${newCount}`;
+}
+export async function UpdateId(
+  type: string,
+  newCount: string,
+  newMonth: string,
+  newYear: string
+) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  await prisma.id_sequence.update({
+    where: {
+      type,
+    },
+    data: {
+      last_count: {
+        set: newCount,
+      },
+      month: {
+        set: newMonth,
+      },
+      year: {
+        set: newYear,
+      },
+    },
+  });
+}
+export function incrementLastCount(str: string) {
+  let num = parseInt(str, 10);
+  num++;
+  return num.toString().padStart(str.length, "0");
+}
+export function getMonth() {
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  return currentMonth.toString().padStart(2, "0");
+}
+export function getYear() {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  return (currentYear % 100).toString();
 }

@@ -25,6 +25,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const MarinePolicy = express.Router();
 
@@ -49,8 +50,22 @@ MarinePolicy.get("/get-marine-policy", (req, res) => {
 });
 
 MarinePolicy.post("/add-marine-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
-  try {
+
+
+  
+    try {
     if (await findPolicy(PolicyNo)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
@@ -100,6 +115,16 @@ MarinePolicy.get(
 );
 
 MarinePolicy.post("/update-marine-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "update", PolicyNo, "Marine Policy"))) {
@@ -138,6 +163,16 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
 });
 
 MarinePolicy.post("/delete-marine-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { PolicyAccount, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Marine Policy"))) {
@@ -278,3 +313,4 @@ async function insertMarinePolicy({
   });
 }
 export default MarinePolicy;
+

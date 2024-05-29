@@ -19,6 +19,7 @@ import {
 } from "../../../model/Task/Accounting/return-checks.model";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 const ReturnCheck = express.Router();
 
 ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
@@ -58,6 +59,16 @@ ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
   }
 });
 ReturnCheck.post("/add-return-check", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T ${req.body.isUpdated ?"UPDATE":"SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       req.body.isUpdated &&

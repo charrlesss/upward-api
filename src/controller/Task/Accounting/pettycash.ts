@@ -14,6 +14,7 @@ import {
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const PettyCash = express.Router();
 
@@ -44,6 +45,19 @@ PettyCash.get("/get-petty-cash-id", async (req, res) => {
 });
 
 PettyCash.post("/add-petty-cash", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T ${
+        req.body.hasSelected ? "UPDATE" : "SAVE"
+      }, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     const { refNo, datePetty, payee, explanation, hasSelected, pettyCash } =
       req.body;

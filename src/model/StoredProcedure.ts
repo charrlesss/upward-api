@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { hashSync } from "bcrypt";
+import {v4 as uuidV4} from 'uuid'
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,49 @@ export function getYear() {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   return (currentYear % 100).toString();
+}
+
+async function sub_account() {
+  const data = [
+    { Acronym: "All", ShortName: "All", Description: "A" },
+    {
+      Acronym: "BO",
+      ShortName: "Baguio Office",
+      Description: "Baguio Office",
+    },
+    {
+      Acronym: "CO",
+      ShortName: "Calasiao Office",
+      Description: "Calasiao Office",
+    },
+    { Acronym: "CSB", ShortName: "CSB", Description: "CASH BOND" },
+    { Acronym: "EO", ShortName: "Edsa Office", Description: "" },
+    { Acronym: "EV", ShortName: "EV", Description: "EDEN VILLASAN" },
+    { Acronym: "HO", ShortName: "Head Office", Description: "H" },
+    { Acronym: "IO", ShortName: "ISABELA OFFICE", Description: "" },
+    { Acronym: "MCC", ShortName: "MACHINE COMPLETE CORP.", Description: "MCC" },
+    { Acronym: "ML", ShortName: "ML", Description: "MALALALALALALA" },
+    {
+      Acronym: "SC",
+      ShortName: "SANCARLOS OFFICE",
+      Description: "SANCARLOS OFFICE",
+    },
+    { Acronym: "TAR", ShortName: "TAR", Description: "TARLAC OFFICE" },
+    {
+      Acronym: "TO",
+      ShortName: "Tarlac Office",
+      Description: "Tarlac Office",
+    },
+    { Acronym: "UIA", ShortName: "UPWARD INSURANCE CORP.", Description: "UIA" },
+    {
+      Acronym: "UO",
+      ShortName: "Urdaneta Office",
+      Description: "Urdaneta Office",
+    },
+  ];
+  await prisma.sub_account.createMany({
+    data,
+  });
 }
 
 export function getMonth() {
@@ -125,37 +169,6 @@ export async function createIdSequence() {
   console.log("new user : ", user);
 }
 
-export async function IDGenerator(sign: string, type: string) {
-  const lastSeq = await prisma.id_sequence.findFirst({ where: { type } });
-  const newCount = incrementLastCount(lastSeq?.last_count as string);
-  const newMonth = getMonth();
-  const newYear = getYear();
-  return `${sign}-${newMonth}${newYear}-${newCount}`;
-}
-export async function UpdateId(
-  type: string,
-  newCount: string,
-  newMonth: string,
-  newYear: string
-) {
-  await prisma.id_sequence.update({
-    where: {
-      type,
-    },
-    data: {
-      last_count: {
-        set: newCount,
-      },
-      month: {
-        set: newMonth,
-      },
-      year: {
-        set: newYear,
-      },
-    },
-  });
-}
-
 export function getAcronym(inputText: string) {
   const exclusionList = ["and", "the", "in", "of", "for", "with"];
   inputText = inputText.trim().toLowerCase();
@@ -167,12 +180,6 @@ export function getAcronym(inputText: string) {
     }
   }
   return acronym.toUpperCase();
-}
-
-export function incrementLastCount(str: string) {
-  let num = parseInt(str, 10);
-  num++;
-  return num.toString().padStart(str.length, "0");
 }
 
 export async function testJoin() {
@@ -187,35 +194,117 @@ export async function testJoin() {
 }
 
 export async function creatSampleUser() {
-  const password1 = hashSync("charles", 12);
-  const password2 = hashSync("buboy", 12);
-  const password3 = hashSync("manok", 12);
-  const userConfirmationCode1 = hashSync("manok", 12);
-  const userConfirmationCode2 = hashSync("manok", 12);
+  const password1 = hashSync("charles1", 12);
+  const password2 = hashSync("buboy1", 12);
+  const password3 = hashSync("manok1", 12);
+  const password7 = hashSync("admin1", 12);
+  const password4 = hashSync("charles", 12);
+  const password5 = hashSync("buboy", 12);
+  const password6 = hashSync("manok", 12);
+  const password8 = hashSync("admin", 12);
+  const userConfirmationCode = hashSync("manok", 12);
 
-  const user = await prisma.users.createMany({
-    data: [
-      {
-        AccountType: "ACCOUNTING",
-        Password: password1,
-        Username: "charles",
-        userConfirmationCode: userConfirmationCode1,
-      },
-      {
-        AccountType: "PRODUCTION",
-        Password: password2,
-        Username: "buboy",
-        userConfirmationCode: userConfirmationCode2,
-      },
-      {
-        AccountType: "CLAIMS",
-        Password: password3,
-        Username: "manok",
-        userConfirmationCode: userConfirmationCode2,
-      },
-    ],
+  const data = [
+    {
+      AccountType: "ACCOUNTING",
+      Password: password1,
+      Username: "charles1",
+      userConfirmationCode,
+      Department: "UCSMI",
+    },
+    {
+      AccountType: "PRODUCTION",
+      Password: password2,
+      Username: "buboy1",
+      userConfirmationCode,
+      Department: "UCSMI",
+    },
+    {
+      AccountType: "CLAIMS",
+      Password: password3,
+      Username: "manok1",
+      userConfirmationCode,
+      Department: "UCSMI",
+    },
+    {
+      AccountType: "ADMIN",
+      Password: password7,
+      Username: "admin1",
+      userConfirmationCode,
+      Department: "UCSMI",
+    },
+    {
+      AccountType: "ACCOUNTING",
+      Password: password4,
+      Username: "charles",
+      userConfirmationCode,
+      Department: "UMIS",
+    },
+    {
+      AccountType: "PRODUCTION",
+      Password: password5,
+      Username: "buboy",
+      userConfirmationCode,
+      Department: "UMIS",
+    },
+    {
+      AccountType: "CLAIMS",
+      Password: password6,
+      Username: "manok",
+      userConfirmationCode,
+      Department: "UMIS",
+    },
+    {
+      AccountType: "ADMIN",
+      Password: password8,
+      Username: "admin",
+      userConfirmationCode,
+      Department: "UMIS",
+    },
+  ];
+
+  data.forEach(async (itm) => {
+    const UserId = uuidV4()
+    const qry1 = `
+    insert into upward_insurance.users(UserId,AccountType,Password,Username,userConfirmationCode,Department)
+    values (
+      '${UserId}',
+      '${itm.AccountType}',
+      '${itm.Password}',
+      '${itm.Username}',
+      '${itm.userConfirmationCode}',
+      '${itm.Department}'
+    )
+    `;
+    await prisma.$executeRawUnsafe(qry1);
+
+    const qry2 = `
+    insert into upward_insurance_ucsmi.users(UserId,AccountType,Password,Username,userConfirmationCode,Department)
+    values (
+      '${UserId}',
+      '${itm.AccountType}',
+      '${itm.Password}',
+      '${itm.Username}',
+      '${itm.userConfirmationCode}',
+      '${itm.Department}'
+    )
+    `;
+    await prisma.$executeRawUnsafe(qry2);
+
+    const qry3 = `
+    insert into upward_insurance_umis.users(UserId,AccountType,Password,Username,userConfirmationCode,Department)
+    values (
+      '${UserId}',
+      '${itm.AccountType}',
+      '${itm.Password}',
+      '${itm.Username}',
+      '${itm.userConfirmationCode}',
+      '${itm.Department}'
+    )
+    `;
+    await prisma.$executeRawUnsafe(qry3);
   });
-  console.log("new user : ", user);
+ 
 }
 
 export async function creatSampleSubAccount() {

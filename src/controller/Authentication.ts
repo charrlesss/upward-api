@@ -2,9 +2,23 @@ import { PrismaClient } from "@prisma/client";
 import express, { NextFunction, Request, Response } from "express";
 import { compareSync } from "bcrypt";
 import jwt from "jsonwebtoken";
+import saveUserLogs from "../lib/save_user_logs";
 
 const Authentication = express.Router();
 const prisma = new PrismaClient();
+
+export const dbURL = [
+  {
+    department: "UMIS",
+    key: "FJzuPdMfeVu",
+    url: "mysql://root:charles@localhost:3306/upward_insurance_umis",
+  },
+  {
+    department: "UCSMI",
+    key: "THluGdHMfDe",
+    url: "mysql://root:charles@localhost:3306/upward_insurance_ucsmi",
+  },
+];
 
 function generateAccessToken(UserId: string) {
   return jwt.sign({ UserId }, process.env.ACCESS_TOKEN as string, {
@@ -94,12 +108,32 @@ Authentication.post("/login", async (req: Request, res: Response) => {
       process.env.REFRESH_TOKEN as string
     );
     updateRefreshToken(findUser.UserId, refreshToken);
-    const userAccess = jwt.sign({userAccess:findUser.AccountType} ,process.env.USER_ACCESS as string);
+    const userAccess = jwt.sign(
+      { userAccess: findUser.AccountType },
+      process.env.USER_ACCESS as string
+    );
 
-    
+    const department = findUser.Department;
+    const dbUrl = dbURL.filter((itm) => itm.department === department)[0];
+
     res.cookie("up-ac-login", userAccess, { httpOnly: true });
+    res.cookie("up-dpm-login", department, { httpOnly: true });
     res.cookie("up-at-login", accessToken, { httpOnly: true });
     res.cookie("up-rt-login", refreshToken, { httpOnly: true });
+    res.cookie("db-k-d", dbUrl.key, { httpOnly: true });
+
+    await prisma.system_logs.create({
+      data: {
+        action:"login",
+        username: req.body.username,
+        dataString:findUser.UserId,
+        createdAt: new Date(),
+        user_id: findUser.UserId,
+        module:"Authentication",
+        account_type: findUser?.AccountType,
+      },
+    });
+    
 
     return res.send({
       message: "Successfully Login",
@@ -110,6 +144,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
         accessToken,
         refreshToken,
         userAccess: findUser.AccountType,
+        department
       },
     });
   } else {
@@ -124,6 +159,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
 });
 
 Authentication.get("/token", async (req, res) => {
+  const department = req.cookies["up-dpm-login"];
   const accessToken = req.cookies["up-at-login"];
   const refreshToken = req.cookies["up-rt-login"];
   const userAccessToken = req.cookies["up-ac-login"];
@@ -133,12 +169,12 @@ Authentication.get("/token", async (req, res) => {
   }
 
   try {
-    const user:any = await VerifyToken(
+    const user: any = await VerifyToken(
       refreshToken as string,
       process.env.REFRESH_TOKEN as string
     );
 
-    const {userAccess}:any = await VerifyToken(
+    const { userAccess }: any = await VerifyToken(
       userAccessToken as string,
       process.env.USER_ACCESS as string
     );
@@ -146,7 +182,7 @@ Authentication.get("/token", async (req, res) => {
     const newAccessToken = generateAccessToken(user.UserId);
     res.cookie("up-at-login", newAccessToken, { httpOnly: true });
     req.user = user;
-    res.send({ accessToken, refreshToken, userAccess });
+    res.send({ accessToken, refreshToken, userAccess ,department });
   } catch (err: any) {
     console.log(err.message);
     return res.send(null);
@@ -166,7 +202,7 @@ Authentication.get("/token", async (req, res) => {
   // );
 });
 
-async function VerifyToken(token: string, secret: string) {
+export async function VerifyToken(token: string, secret: string) {
   return new Promise(function (resolve, reject) {
     jwt.verify(token, secret, function (err, decode) {
       if (err) {
@@ -197,8 +233,10 @@ async function VerifyToken(token: string, secret: string) {
 export function logout(req: Request, res: Response) {
   res.cookie("up-rt-login", { expires: Date.now() });
   res.cookie("up-at-login", { expires: Date.now() });
+  res.cookie("db-k-d", { expires: Date.now() });
   res.clearCookie("up-rt-login");
   res.clearCookie("up-at-login");
+  res.clearCookie("db-k-d");
   const id = (req.user as any).UserId;
   updateRefreshToken(id, "");
   res.send({ message: "Logout Successfully", success: true });

@@ -1,22 +1,27 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function checkPostponementRequestAutoID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       concat('CDPR-',a.year, LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as pullout_request
     FROM
-      upward_insurance.id_sequence a
+        id_sequence a
     WHERE
       type = 'check-postponement';
   ;`);
 }
 export async function getCheckPostponementPNNo(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
     SELECT 
         a.PNo, MAX(a.IDNo) as IDNo, MAX(a.Name) as Name , MAX(c.ShortName) as branch
     FROM
-        upward_insurance.pdc a
+          pdc a
         left join (
         SELECT 
             "Client" as IDType,
@@ -26,7 +31,7 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_client_id as client_id,
             aa.address
         FROM
-            upward_insurance.entry_client aa
+              entry_client aa
             union all
         SELECT 
             "Agent" as IDType,
@@ -36,7 +41,7 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_agent_id as client_id,
             aa.address
         FROM
-            upward_insurance.entry_agent aa
+              entry_agent aa
             union all
         SELECT 
             "Employee" as IDType,
@@ -46,7 +51,7 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_employee_id as client_id,
             aa.address
         FROM
-            upward_insurance.entry_employee aa
+              entry_employee aa
         union all
         SELECT 
             "Supplier" as IDType,
@@ -56,7 +61,7 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_supplier_id as client_id,
             aa.address
         FROM
-            upward_insurance.entry_supplier aa
+              entry_supplier aa
             union all
         SELECT 
             "Fixed Assets" as IDType,
@@ -66,7 +71,7 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_fixed_assets_id as client_id,
             CONCAT(aa.description, " - ", aa.remarks) AS address
         FROM
-            upward_insurance.entry_fixed_assets aa
+              entry_fixed_assets aa
             union all
         SELECT 
             "Others" as IDType,
@@ -76,10 +81,10 @@ export async function getCheckPostponementPNNo(search: string) {
             aa.entry_others_id as client_id,
             CONCAT(aa.description, " - ", aa.remarks) AS address
         FROM
-            upward_insurance.entry_others aa
+              entry_others aa
         
         ) b on a.IDNo = b.IDNo
-        left join upward_insurance.sub_account c on b.sub_account = c.Sub_Acct
+        left join   sub_account c on b.sub_account = c.Sub_Acct
         WHERE 
             
             a.PDC_Status = 'Stored' and 
@@ -97,6 +102,8 @@ export async function getSelectedCheckPostponementPNNo(
   PNNo: string,
   checkNo: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
       SELECT 
           PDC_ID,
@@ -106,10 +113,10 @@ export async function getSelectedCheckPostponementPNNo(
           Check_Amnt,
           ifnull(Status,'--') as Status
       FROM
-          upward_insurance.PDC PD
+            PDC PD
           left join (
-            SELECT bb.CheckNo,aa.Status FROM upward_insurance.postponement aa
-                left join upward_insurance.postponement_detail bb on aa.RPCDNo = bb.RPCD and bb.cancel = 0 and  aa.Status <> 'CANCEL'
+            SELECT bb.CheckNo,aa.Status FROM  postponement aa
+                left join   postponement_detail bb on aa.RPCDNo = bb.RPCD and bb.cancel = 0 and  aa.Status <> 'CANCEL'
                 ) b on PD.Check_No = b.CheckNo 
       WHERE
         PNo = '${PNNo}'
@@ -120,6 +127,8 @@ export async function getSelectedCheckPostponementPNNo(
   return await prisma.$queryRawUnsafe(query);
 }
 export async function searchEditPostponentRequest(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   SELECT 
     RPCDNo,
@@ -137,7 +146,7 @@ export async function searchEditPostponentRequest(search: string) {
     Requested_Date,
     format(CAST(REPLACE(HoldingFees, ',', '') AS DECIMAL) + CAST(REPLACE(PenaltyCharge, ',', '') AS DECIMAL) + CAST(REPLACE(Surplus, ',', '') AS DECIMAL),2) AS total
   FROM
-    upward_insurance.postponement a
+      postponement a
   WHERE
     Status = 'PENDING' AND
     (
@@ -149,6 +158,8 @@ export async function searchEditPostponentRequest(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 export async function searchSelectedEditPostponentRequest(RPCD: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
     SELECT 
         b.Check_No,
@@ -161,11 +172,11 @@ export async function searchSelectedEditPostponentRequest(RPCD: string) {
         c.Status,
         LPAD(ROW_NUMBER() OVER (), 3, '0') as temp_id
     FROM
-        upward_insurance.postponement_detail a
+          postponement_detail a
             LEFT JOIN
-        upward_insurance.pdc b ON a.CheckNo = b.Check_No
+          pdc b ON a.CheckNo = b.Check_No
         LEFT JOIN 
-        upward_insurance.postponement c on a.RPCD = c.RPCDNo
+          postponement c on a.RPCD = c.RPCDNo
     WHERE
       RPCD = '${RPCD}' AND
       a.cancel = 0 AND
@@ -174,24 +185,34 @@ export async function searchSelectedEditPostponentRequest(RPCD: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 export async function updateOnCancelPostponentRequest(RPCD: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    update  upward_insurance.postponement a set a.Status = 'CANCEL'  where a.RPCDNo = '${RPCD}'
+    update    postponement a set a.Status = 'CANCEL'  where a.RPCDNo = '${RPCD}'
     ;`;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function updateOnCancelPostponentRequestDetails(RPCD: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    update  upward_insurance.postponement_detail a set a.cancel = 1  where a.RPCD = '${RPCD}'
+    update    postponement_detail a set a.cancel = 1  where a.RPCD = '${RPCD}'
     ;`;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function createPostponement(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.postponement.create({ data });
 }
 export async function createPostponementDetails(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.postponement_detail.create({ data });
 }
 export async function approvalCodePostponement(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.postponement_auth_codes.create({ data });
 }
 export async function updatePostponementStatus(
@@ -199,8 +220,10 @@ export async function updatePostponementStatus(
   RPCDNo: string,
   Approved_By: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  UPDATE upward_insurance.postponement a 
+  UPDATE  postponement a 
   SET 
       a.Status = '${isApproved ? "APPROVED" : "DISAPPROVED"}',
       a.Approved_By = '${Approved_By}',
@@ -211,8 +234,10 @@ export async function updatePostponementStatus(
   return await prisma.$queryRawUnsafe(query);
 }
 export async function findApprovalPostponementCode(code: string, RPCD: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    SELECT * FROM upward_insurance.postponement_auth_codes a where a.Approved_Code  = '${code}' AND a.RPCD='${RPCD}';
+    SELECT * FROM   postponement_auth_codes a where a.Approved_Code  = '${code}' AND a.RPCD='${RPCD}';
   `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -220,8 +245,10 @@ export async function updateApprovalPostponementCode(
   Used_By: string,
   RPCDNo: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  UPDATE upward_insurance.postponement_auth_codes a 
+  UPDATE  postponement_auth_codes a 
   SET 
       a.Used_By = '${Used_By}',
       a.Used_DateTime = now()

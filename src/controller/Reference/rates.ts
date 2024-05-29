@@ -14,6 +14,7 @@ import { getline } from "../../model/Reference/subline.model";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 import saveUserLogs from "../../lib/save_user_logs";
+import { VerifyToken } from "../Authentication";
 
 const Rates = express.Router();
 
@@ -42,6 +43,16 @@ Rates.get("/get-rates", async (req: Request, res: Response) => {
 });
 
 Rates.post("/add-rates", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     delete req.body.mode;
     delete req.body.search;
@@ -61,6 +72,16 @@ Rates.post("/add-rates", async (req: Request, res: Response) => {
 });
 
 Rates.post("/update-rates", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (!(await saveUserLogsCode(req, "edit", req.body.ID, "Rates"))) {
       return res.send({ message: "Invalid User Code", success: false });
@@ -81,6 +102,16 @@ Rates.post("/update-rates", async (req: Request, res: Response) => {
 });
 
 Rates.post("/delete-rates", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Rates"))) {
       return res.send({ message: "Invalid User Code", success: false });

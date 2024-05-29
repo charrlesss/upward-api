@@ -1,8 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { TemplateRenewalNotice } from "../db/stored-procedured";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
+
 
 export async function getClients(search: string) {
+    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   SELECT 
     Policy.PolicyNo,
@@ -40,32 +43,32 @@ FROM
             aa.sub_account,
             if(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) as Shortname
     FROM
-        upward_insurance.entry_client aa UNION ALL SELECT 
+        entry_client aa UNION ALL SELECT 
             aa.entry_agent_id AS IDNo,
             NULL AS sub_account,
             CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
     FROM
-        upward_insurance.entry_agent aa UNION ALL SELECT 
+        entry_agent aa UNION ALL SELECT 
             aa.entry_employee_id AS IDNo,
             aa.sub_account,
             CONCAT(aa.lastname, ',', aa.firstname) AS Shortname
     FROM
-        upward_insurance.entry_employee aa UNION ALL SELECT 
+        entry_employee aa UNION ALL SELECT 
             aa.entry_supplier_id AS IDNo,
             NULL AS sub_account,
             if(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) as Shortname
     FROM
-        upward_insurance.entry_supplier aa UNION ALL SELECT 
+        entry_supplier aa UNION ALL SELECT 
             aa.entry_fixed_assets_id AS IDNo,
             NULL AS sub_account,
             aa.fullname AS Shortname
     FROM
-        upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
+        entry_fixed_assets aa UNION ALL SELECT 
             aa.entry_others_id AS IDNo,
             NULL AS sub_account,
             aa.description AS Shortname
     FROM
-        upward_insurance.entry_others aa) client ON Policy.IDNo = client.IDNo
+        entry_others aa) client ON Policy.IDNo = client.IDNo
 WHERE
         Policy.PolicyNo LIKE '%${search}%'
         OR client.Shortname LIKE '%${search}%'
@@ -77,6 +80,8 @@ LIMIT 500
 }
 
 export async function getSelectedClient(policyType: string, policyNo: string) {
+    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = TemplateRenewalNotice(policyType,policyNo);
 
   console.log(query)

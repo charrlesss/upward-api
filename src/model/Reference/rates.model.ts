@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
 
 interface RateType {
   Account: string;
@@ -9,12 +9,16 @@ interface RateType {
 }
 
 export async function addRate(data: RateType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.rates.create({ data });
 }
 export async function searchRate(
   mortgageeSearch: string,
   hasLimit: boolean = false
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   SELECT 
     a.ID,
@@ -24,7 +28,7 @@ export async function searchRate(
     a.Rate,
     (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
   FROM
-  upward_insurance.rates a
+    rates a
     where
         a.ID like '%${mortgageeSearch}%'
         OR a.Account like '%${mortgageeSearch}%'
@@ -37,42 +41,54 @@ export async function searchRate(
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getPolicyAccounts() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = ` 
     SELECT 
         a.Account
     FROM
-    upward_insurance.policy_account a
+      policy_account a
     `;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getBonds() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = ` 
     SELECT 
         a.SublineName
     FROM
-    upward_insurance.subline a
+      subline a
     WHERE
     a.Line = 'Bonds';
     `;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getFire() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = ` 
       SELECT 
           a.SublineName
       FROM
-      upward_insurance.subline a
+        subline a
       WHERE
       a.Line = 'Fire';
       `;
   return await prisma.$queryRawUnsafe(query);
 }
 export async function updateRate(ID: string, Type: string, Rate: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.rates.update({ where: { ID }, data: { Type, Rate } });
 }
 export async function addRates(data: RateType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.rates.create({ data });
 }
 export async function deleteRate(ID: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   await prisma.rates.delete({ where:{ID} });
 }

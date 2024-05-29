@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getMarineRate(account: string, line: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
     select Rate from Rates 
     where 
@@ -11,22 +14,26 @@ export async function getMarineRate(account: string, line: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 export async function createMarinePolicy(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.mpolicy.create({
     data,
   });
 }
 export async function searchMarinePolicy(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
     select a.*,b.*, 
     if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
     c.address,
     c.sale_officer
-     FROM upward_insurance.mpolicy a
-    left join upward_insurance.policy b
+     FROM mpolicy a
+    left join policy b
     on a.PolicyNo = b.PolicyNo 
-    left join upward_insurance.entry_client c on b.IDNo = c.entry_client_id
-    left join upward_insurance.entry_agent d on b.AgentID = d.entry_agent_id
+    left join entry_client c on b.IDNo = c.entry_client_id
+    left join entry_agent d on b.AgentID = d.entry_agent_id
     where 
     a.PolicyNo like '%${search}%' or
     c.firstname like '%${search}%' or
@@ -37,21 +44,29 @@ export async function searchMarinePolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 export async function createWords(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.words.create({
     data,
   });
 }
 export async function deleteWords() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    delete from upward_insurance.words where Wordings = 'Mpolicy' and (SType = 1 OR SType = 0)
+    delete from words where Wordings = 'Mpolicy' and (SType = 1 OR SType = 0)
 `);
 }
 export async function getWords() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    select * from upward_insurance.words where Wordings = 'Mpolicy' and (SType = 1 OR SType = 0)
+    select * from words where Wordings = 'Mpolicy' and (SType = 1 OR SType = 0)
 `);
 }
 export async function deleteMarinePolicy(PolicyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.mpolicy.delete({
     where: {
       PolicyNo,
@@ -60,8 +75,10 @@ export async function deleteMarinePolicy(PolicyNo: string) {
 }
 
 export async function deletePolicyFromMarine(policyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.policy 
+  delete from policy 
   where 
   PolicyType = 'MAR' and PolicyNo = '${policyNo}'
   `;

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
 
 interface PolicyAccountType {
   Account: string;
@@ -19,10 +19,13 @@ interface PolicyAccountType {
 }
 
 export async function checkedAccountIsExisting(Account: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy_account.findUnique({ where: { Account } });
 }
 
 export async function createPolicyAccount(policyAccount: PolicyAccountType) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
   return await prisma.policy_account.create({ data: policyAccount });
 }
 
@@ -45,14 +48,14 @@ export async function searchPolicy(
   a.CGL,
   (DATE_FORMAT(a.createdAt, '%Y-%m-%d')) as createdAt
 FROM
-upward_insurance.policy_account a
+  policy_account a
 where 
 a.Account like '%${policySearch}%'
 OR a.Description like '%${policySearch}%'
 OR a.AccountCode like '%${policySearch}%'
 ORDER BY a.createdAt desc 
 ${hasLimit ? "" : "limit 500"}`;
-
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -60,16 +63,17 @@ export async function updatePolicyAccount(
   policyAccount: PolicyAccountType,
   Account: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy_account.update({
     data: policyAccount,
     where: { Account },
   });
 }
-export async function deletePolicyAccount(
-  Account: string
-) {
+export async function deletePolicyAccount(Account: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy_account.delete({
     where: { Account },
   });
 }
-

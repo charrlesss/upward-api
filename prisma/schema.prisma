@@ -367,7 +367,7 @@ model cash_disbursement {
   Date_Entry    DateTime? @db.DateTime(6)
   Source_Type   String?   @db.VarChar(255)
   Source_No     String?   @db.VarChar(255)
-  Explanation   String?   @db.VarChar(255)
+  Explanation   String?   @db.LongText
   Particulars   String?   @db.LongText
   Payto         String?   @db.VarChar(255)
   Address       String?   @db.VarChar(255)
@@ -387,7 +387,7 @@ model cash_disbursement {
   Debit         Decimal?  @default(0.0000) @db.Decimal(19, 4)
   Credit        Decimal?  @default(0.0000) @db.Decimal(19, 4)
   TC            String?   @db.VarChar(255)
-  Remarks       String?   @db.VarChar(255)
+  Remarks       String?   @db.LongText
   AutoNo        BigInt    @id @default(autoincrement())
   VAT_Type      String?   @db.VarChar(255)
   OR_Invoice_No String?   @db.VarChar(255)
@@ -617,7 +617,7 @@ model journal_voucher {
   Date_Entry    String?  @db.VarChar(255)
   Source_Type   String?  @db.VarChar(3)
   Source_No     String?  @db.VarChar(20)
-  Explanation   String?  @db.VarChar(255)
+  Explanation   String?  @db.LongText
   Particulars   String?  @db.LongText
   Payto         String?  @db.VarChar(100)
   Address       String?  @db.VarChar(255)
@@ -637,7 +637,7 @@ model journal_voucher {
   Debit         Decimal? @default(0.0000) @db.Decimal(19, 4)
   Credit        Decimal? @default(0.0000) @db.Decimal(19, 4)
   TC            String?  @db.VarChar(3)
-  Remarks       String?  @db.VarChar(255)
+  Remarks       String?  @db.LongText
   AutoNo        BigInt   @id @default(autoincrement())
   VAT_Type      String?  @db.VarChar(255)
   OR_Invoice_No String?  @db.VarChar(255)
@@ -886,7 +886,7 @@ model return_checks {
   Area         String?   @db.VarChar(255)
   RC_Date      DateTime? @db.DateTime(6)
   RC_No        String    @db.VarChar(255)
-  Explanation  String?   @db.VarChar(255)
+  Explanation  String?   @db.Text
   Check_No     String?   @db.VarChar(255)
   Date_Deposit DateTime? @db.DateTime(6)
   Date_Collect DateTime? @db.DateTime(6)
@@ -1122,6 +1122,7 @@ model users {
   UserId               String            @id @default(uuid())
   Username             String            @unique(map: "Users_Username_key") @db.VarChar(50)
   Password             String            @db.VarChar(500)
+  Department           String            @db.VarChar(500)
   AccountType          users_AccountType
   REFRESH_TOKEN        String?           @db.Text
   CreatedAt            DateTime          @default(now())

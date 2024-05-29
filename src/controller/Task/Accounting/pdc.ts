@@ -12,16 +12,27 @@ import {
   pdcUploadsUpdate,
   getPdcUpload,
 } from "../../../model/Task/Accounting/pdc.model";
-import { IDGenerator, UpdateId } from "../../../model/StoredProcedure";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import path from "path";
 import fs from "fs";
 import { generateUniqueFilename } from "../Claims/claims";
 import { v4 as uuidV4 } from "uuid";
+import { IDGenerator, UpdateId } from "../../../model/Reference/id-entry.model";
+import { VerifyToken } from "../../Authentication";
 const PDC = express.Router();
 
 PDC.post("/add-pdc", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if ((await findPdc(req.body.Ref_No)).length > 0) {
       return res.send({ message: "REF No. Is Already Exist!", success: false });
@@ -92,10 +103,10 @@ PDC.post("/add-pdc", async (req, res) => {
     }
     const files = UploadFile(req.body.fileToSave, uploadDir, res);
     await pdcUploads({
-      pdc_upload_id:uuidV4(),
-      ref_no:req.body.Ref_No,
-      upload:JSON.stringify(files)
-    })
+      pdc_upload_id: uuidV4(),
+      ref_no: req.body.Ref_No,
+      upload: JSON.stringify(files),
+    });
     const newPdcId = await pdcIDGenerator();
     await saveUserLogs(req, req.body.Ref_No, "add", "PDC");
     res.send({
@@ -108,6 +119,17 @@ PDC.post("/add-pdc", async (req, res) => {
   }
 });
 PDC.post("/update-pdc", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     if (!(await saveUserLogsCode(req, "edit", req.body.Ref_No, "PDC"))) {
       return res.send({ message: "Invalid User Code", success: false });
@@ -182,11 +204,9 @@ PDC.post("/update-pdc", async (req, res) => {
     }
     const files = UploadFile(req.body.fileToSave, uploadDir, res);
     await pdcUploadsUpdate({
-      ref_no:req.body.Ref_No,
-      upload:JSON.stringify(files)
-    })
-
-
+      ref_no: req.body.Ref_No,
+      upload: JSON.stringify(files),
+    });
 
     await UpdateId("pdc", newId, month, year);
     res.send({ message: "Update PDC Successfully.", success: true });
@@ -250,13 +270,12 @@ PDC.post("/get-search-pdc-check", async (req, res) => {
       message: "Search PDC Check Successfully",
       success: true,
       getSearchPDCCheck: searchPDCData,
-      upload: await getPdcUpload(req.body.ref_no)
+      upload: await getPdcUpload(req.body.ref_no),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, getSearchPDCCheck: [] });
   }
 });
-
 function UploadFile(filesArr: Array<any>, uploadDir: string, res: Response) {
   const obj: any = [];
   filesArr.forEach((file: any) => {

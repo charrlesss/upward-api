@@ -10,10 +10,22 @@ import {
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 import saveUserLogs from "../../lib/save_user_logs";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
+import { VerifyToken } from "../Authentication";
 
 const SubAccount = express.Router();
 
 SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   try {
     delete req.body.Sub_Acct;
     delete req.body.mode;
@@ -60,6 +72,16 @@ SubAccount.get("/search-sub-account", async (req: Request, res: Response) => {
 });
 
 SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       !(await saveUserLogsCode(req, "edit", req.body.Sub_Acct, "Sub Account"))
@@ -84,6 +106,16 @@ SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
   }
 });
 SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       !(await saveUserLogsCode(req, "delete", req.body.Sub_Acct, "Sub Account"))

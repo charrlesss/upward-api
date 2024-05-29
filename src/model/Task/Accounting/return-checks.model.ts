@@ -1,16 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function GenerateReturnCheckID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       concat(DATE_FORMAT(NOW(), '%y%m'),'-', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as return_check_id   
     FROM
-      upward_insurance.id_sequence a
+        id_sequence a
     WHERE
       a.type = 'return-check'`);
 }
 export async function getCheckList(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
   a.Temp_SlipCodE AS DepoSlip, 
@@ -34,36 +39,40 @@ FROM
           BankAccount,
           Ref_No
   FROM
-      upward_insurance.deposit a
-  LEFT JOIN upward_insurance.deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
+        deposit a
+  LEFT JOIN   deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
       LEFT JOIN
   (SELECT 
       Official_Receipt, Date_OR
   FROM
-      upward_insurance.collection
+        collection
   GROUP BY Official_Receipt , Date_OR) b ON a.Ref_No = b.Official_Receipt
 GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit , a.Check_Date , a.Check_No , a.Bank , a.BankAccount , b.Date_OR , b.Official_Receipt
 HAVING (((b.Date_OR) IS NOT NULL)
   AND ((a.Check_No) <> ''))
   AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
-  AND a.Check_No not in (select Check_No from upward_insurance.return_checks)
+  AND a.Check_No not in (select Check_No from   return_checks)
 ORDER BY a.Check_Date
 limit 100
   `);
 }
 export async function getCreditOnSelectedCheck(BankAccount: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     a.Account_ID, b.Acct_Title,  b.Short, a.IDNo
 FROM
-    upward_insurance.bankaccounts a
+      bankaccounts a
         LEFT JOIN
-    upward_insurance.chart_account b ON a.Account_ID = b.Acct_Code
+      chart_account b ON a.Account_ID = b.Acct_Code
 WHERE
     a.Account_No = '${BankAccount}';
   `);
 }
 export async function getDebitOnSelectedCheck(Official_Receipt: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
       a.CRCode,
@@ -77,31 +86,39 @@ export async function getDebitOnSelectedCheck(Official_Receipt: string) {
       'Head Office' AS SubAcctName,
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM
-      upward_insurance.collection a
+        collection a
   WHERE
       a.Official_Receipt = '${Official_Receipt}'
       AND a.CRCode <> ''
   `);
 }
 export async function getBranchName() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
-    `SELECT a.ShortName FROM upward_insurance.sub_account a where a.Acronym = 'HO'`
+    `SELECT a.ShortName FROM  sub_account a where a.Acronym = 'HO'`
   );
 }
 
 export async function deleteReturnCheck(RC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    delete from upward_insurance.return_checks where RC_NO='${RC_No}'
+    delete from   return_checks where RC_NO='${RC_No}'
   `);
 }
 
 export async function addNewReturnCheck(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.return_checks.create({ data });
 }
 
 export async function updatePDCFromReturnCheck(Check_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    UPDATE upward_insurance.pdc a SET a.SlipCode ='', a.ORNum='' WHERE  a.Check_No ='${Check_No}' 
+    UPDATE  pdc a SET a.SlipCode ='', a.ORNum='' WHERE  a.Check_No ='${Check_No}' 
   `);
 }
 
@@ -109,24 +126,32 @@ export async function updateJournalFromReturnCheck(
   Check_No: string,
   SlipCode: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    UPDATE upward_insurance.journal a 
+    UPDATE  journal a 
     SET a.TC ='RTC'  
     WHERE  a.Check_No ='${Check_No}' AND a.Source_No = '${SlipCode}' AND a.Source_Type ='OR'
   `);
 }
 
 export async function deleteJournalFromReturnCheck(SlipCode: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-  DELETE FROM upward_insurance.journal a WHERE a.Source_No = '${SlipCode}' AND a.Source_Type = 'RC'`);
+  DELETE FROM   journal a WHERE a.Source_No = '${SlipCode}' AND a.Source_Type = 'RC'`);
 }
 export async function addJournalFromReturnCheck(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({ data });
 }
 
 export async function updateRCID(last_count: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-  UPDATE upward_insurance.id_sequence a 
+  UPDATE  id_sequence a 
     SET 
         a.last_count = '${last_count}',
         a.year = DATE_FORMAT(NOW(), '%y'),
@@ -136,13 +161,15 @@ export async function updateRCID(last_count: string) {
   `);
 }
 export async function searchReturnChecks(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       DATE_FORMAT(RC_Date, '%m/%d/%Y') AS RC_Date,
       RC_No,
       Explanation
     FROM
-      upward_insurance.return_checks
+        return_checks
     WHERE
       LEFT(Explanation, 7) <> '-- Void'
           AND (RC_No LIKE '%${search}%'
@@ -154,6 +181,8 @@ export async function searchReturnChecks(search: string) {
 }
 
 export async function getReturnCheckSearchFromJournal(RC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     a.Branch_Code  as BranchCode,
@@ -179,7 +208,7 @@ export async function getReturnCheckSearchFromJournal(RC_No: string) {
     a.TC,
     LPAD(ROW_NUMBER() OVER (), 3, '0') as TempID
   FROM
-    upward_insurance.journal a
+      journal a
   WHERE
     a.Source_Type = 'RC' AND
     a.Source_No = '${RC_No}'
@@ -188,6 +217,8 @@ export async function getReturnCheckSearchFromJournal(RC_No: string) {
 }
 
 export async function getReturnCheckSearch(RC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     a.Area as BranchCode, 
@@ -209,14 +240,16 @@ export async function getReturnCheckSearch(RC_No: string) {
     a.Temp_RCNo,
     a.Temp_RCNo as TempID
   FROM
-    upward_insurance.return_checks a
+      return_checks a
   WHERE
     a.RC_No = '${RC_No}'
       `);
 }
 
 export async function findReturnCheck(RC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    select * from upward_insurance.return_checks where RC_NO='${RC_No}'
+    select * from   return_checks where RC_NO='${RC_No}'
   `);
 }

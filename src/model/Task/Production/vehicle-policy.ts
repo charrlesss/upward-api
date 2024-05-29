@@ -1,14 +1,17 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getTPL_IDS(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
       MIN(Source_No) AS Source_No,
       MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
       Source_No_Ref_ID
   FROM
-      upward_insurance.journal
+      journal
   WHERE
           Explanation = 'CTPL Registration'
           AND Credit > 0
@@ -20,10 +23,14 @@ export async function getTPL_IDS(search: string) {
 }
 
 export async function createJournal(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({ data });
 }
 
 export async function deleteJournal(Source_No_Ref_ID: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.deleteMany({
     where: {
       Source_No_Ref_ID,
@@ -32,6 +39,8 @@ export async function deleteJournal(Source_No_Ref_ID: string) {
 }
 
 export async function findManyJournal(Source_No_Ref_ID: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.findMany({
     where: {
       Source_No_Ref_ID,
@@ -44,6 +53,8 @@ export async function updateJournal(
   Cost: string,
   AutoNo: bigint
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.update({
     data: {
       Credit: Cost,
@@ -56,6 +67,8 @@ export async function updateJournal(
 }
 
 export async function findPolicy(PolicyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy.findUnique({ where: { PolicyNo } });
 }
 export async function getPolicy(
@@ -63,8 +76,10 @@ export async function getPolicy(
   form_type: string,
   policy_no: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  SELECT * FROM upward_insurance.policy 
+  SELECT * FROM policy 
   WHERE 
   Account = '${account}'
   AND PolicyType = '${form_type}' 
@@ -73,6 +88,8 @@ export async function getPolicy(
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getRate(account: string, line: string, type: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   select Rate from Rates 
   where 
@@ -85,13 +102,15 @@ export async function getRate(account: string, line: string, type: string) {
 }
 
 export async function getClientById(entry_client_id: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   SELECT 
     b.*
   FROM 
-  upward_insurance.entry_client a
+  entry_client a
     LEFT JOIN
-  upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
+  sub_account b ON a.sub_account = b.Sub_Acct
   where a.entry_client_id ='${entry_client_id}'
   `;
   return await prisma.$queryRawUnsafe(query);
@@ -101,8 +120,10 @@ export async function deletePolicyByVehicle(
   form_type: string,
   policyNo: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.policy 
+  delete from policy 
   where 
   PolicyType = '${form_type}' 
   and PolicyNo = '${policyNo}'
@@ -116,8 +137,10 @@ export async function deletePolicy(
   form_type: string,
   policyNo: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.policy 
+  delete from policy 
   where 
   Account = '${subAccount}' 
   and PolicyType = '${form_type}' 
@@ -128,8 +151,10 @@ export async function deletePolicy(
 }
 
 export async function deleteVehiclePolicy(form_type: string, policyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.vpolicy 
+  delete from vpolicy 
   where 
    PolicyNo = '${policyNo}'
   `;
@@ -140,8 +165,10 @@ export async function deleteJournalBySource(
   source_no: string,
   source_type: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-  delete from upward_insurance.journal 
+  delete from journal 
   where 
   Source_No = '${source_no}' 
   and Source_Type = '${source_type}'
@@ -169,6 +196,8 @@ export async function createPolicy(data: {
   AgentID: string;
   AgentCom: string;
 }) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.policy.create({
     data,
   });
@@ -223,6 +252,8 @@ export async function createVehiclePolicy(data: {
   TPLTypeSection_I_II: string;
   Remarks: string;
 }) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.vpolicy.create({
     data,
   });
@@ -246,6 +277,8 @@ export async function createJournalInVP(data: {
   Remarks: string;
   Source_No_Ref_ID: string;
 }) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({
     data,
   });
@@ -255,6 +288,8 @@ export async function updateJournalByPolicy(
   Source_No: string,
   Explanation: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.updateMany({
     where: {
       Source_No,
@@ -269,6 +304,8 @@ export async function updateJournalByPolicy(
 }
 
 export async function getTempPolicyID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   select
   concat(
@@ -282,7 +319,7 @@ export async function getTempPolicyID() {
     )
   ) AS tempPolicy_No
    from (
-    SELECT  MAX(PolicyNo) as PolicyNo FROM upward_insurance.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
+    SELECT  MAX(PolicyNo) as PolicyNo FROM vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
   ) a`);
 }
 
@@ -291,6 +328,8 @@ export async function searchDataVPolicy(
   policyType: string,
   isTemp: boolean
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
       a.*,
@@ -300,11 +339,11 @@ export async function searchDataVPolicy(
       concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
       c.sale_officer
     FROM
-      upward_insurance.policy a
+      policy a
           LEFT JOIN
-        upward_insurance.vpolicy b ON a.PolicyNo = b.PolicyNo
-        left join upward_insurance.entry_client c on a.IDNo = c.entry_client_id 
-        left join upward_insurance.entry_agent d on a.AgentID = d.entry_agent_id 
+        vpolicy b ON a.PolicyNo = b.PolicyNo
+        left join entry_client c on a.IDNo = c.entry_client_id 
+        left join entry_agent d on a.AgentID = d.entry_agent_id 
             WHERE 
         a.PolicyType = '${policyType}' and
        ${

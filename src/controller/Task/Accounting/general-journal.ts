@@ -23,11 +23,22 @@ import {
 import { getMonth, getYear, endOfMonth, format } from "date-fns";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 const GeneralJournal = express.Router();
 
 GeneralJournal.post(
   "/general-journal/add-general-journal",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T ${req.body.hasSelected ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (
         req.body.hasSelected &&
@@ -119,6 +130,16 @@ GeneralJournal.post(
 GeneralJournal.post(
   "/general-journal/void-general-journal",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T VOID, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (
         !(await saveUserLogsCode(

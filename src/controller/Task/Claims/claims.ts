@@ -24,9 +24,21 @@ import {
   startOfMonth,
   startOfYear,
 } from "date-fns";
+import { VerifyToken } from "../../Authentication";
 const Claim = express.Router();
 
 Claim.post("/claims/save", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T ${req.body.mode === "update" ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   const data = req.body;
   const isUpdateMode = req.body.mode === "update";
   if (isUpdateMode) {

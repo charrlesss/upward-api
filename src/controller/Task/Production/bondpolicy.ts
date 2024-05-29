@@ -23,6 +23,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const BondPolicy = express.Router();
 
@@ -34,7 +35,7 @@ BondPolicy.get("/get-bond-acc-type", async (req, res) => {
     const string = bonds.join(" = 1 AND ") + " = 1";
     res.send({
       message: "Create Bonds Policy Successfully",
-      string: `SELECT * FROM upward_insurance.policy_account a where ${string}`,
+      string: `SELECT * FROM policy_account a where ${string}`,
       success: true,
     });
   } catch (err: any) {
@@ -72,8 +73,20 @@ BondPolicy.get("/get-bonds-policy", (req, res) => {
 });
 
 BondPolicy.post("/add-bonds-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
     req.body;
+
+
   try {
     if (await findPolicy(PolicyNo)) {
       return res.send({
@@ -122,6 +135,16 @@ BondPolicy.get("/search-bonds-policy", async (req, res) => {
 });
 
 BondPolicy.post("/update-bonds-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
     req.body;
   try {
@@ -153,8 +176,7 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     // //delete journal
     await deleteJournalBySource(PolicyNo, "PL");
 
-
-    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString();
     // insert fire policy
     await insertBondsPolicy({ ...req.body, cStrArea, strArea });
 
@@ -166,6 +188,16 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
 });
 
 BondPolicy.post("/delete-bonds-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { PolicyAccount, PolicyNo, policyType } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Bonds Policy"))) {

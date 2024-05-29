@@ -21,6 +21,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const CGLPolicy = express.Router();
 
@@ -44,6 +45,16 @@ CGLPolicy.get("/get-cgl-policy", (req, res) => {
 });
 
 CGLPolicy.post("/add-cgl-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (await findPolicy(PolicyNo)) {
@@ -88,6 +99,16 @@ CGLPolicy.get("/search-cgl-policy", async (req, res) => {
 });
 
 CGLPolicy.post("/update-cgl-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "edit", PolicyNo, "CGL Policy"))) {
@@ -128,6 +149,16 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
 });
 
 CGLPolicy.post("/delete-cgl-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { PolicyAccount, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "CGL Policy"))) {

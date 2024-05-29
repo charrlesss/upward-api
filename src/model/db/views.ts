@@ -17,7 +17,7 @@ export function clients_view() {
 	NULL AS VAT_Type,
     NULL AS tin_no
 FROM
-    upward_insurance.entry_client aa 
+    entry_client aa 
 UNION ALL SELECT 
     CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
     aa.entry_agent_id AS IDNo,
@@ -35,7 +35,7 @@ UNION ALL SELECT
 	NULL AS VAT_Type,
     NULL AS tin_no
 FROM
-    upward_insurance.entry_agent aa 
+    entry_agent aa 
 UNION ALL SELECT 
     CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
     aa.entry_employee_id AS IDNo,
@@ -53,7 +53,7 @@ UNION ALL SELECT
 	NULL AS VAT_Type,
     NULL AS tin_no
 FROM
-    upward_insurance.entry_employee aa 
+    entry_employee aa 
 UNION ALL SELECT 
     aa.fullname AS ShortName,
     aa.entry_fixed_assets_id AS IDNo,
@@ -71,7 +71,7 @@ UNION ALL SELECT
 	NULL AS VAT_Type,
     NULL AS tin_no
 FROM
-    upward_insurance.entry_fixed_assets aa 
+    entry_fixed_assets aa 
 UNION ALL SELECT 
     aa.description AS ShortName,
     aa.entry_others_id AS IDNo,
@@ -89,7 +89,7 @@ UNION ALL SELECT
 	NULL AS VAT_Type,
     NULL AS tin_no
 FROM
-    upward_insurance.entry_others aa
+    entry_others aa
  UNION ALL SELECT 
      CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
     aa.entry_supplier_id AS IDNo,
@@ -107,7 +107,7 @@ FROM
     aa.VAT_Type,
     aa.tin_no
 FROM
-    upward_insurance.entry_supplier aa) id_entry`;
+    entry_supplier aa) id_entry`;
 }
 
 export function qryJournal() {
@@ -149,11 +149,11 @@ export function qryJournal() {
         a.AutoNo AS Auto,
         a.Check_No
     FROM
-    upward_insurance.journal a
-    LEFT OUTER JOIN upward_insurance.policy b ON a.ID_No = b.PolicyNo
-    LEFT OUTER JOIN upward_insurance.sub_account c ON a.Sub_Acct = c.Acronym
+    journal a
+    LEFT OUTER JOIN    policy b ON a.ID_No = b.PolicyNo
+    LEFT OUTER JOIN    sub_account c ON a.Sub_Acct = c.Acronym
     LEFT OUTER JOIN (${selectClient}) d ON a.ID_No = d.IDNo
-    LEFT OUTER JOIN upward_insurance.chart_account e ON a.GL_Acct = e.Acct_Code
-    LEFT OUTER JOIN upward_insurance.books f ON a.Source_Type = f.Code
+    LEFT OUTER JOIN    chart_account e ON a.GL_Acct = e.Acct_Code
+    LEFT OUTER JOIN    books f ON a.Source_Type = f.Code
 `;
 }

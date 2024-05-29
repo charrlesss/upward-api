@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getClientCheckedList(search: string, PNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
    SELECT 
         CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
@@ -15,8 +18,8 @@ export async function getClientCheckedList(search: string, PNo: string) {
         a.Check_Remarks,
         b.Bank as BankName
     FROM
-        upward_insurance.pdc a
-    LEFT JOIN  upward_insurance.bank b ON a.Bank = b.Bank_Code
+          pdc a
+    LEFT JOIN   bank b ON a.Bank = b.Bank_Code
     WHERE
         (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%'
             OR a.Branch LIKE '%${search}%')
@@ -29,42 +32,50 @@ export async function getClientCheckedList(search: string, PNo: string) {
 }
 
 export async function getTransactionBanksDetails() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `SELECT 
             *
         FROM
-            upward_insurance.transaction_code a
+              transaction_code a
                 LEFT JOIN
-            upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+              chart_account b ON a.Acct_Code = b.Acct_Code
         WHERE
         a.code = 'CHK' OR a.code = 'CSH'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function getTransactionBanksDetailsDebit(code:string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `SELECT 
             *
         FROM
-            upward_insurance.transaction_code a
+              transaction_code a
                 LEFT JOIN
-            upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+              chart_account b ON a.Acct_Code = b.Acct_Code
         WHERE
         a.code = '${code}'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function postTransactionBanksDetails(code:string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `SELECT 
             *
         FROM
-            upward_insurance.transaction_code a
+              transaction_code a
                 LEFT JOIN
-            upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+              chart_account b ON a.Acct_Code = b.Acct_Code
         WHERE
          a.Acct_Code = '${code}'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function getTransactionDescription() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
         SELECT 
             a.Description as label,
@@ -72,9 +83,9 @@ export async function getTransactionDescription() {
             b.Acct_Title,
             a.Code
         FROM
-            upward_insurance.transaction_code a
+              transaction_code a
                 LEFT JOIN
-            upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+              chart_account b ON a.Acct_Code = b.Acct_Code
         WHERE
             b.Acct_Code IS NOT NULL
         ORDER BY Description`;
@@ -82,63 +93,81 @@ export async function getTransactionDescription() {
 }
 
 export async function createCollection(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.collection.create({ data });
 }
 
 export async function upteCollection(data: any ,Temp_OR:string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.collection.update({ data , where:{Temp_OR}});
 }
 
 export async function updatePDCCheck(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    UPDATE upward_insurance.pdc a
+    UPDATE  pdc a
         SET a.ORNum ='${data.ORNum}'
     WHERE a.PNo = '${data.PNo}' AND a.Check_No = '${data.CheckNo}'
 `);
 }
 
 export async function deleteFromJournalToCollection(ORNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      DELETE from upward_insurance.journal a
+      DELETE from   journal a
       WHERE a.Source_Type = 'OR' AND a.Source_No = '${ORNo}'
   `);
 }
 
 export async function createJournal(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({ data });
 }
 
 export async function collectionIDGenerator() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       concat(a.year,a.month,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as collectionID
     FROM
-      upward_insurance.id_sequence a
+        id_sequence a
     WHERE
       type = 'collection';`);
 }
 
 export async function updateCollectionIDSequence(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      update upward_insurance.id_sequence a
+      update  id_sequence a
       set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
       where a.type ='collection'
     `);
 }
 export async function findORnumber(ORNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.collection.findMany({
     where: { Official_Receipt: ORNo },
   });
 }
 
 export async function getCollections(searchCollectionInput: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         MAX(a.Date) AS Date,
         a.Official_Receipt AS 'ORNo',
         MAX(a.Name) AS Name
     FROM
-        upward_insurance.collection a
+          collection a
     WHERE
         LEFT(a.Name, 7) <> '-- Void'
             AND (a.Official_Receipt LIKE '%${searchCollectionInput}%'
@@ -149,6 +178,8 @@ export async function getCollections(searchCollectionInput: string) {
   `);
 }
 export async function getSearchCollection(ORNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     a.*, 
@@ -156,9 +187,9 @@ export async function getSearchCollection(ORNo: string) {
     b.Bank AS BankName,
     TRIM(BOTH ' ' FROM SUBSTRING_INDEX(a.Bank, '/', -1)) as Branch
   FROM
-    upward_insurance.collection a
+      collection a
         LEFT JOIN
-    upward_insurance.bank b ON b.Bank_Code = TRIM(BOTH ' ' FROM SUBSTRING_INDEX(a.Bank, '/', 1))
+      bank b ON b.Bank_Code = TRIM(BOTH ' ' FROM SUBSTRING_INDEX(a.Bank, '/', 1))
   WHERE
     a.Official_Receipt = '${ORNo}'
   ORDER BY a.Temp_OR
@@ -166,23 +197,29 @@ export async function getSearchCollection(ORNo: string) {
 }
 
 export async function deleteCollection(Official_Receipt: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    DELETE FROM upward_insurance.collection a WHERE a.Official_Receipt ='${Official_Receipt}'
+    DELETE FROM   collection a WHERE a.Official_Receipt ='${Official_Receipt}'
   `);
 }
 
 export async function updateCollection(data: any, Temp_OR: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.collection.update({ data: data, where: { Temp_OR } });
 }
 
 export async function TransactionAndChartAccount(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
   SELECT 
   b.Acct_Code, b.Acct_Title
 FROM
-  upward_insurance.transaction_code a
+    transaction_code a
       LEFT JOIN
-  upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code
+    chart_account b ON a.Acct_Code = b.Acct_Code
 WHERE
   a.Description = '${search}'    `;
   return await prisma.$queryRawUnsafe(query);

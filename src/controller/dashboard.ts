@@ -2,9 +2,11 @@ import express from "express";
 const Dashboard = express.Router();
 
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from ".";
 
 Dashboard.get("/get-renewal-this-month", async (req, res) => {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   try {
     let qry = "";
     function table(policy: string) {
@@ -53,11 +55,11 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
               el === "PA" || el === "CGL" ? "b.PeriodTo " : "b.DateTo"
             },'%m/%d/%Y') as DateExpired
         FROM
-            upward_insurance.policy a
+              policy a
             LEFT JOIN
-            upward_insurance.${table(el)} b ON a.PolicyNo = b.PolicyNo
+              ${table(el)} b ON a.PolicyNo = b.PolicyNo
             LEFT JOIN
-            upward_insurance.entry_client c ON a.IDNo = c.entry_client_id
+              entry_client c ON a.IDNo = c.entry_client_id
             where
             a.PolicyType = '${el}' and 
             date_format(${
@@ -82,6 +84,8 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
         return data;
       }
     );
+
+    
     Promise.all(renewalData).then((results) => {
       res.send({
         message: `Successfully Get Renewal This Month`,
@@ -123,13 +127,16 @@ Dashboard.get("/get-claims-notice", async (req, res) => {
   b.status,
   b.claim_type
 FROM
-  upward_insurance.claims a
+    claims a
       LEFT JOIN
-  upward_insurance.claims_details b ON a.claims_id = b.claims_id
+    claims_details b ON a.claims_id = b.claims_id
 WHERE
   status <> 1 and status <> 2`;
 
   try {
+    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
+
     const claims: any = await prisma.$queryRawUnsafe(qry);
     const claimsStatusSort = claimsStatus.sort();
     claims.map((itm: any) => {

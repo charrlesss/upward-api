@@ -21,7 +21,7 @@ ScheduleAccounts.get("/chart-schedule-account", async (req, res) => {
         select 
             * 
         from 
-            upward_insurance.chart_account a
+              chart_account a
         where 
             a.Acct_Code LIKE '%${account_search}%' OR
             a.Acct_Title  LIKE '%${account_search}%' OR
@@ -45,7 +45,7 @@ ScheduleAccounts.get("/chart-schedule-account", async (req, res) => {
 ScheduleAccounts.get("/schedule-accounts", async (req, res) => {
   try {
     const accounts = await prisma.$queryRawUnsafe(`
-      SELECT AccountCode FROM upward_insurance.policy_account;
+      SELECT AccountCode FROM   policy_account;
     `);
     res.send({
       message: "Successfully Get Accounts!",
@@ -64,7 +64,7 @@ ScheduleAccounts.get("/schedule-accounts", async (req, res) => {
 ScheduleAccounts.get("/get-sub-account-acronym", async (req, res) => {
   try {
     const sub_account = await prisma.$queryRawUnsafe(`
-    SELECT Acronym FROM upward_insurance.sub_account;
+    SELECT Acronym FROM   sub_account;
     `);
     res.send({
       message: "Successfully Get Sub Accounts!",
@@ -90,7 +90,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 		   if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
            aa.entry_client_id as client_id  
         FROM
-            upward_insurance.entry_client aa
+              entry_client aa
             union all
       SELECT 
 			"Agent" as IDType,
@@ -99,7 +99,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
             aa.entry_agent_id as client_id  
         FROM
-            upward_insurance.entry_agent aa
+              entry_agent aa
             union all
       SELECT 
 			"Employee" as IDType,
@@ -108,7 +108,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 			CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
             aa.entry_employee_id as client_id
         FROM
-            upward_insurance.entry_employee aa
+              entry_employee aa
       union all
       SELECT 
 			"Supplier" as IDType,
@@ -117,7 +117,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 			if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
              aa.entry_supplier_id as client_id
         FROM
-            upward_insurance.entry_supplier aa
+              entry_supplier aa
             union all
       SELECT 
 			"Fixed Assets" as IDType,
@@ -126,7 +126,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 			aa.fullname AS Shortname,
             aa.entry_fixed_assets_id as client_id
         FROM
-            upward_insurance.entry_fixed_assets aa
+              entry_fixed_assets aa
             union all
       SELECT 
 			"Others" as IDType,
@@ -135,7 +135,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
 			aa.description AS Shortname,
             aa.entry_others_id as client_id
         FROM
-            upward_insurance.entry_others aa
+              entry_others aa
   `;
 
     let dateFrom = "";
@@ -180,7 +180,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           ) AS Balance
       FROM
           (${qryJournal()})  a
-          LEFT JOIN upward_insurance.sub_account b on a.Sub_Acct =  b.Acronym
+          LEFT JOIN   sub_account b on a.Sub_Acct =  b.Acronym
       WHERE
           (a.Source_Type <> 'BF' AND a.Source_Type <>'BFD' AND a.Source_Type <>'BFS') AND
           a.Date_Entry >= '${dateFrom}' AND 
@@ -198,7 +198,7 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
               SELECT
                   Acronym
               FROM
-                  upward_insurance.Sub_Account ${
+                    Sub_Account ${
                     req.body.subsi_options.toLowerCase() === "all"
                       ? ""
                       : ` where Acronym = '${req.body.subsi_options}'`
@@ -224,15 +224,15 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           FORMAT(Sum(Debit), 2) AS Debit,
           FORMAT(Sum(Credit), 2) AS Credit,
           IF(CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(a.GL_Acct,1) AS UNSIGNED) = 7, SUM(Debit)-SUM(Credit), SUM(Credit)-SUM(Debit)) AS Balance
-      FROM upward_insurance.journal a
-      INNER JOIN upward_insurance.chart_account b ON b.Acct_Code = a.GL_Acct
-      LEFT JOIN upward_insurance.sub_account c ON c.Sub_Acct = a.Sub_Acct
+      FROM  journal a
+      INNER JOIN  chart_account b ON b.Acct_Code = a.GL_Acct
+      LEFT JOIN   sub_account c ON c.Sub_Acct = a.Sub_Acct
       LEFT JOIN (
         SELECT
             PolicyNo,
             Shortname
         FROM
-            upward_insurance.policy a
+              policy a
         INNER JOIN (${selectClient}) b ON b.IDNo = a.IDNo
         UNION ALL
         SELECT
@@ -280,9 +280,9 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
           FORMAT(SUM(a.mCredit),2) AS Credit,
           IF(CAST(LEFT(GL_Acct,1) AS UNSIGNED) <= 3 OR CAST(LEFT(GL_Acct,1) AS UNSIGNED) = 7, SUM(a.mDebit)-SUM(a.mCredit), SUM(a.mCredit)-SUM(a.mDebit)) AS Balance
       FROM (${qryJournal()})  a
-      LEFT JOIN upward_insurance.policy b ON a.ID_No = b.PolicyNo
-      INNER JOIN upward_insurance.policy_account c ON b.Account = c.Account
-      LEFT JOIN upward_insurance.chart_account d on a.GL_Acct = d.Acct_Code
+      LEFT JOIN   policy b ON a.ID_No = b.PolicyNo
+      INNER JOIN  policy_account c ON b.Account = c.Account
+      LEFT JOIN   chart_account d on a.GL_Acct = d.Acct_Code
       WHERE 
       a.Date_Entry >= '${dateFrom}'  
       AND a.Date_Entry <= '${dateTo}'

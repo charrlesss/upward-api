@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import sendEmail from "../../../lib/sendEmail";
 import generateRandomNumber from "../../../lib/generateRandomNumber";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { VerifyToken } from "../../Authentication";
 
 const CheckPostponement = express.Router();
 
@@ -79,7 +80,19 @@ CheckPostponement.get(
   }
 );
 CheckPostponement.post("/check-postponement/save", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   try {
+
     const user = await getUserById((req.user as any).UserId);
     const data = {
       RPCDNo: req.body.RPCD,
@@ -186,6 +199,17 @@ CheckPostponement.post(
 CheckPostponement.post(
   "/check-postponement/cancel-request",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T CANCEL, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       await updateOnCancelPostponentRequest(req.body.RPCD);
       await updateOnCancelPostponentRequestDetails(req.body.RPCD);
@@ -211,6 +235,17 @@ CheckPostponement.post(
 CheckPostponement.post(
   "/check-postponement/approved-request",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T APPROVED, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       if (
         req.body.code === "" ||

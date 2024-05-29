@@ -1,55 +1,71 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
 
 export async function generatePettyCashID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
         concat(DATE_FORMAT(NOW(), '%y%m'),'-', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as petty_cash_id   
       FROM
-        upward_insurance.id_sequence a
+          id_sequence a
       WHERE
         a.type = 'petty-cash'`);
 }
 
 export async function getPettyLog() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `SELECT 
   a.Purpose, b.Acct_Code, b.Acct_Title, b.Short
 FROM
-    upward_insurance.petty_log a
+      petty_log a
         LEFT JOIN
-    upward_insurance.chart_account b ON a.Acct_Code = b.Acct_Code`;
+      chart_account b ON a.Acct_Code = b.Acct_Code`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function deletePettyCash(PC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
         DELETE FROM
-      upward_insurance.petty_cash a where a.PC_No = '${PC_No}'`;
+        petty_cash a where a.PC_No = '${PC_No}'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function deleteJournalFromPettyCash(PC_No: string) {
-  const query = `DELETE FROM upward_insurance.journal a where a.Source_no = '${PC_No}' AND a.Source_Type = 'PC'`;
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
+  const query = `DELETE FROM  journal a where a.Source_no = '${PC_No}' AND a.Source_Type = 'PC'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function addJournalFromPettyCash(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({ data });
 }
 
 export async function addPettyCash(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.petty_cash.create({ data });
 }
 
 export async function findPettyCash(PC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
-    `Select * from upward_insurance.petty_cash where PC_No = '${PC_No}'`
+    `Select * from  petty_cash where PC_No = '${PC_No}'`
   );
 }
 
 export async function updatePettyCashID(last_count: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-    UPDATE upward_insurance.id_sequence a 
+    UPDATE  id_sequence a 
       SET 
           a.last_count = '${last_count}',
           a.year = DATE_FORMAT(NOW(), '%y'),
@@ -59,6 +75,8 @@ export async function updatePettyCashID(last_count: string) {
     `);
 }
 export async function searchPettyCash(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         date_format(a.PC_Date, '%m/%d/%y') AS PC_Date,
@@ -66,7 +84,7 @@ export async function searchPettyCash(search: string) {
         a.Payee,
         a.Explanation
     FROM
-        upward_insurance.petty_cash a
+          petty_cash a
     WHERE
         (LEFT(a.Payee, 7) <> '-- Void')
             AND (a.PC_No LIKE '%${search}%' 
@@ -79,6 +97,8 @@ export async function searchPettyCash(search: string) {
 }
 
 export async function loadSelectedPettyCash(PC_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       concat(a.ShortName,' > ',a.IDNo,' > ',a.Sub_Acct) as \`usage\`,
@@ -101,6 +121,6 @@ export async function loadSelectedPettyCash(PC_No: string) {
       a.DRVATType as vatType,
       a.DRInvoiceNo as invoice,
       LPAD(ROW_NUMBER() OVER (), 3, '0') as TempID
-    FROM upward_insurance.petty_cash a  where a.PC_No='${PC_No}'
+    FROM  petty_cash a  where a.PC_No='${PC_No}'
       `);
 }

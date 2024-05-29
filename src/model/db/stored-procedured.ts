@@ -161,7 +161,7 @@ export function client_ids(search: string) {
         if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
         aa.entry_client_id as client_id  
         FROM
-        upward_insurance.entry_client aa
+          entry_client aa
         union all
         SELECT 
         "Agent" as IDType,
@@ -170,7 +170,7 @@ export function client_ids(search: string) {
         CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
         aa.entry_agent_id as client_id  
         FROM
-        upward_insurance.entry_agent aa
+          entry_agent aa
         union all
         SELECT 
         "Employee" as IDType,
@@ -179,7 +179,7 @@ export function client_ids(search: string) {
         CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
         aa.entry_employee_id as client_id
         FROM
-        upward_insurance.entry_employee aa
+          entry_employee aa
         union all
         SELECT 
         "Supplier" as IDType,
@@ -188,7 +188,7 @@ export function client_ids(search: string) {
         if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
         aa.entry_supplier_id as client_id
         FROM
-        upward_insurance.entry_supplier aa
+          entry_supplier aa
         union all
         SELECT 
         "Fixed Assets" as IDType,
@@ -197,7 +197,7 @@ export function client_ids(search: string) {
         aa.fullname AS Shortname,
         aa.entry_fixed_assets_id as client_id
         FROM
-        upward_insurance.entry_fixed_assets aa
+          entry_fixed_assets aa
         union all
         SELECT 
         "Others" as IDType,
@@ -206,7 +206,7 @@ export function client_ids(search: string) {
         aa.description AS Shortname,
         aa.entry_others_id as client_id
         FROM
-        upward_insurance.entry_others aa
+          entry_others aa
         `;
   return `
   SELECT 
@@ -219,7 +219,7 @@ FROM
       (${selectClient}) a
   WHERE
       a.IDNo NOT IN 
-      (SELECT IDNo FROM upward_insurance.policy GROUP BY IDNo) 
+      (SELECT IDNo FROM   policy GROUP BY IDNo) 
   UNION ALL SELECT 
           'Policy' AS IDType,
           a.PolicyNo AS IDNo,
@@ -227,7 +227,7 @@ FROM
           b.Shortname,
           a.IDNo AS client_id
   FROM
-      upward_insurance.policy a
+        policy a
   LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
   WHERE
       a.PolicyNo NOT IN 
@@ -254,7 +254,7 @@ export function createTPLID() {
             )
           ) AS tempPolicy_No
           from (
-            SELECT  MAX(PolicyNo) as PolicyNo FROM upward_insurance.vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
+            SELECT  MAX(PolicyNo) as PolicyNo FROM  vpolicy a where left(a.PolicyNo ,2) = 'TP' and a.PolicyType = 'COM' ORDER BY a.PolicyNo ASC
           ) a
           `;
 }
@@ -277,7 +277,7 @@ export function id_entry(WhereIDEntry: string) {
             NULL AS VAT_Type,
             NULL AS tin_no
             FROM
-            upward_insurance.entry_client aa 
+              entry_client aa 
             UNION ALL SELECT 
             CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
             aa.entry_agent_id AS IDNo,
@@ -296,7 +296,7 @@ export function id_entry(WhereIDEntry: string) {
             NULL AS VAT_Type,
             NULL AS tin_no
             FROM
-        upward_insurance.entry_agent aa 
+          entry_agent aa 
     UNION ALL SELECT 
         CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
         aa.entry_employee_id AS IDNo,
@@ -314,7 +314,7 @@ export function id_entry(WhereIDEntry: string) {
         NULL AS VAT_Type,
         NULL AS tin_no
     FROM
-        upward_insurance.entry_employee aa 
+          entry_employee aa 
     UNION ALL SELECT 
         aa.fullname AS ShortName,
         aa.entry_fixed_assets_id AS IDNo,
@@ -332,7 +332,7 @@ export function id_entry(WhereIDEntry: string) {
         NULL AS VAT_Type,
         NULL AS tin_no
     FROM
-        upward_insurance.entry_fixed_assets aa 
+          entry_fixed_assets aa 
     UNION ALL SELECT 
         aa.description AS ShortName,
         aa.entry_others_id AS IDNo,
@@ -350,7 +350,7 @@ export function id_entry(WhereIDEntry: string) {
         NULL AS VAT_Type,
         NULL AS tin_no
     FROM
-        upward_insurance.entry_others aa
+          entry_others aa
      UNION ALL SELECT 
          CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
         aa.entry_supplier_id AS IDNo,
@@ -368,7 +368,7 @@ export function id_entry(WhereIDEntry: string) {
         aa.VAT_Type,
         aa.tin_no
     FROM
-        upward_insurance.entry_supplier aa) id_entry
+          entry_supplier aa) id_entry
         ${
           WhereIDEntry === null || WhereIDEntry === ""
             ? " LIMIT 100 "
@@ -474,7 +474,7 @@ export function ProductionReport(
         								AND Policy.PolicyType IN (SELECT
         									SublineName
         								FROM
-        									upward_insurance.subline
+        									  subline
         								WHERE
         									line = 'Bonds')`;
         }

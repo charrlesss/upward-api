@@ -1,11 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
 
 export async function createCGLPolicy(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.cglpolicy.create({ data });
 }
 
 export async function searchCGLPolicy(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
       select a.*,b.*, 
         if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
@@ -15,11 +19,11 @@ export async function searchCGLPolicy(search: string) {
         a.address  as cgl_address,
         c.sale_officer,
         date_format(b.DateIssued , '%m/%d/%Y') as DateIssued
-        FROM upward_insurance.cglpolicy a
-        left join upward_insurance.policy b
+        FROM cglpolicy a
+        left join policy b
         on a.PolicyNo = b.PolicyNo 
-        left join upward_insurance.entry_client c on b.IDNo = c.entry_client_id
-        left join upward_insurance.entry_agent d on b.AgentID = d.entry_agent_id
+        left join entry_client c on b.IDNo = c.entry_client_id
+        left join entry_agent d on b.AgentID = d.entry_agent_id
       where 
         a.PolicyNo like '%${search}%' or
         c.firstname like '%${search}%' or
@@ -31,8 +35,10 @@ export async function searchCGLPolicy(search: string) {
 }
 
 export async function deleteCGLPolicy(PolicyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    delete from upward_insurance.cglpolicy 
+    delete from cglpolicy 
     where 
      PolicyNo = '${PolicyNo}' 
     `;
@@ -40,8 +46,10 @@ export async function deleteCGLPolicy(PolicyNo: string) {
 }
 
 export async function deletePolicyByCGL(PolicyNo: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    delete from upward_insurance.policy 
+    delete from policy 
     where 
     PolicyNo = '${PolicyNo}' and TRIM(PolicyType) = 'CGL'
     `;

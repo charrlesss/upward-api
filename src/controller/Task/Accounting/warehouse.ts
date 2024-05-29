@@ -9,6 +9,7 @@ import {
   getApprovedPulloutWarehouseCheckListSelected,
 } from "../../../model/Task/Accounting/warehouse.model";
 import saveUserLogs from "../../../lib/save_user_logs";
+import { VerifyToken } from "../../Authentication";
 
 const Warehouse = express.Router();
 
@@ -105,6 +106,17 @@ Warehouse.post(
 );
 Warehouse.post("/warehouse/save", async (req, res) => {
   try {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     const successMessage = [
       "Stored In Warehouse",
       "Endorsed for Deposit",

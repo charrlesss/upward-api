@@ -14,6 +14,7 @@ import {
 } from "../../../model/Task/Accounting/cash-disbursement.model";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 const CashDisbursement = express.Router();
 
 CashDisbursement.get("/cash-disbursement/generate-id", async (req, res) => {
@@ -32,6 +33,17 @@ CashDisbursement.get("/cash-disbursement/generate-id", async (req, res) => {
 CashDisbursement.post(
   "/cash-disbursement/add-cash-disbursement",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T ${req.body.hasSelected ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       if (
         req.body.hasSelected &&
@@ -130,6 +142,17 @@ CashDisbursement.post(
 CashDisbursement.post(
   "/cash-disbursement/void-cash-disbursement",
   async (req, res) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T VOID, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       if (
         !(await saveUserLogsCode(

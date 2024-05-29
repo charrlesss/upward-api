@@ -18,6 +18,7 @@ import {
 import { getAgents, getClients } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const VehiclePolicy = express.Router();
 VehiclePolicy.get(
@@ -360,6 +361,19 @@ async function insertNewVPolicy({
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, Denomination } =
     req.body;
+
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   try {
     if (await findPolicy(PolicyNo)) {
       return res.send({
@@ -387,13 +401,23 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
 
     await saveUserLogs(req, PolicyNo, "add", "Vehicle Policy");
-    res.send({ message: "Create Journal Successfully", success: true });
+    res.send({ message: "Create Vehicle Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
 VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const {
     form_type,
     sub_account,
@@ -428,7 +452,7 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
     await deleteJournalBySource(PolicyNo, "PL");
     // insert policy
     await insertNewVPolicy({ ...req.body, cStrArea, strArea });
-    res.send({ message: "Update Journal Successfully", success: true });
+    res.send({ message: "Update Vehicle Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
   }
@@ -447,6 +471,17 @@ VehiclePolicy.get("/tpl-search-vehicle-policy", async (req, res) => {
   });
 });
 VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Vehicle Policy"))) {

@@ -11,6 +11,7 @@ import {
 } from "../../model/Reference/mortgagee.model";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 import saveUserLogs from "../../lib/save_user_logs";
+import { VerifyToken } from "../Authentication";
 
 const Mortgagee = express.Router();
 
@@ -33,6 +34,16 @@ Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
 });
 
 Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     delete req.body.mode;
     delete req.body.search;
@@ -58,6 +69,16 @@ Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
 });
 
 Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   const { Mortgagee } = req.body;
 
   try {
@@ -78,6 +99,16 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
 });
 
 Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       !(await saveUserLogsCode(req, "edit", req.body.Mortgagee, "Mortgagee"))

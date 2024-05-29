@@ -10,12 +10,24 @@ import { mapDataBasedOnHeaders } from "../../lib/mapbaseonheader";
 import { ExportToExcel } from "../../lib/exporttoexcel";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 import saveUserLogs from "../../lib/save_user_logs";
+import { VerifyToken } from "../Authentication";
 
 const PolicyAccount = express.Router();
 
 PolicyAccount.post(
   "/add-policy-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     delete req.body.mode;
     delete req.body.search;
     req.body.createdAt = new Date();
@@ -33,6 +45,17 @@ PolicyAccount.post(
 PolicyAccount.post(
   "/update-policy-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     if (
       !(await saveUserLogsCode(req, "edit", req.body.Account, "Policy Account"))
     ) {
@@ -61,6 +84,16 @@ PolicyAccount.post(
 PolicyAccount.post(
   "/delete-policy-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     if (
       !(await saveUserLogsCode(
         req,
@@ -90,7 +123,6 @@ PolicyAccount.get(
     });
   }
 );
-
 PolicyAccount.get(
   "/search-policy-account",
   async (req: Request, res: Response) => {

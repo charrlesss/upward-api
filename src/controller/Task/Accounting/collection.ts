@@ -21,6 +21,7 @@ import {
 import { format } from "date-fns";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const Collection = express.Router();
 
@@ -81,7 +82,19 @@ Collection.get("/get-new-or-number", async (req, res) => {
 });
 
 Collection.post("/add-collection", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   try {
+
     const isFind = await findORnumber(req.body.ORNo);
     if (isFind.length > 0) {
       return res.send({
@@ -141,6 +154,17 @@ Collection.get("/search-collection", async (req, res) => {
 });
 
 Collection.post("/update-collection", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     if (!(await saveUserLogsCode(req, "edit", req.body.ORNo, "Collection"))) {
       return res.send({ message: "Invalid User Code", success: false });

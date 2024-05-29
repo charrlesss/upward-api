@@ -1,23 +1,28 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+
 import { format } from "date-fns";
+import { __DB_URL } from "../../../controller";
 
 export async function GenerateGeneralJournalID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
         concat(DATE_FORMAT(NOW(), '%y%m'),'-', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as general_journal_id   
       FROM
-        upward_insurance.id_sequence a
+          id_sequence a
       WHERE
         a.type = 'general-journal'`);
 }
 
 export async function getChartOfAccount(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         a.Acct_Code, a.Acct_Title, a.Short
     FROM
-        upward_insurance.chart_account a
+          chart_account a
     WHERE
         (a.Acct_Code LIKE '%${search}%'
             OR a.Acct_Title LIKE '%${search}%'
@@ -30,6 +35,8 @@ export async function getChartOfAccount(search: string) {
 }
 
 export async function getPolicyIdClientIdRefId(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     a.*,
@@ -44,7 +51,7 @@ export async function getPolicyIdClientIdRefId(search: string) {
    if(aa.company <> '',aa.company, CONCAT(aa.lastname, ', ', aa.firstname)) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_client aa 
+      entry_client aa 
 UNION ALL SELECT 
     'Agent' AS Type,
     aa.entry_agent_id AS IDNo,
@@ -52,7 +59,7 @@ UNION ALL SELECT
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_agent aa 
+      entry_agent aa 
 UNION ALL SELECT 
     'Employee' AS Type,
     aa.entry_employee_id AS IDNo,
@@ -60,7 +67,7 @@ UNION ALL SELECT
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_employee aa 
+      entry_employee aa 
 UNION ALL SELECT 
     'Supplier' AS Type,
     aa.entry_supplier_id AS IDNo,
@@ -68,7 +75,7 @@ UNION ALL SELECT
     if(aa.company <> '',aa.company, CONCAT(aa.lastname, ', ', aa.firstname)) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_supplier aa 
+      entry_supplier aa 
 UNION ALL SELECT 
     'Fixed Assets' AS Type,
     aa.entry_fixed_assets_id AS IDNo,
@@ -76,7 +83,7 @@ UNION ALL SELECT
     aa.fullname AS Shortname,
     CONCAT(aa.description, ' - ', aa.remarks) AS address
 FROM
-    upward_insurance.entry_fixed_assets aa 
+      entry_fixed_assets aa 
 UNION ALL SELECT 
     'Others' AS Type,
     aa.entry_others_id AS IDNo,
@@ -84,49 +91,49 @@ UNION ALL SELECT
     aa.description AS Shortname,
     CONCAT(aa.description, ' - ', aa.remarks) AS address
 FROM
-    upward_insurance.entry_others aa UNION ALL SELECT 
+      entry_others aa UNION ALL SELECT 
         'Policy Type' AS Type, a.IDNo, b.sub_account, b.Shortname, b.address
     FROM
-        upward_insurance.policy a
+          policy a
     LEFT JOIN (SELECT 
         aa.entry_client_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
             aa.sub_account,
             aa.address
     FROM
-        upward_insurance.entry_client aa UNION ALL SELECT 
+          entry_client aa UNION ALL SELECT 
         aa.entry_agent_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
             aa.sub_account,
             aa.address
     FROM
-        upward_insurance.entry_agent aa UNION ALL SELECT 
+          entry_agent aa UNION ALL SELECT 
         aa.entry_employee_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
             aa.sub_account,
             aa.address
     FROM
-        upward_insurance.entry_employee aa UNION ALL SELECT 
+          entry_employee aa UNION ALL SELECT 
         aa.entry_supplier_id AS IDNo,
             CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
             aa.sub_account,
             aa.address
     FROM
-        upward_insurance.entry_supplier aa UNION ALL SELECT 
+          entry_supplier aa UNION ALL SELECT 
         aa.entry_fixed_assets_id AS IDNo,
             aa.fullname AS Shortname,
             aa.sub_account,
               CONCAT(aa.description, ' - ', aa.remarks) AS address
     FROM
-        upward_insurance.entry_fixed_assets aa UNION ALL SELECT 
+          entry_fixed_assets aa UNION ALL SELECT 
         aa.entry_others_id AS IDNo,
             aa.description AS Shortname,
             aa.sub_account,
              CONCAT(aa.description, ' - ', aa.remarks) AS address
     FROM
-        upward_insurance.entry_others aa) b ON a.IDNo = b.IDNo) a
+          entry_others aa) b ON a.IDNo = b.IDNo) a
         LEFT JOIN
-    upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
+      sub_account b ON a.sub_account = b.Sub_Acct
     WHERE
     a.IDNo LIKE '%${search}%'
         OR a.Shortname LIKE '%${search}%'
@@ -136,11 +143,13 @@ FROM
 }
 
 export async function getTransactionAccount(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         a.Code, a.Description
     FROM
-        upward_insurance.transaction_code a
+          transaction_code a
     WHERE
         (a.Code LIKE '%${search}%'
             OR a.Description LIKE '%${search}%')
@@ -150,15 +159,21 @@ export async function getTransactionAccount(search: string) {
 }
 
 export async function addJournalVoucher(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return prisma.journal_voucher.create({ data });
 }
 export async function addJournalFromJournalVoucher(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return prisma.journal.create({ data });
 }
 
 export async function updateGeneralJournalID(last_count: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      UPDATE upward_insurance.id_sequence a 
+      UPDATE  id_sequence a 
         SET 
             a.last_count = '${last_count}',
             a.year = DATE_FORMAT(NOW(), '%y'),
@@ -168,10 +183,12 @@ export async function updateGeneralJournalID(last_count: string) {
       `);
 }
 export async function deleteGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     DELETE
     FROM
-        upward_insurance.journal_voucher a
+          journal_voucher a
     WHERE
       a.Source_No = '${Source_No}'
           AND a.Source_Type = 'GL'
@@ -179,25 +196,31 @@ export async function deleteGeneralJournal(Source_No: string) {
 }
 
 export async function deleteJournalFromGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       DELETE
       FROM
-          upward_insurance.journal a
+            journal a
       WHERE
         a.Source_No = '${Source_No}'
             AND a.Source_Type = 'GL'
         `);
 }
 export async function findeGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
-    `SELECT * FROM upward_insurance.journal_voucher where Source_No = '${Source_No}'`
+    `SELECT * FROM  journal_voucher where Source_No = '${Source_No}'`
   );
 }
 export async function voidGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
         DELETE
         FROM
-            upward_insurance.journal_voucher a
+              journal_voucher a
         WHERE
           a.Source_No = '${Source_No}'
               AND a.Source_Type = 'GL'
@@ -207,9 +230,11 @@ export async function insertVoidGeneralJournal(
   refNo: string,
   dateEntry: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
-  upward_insurance.journal_voucher 
+    journal_voucher 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
   VALUES ('HO',"${format(
     new Date(dateEntry),
@@ -219,10 +244,12 @@ export async function insertVoidGeneralJournal(
 }
 
 export async function voidJournalFromGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     DELETE
     FROM
-        upward_insurance.journal a
+          journal a
     WHERE
       a.Source_No = '${Source_No}'
           AND a.Source_Type = 'GL'
@@ -233,9 +260,11 @@ export async function insertVoidJournalFromGeneralJournal(
   refNo: string,
   dateEntry: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
-  upward_insurance.journal 
+    journal 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation,Source_No_Ref_ID)
   VALUES ('HO',"${dateEntry}",'GL','${refNo}','-- Void(${format(
     new Date(),
@@ -245,11 +274,13 @@ export async function insertVoidJournalFromGeneralJournal(
 }
 
 export async function searchGeneralJournal(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         date_format(Date_Entry , '%m/%d/%Y') as Date_Entry, Source_No, Explanation
     FROM
-        upward_insurance.journal_voucher
+          journal_voucher
     WHERE
         LEFT(Explanation, 7) <> '-- Void'
             AND (Source_No LIKE '%${search}%'
@@ -261,6 +292,8 @@ export async function searchGeneralJournal(search: string) {
 }
 
 export async function getSelectedSearchGeneralJournal(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
         a.Branch_Code as BranchCode,
@@ -281,18 +314,20 @@ export async function getSelectedSearchGeneralJournal(Source_No: string) {
         OR_Invoice_No as invoice,
         a.VATItemNo AS TempID
     FROM
-    upward_insurance.journal_voucher a where a.Source_No ='${Source_No}' order by a.VATItemNo
+      journal_voucher a where a.Source_No ='${Source_No}' order by a.VATItemNo
       `);
 }
 
 export async function doRPTTransactionLastRow() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return prisma.$queryRawUnsafe(`
   SELECT 
     b.ShortName as subAcctName , b.Acronym as BranchCode, a.description as ClientName , a.entry_others_id as IDNo
   FROM
-      upward_insurance.entry_others a
+        entry_others a
           LEFT JOIN
-      upward_insurance.sub_account b ON a.sub_account = b.Sub_Acct
+        sub_account b ON a.sub_account = b.Sub_Acct
   WHERE
       a.entry_others_id = 'O-0124-001';
     `);
@@ -302,6 +337,8 @@ export async function doMonthlyProduction(
   month: number,
   year: number
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return prisma.$queryRawUnsafe(`
   SELECT 
     PolicyNo as IDNo,
@@ -310,7 +347,7 @@ export async function doMonthlyProduction(
     PolicyNo as ClientName,
     LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM
-    upward_insurance.Policy P
+      Policy P
   WHERE
     Account = '${account}'
         AND MONTH(DateIssued) = ${month}
@@ -323,6 +360,8 @@ export async function doRPTTransaction(
   to: string,
   Mortgagee: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return prisma.$queryRawUnsafe(`
   SELECT 
       d.ShortName as subAcctName,
@@ -336,13 +375,13 @@ export async function doRPTTransaction(
       d.address,
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
       FROM
-          upward_insurance.policy a
+            policy a
               LEFT JOIN
           (SELECT 
               IDNo,
               SUM(CONVERT(REPLACE(debit, ',', ''),DECIMAL(10,2)) ) AS 'TotalPaid'
           FROM
-              upward_insurance.collection
+                collection
           GROUP BY IDNo) b ON b.IDNo = a.PolicyNo
         left join  (
           SELECT a.IDNo, a.address, a.Shortname as ClientName,a.sub_account , b.ShortName , b.Acronym from (
@@ -354,7 +393,7 @@ export async function doRPTTransaction(
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_client aa 
+      entry_client aa 
 UNION ALL SELECT 
     'Agent' AS Type,
     aa.entry_agent_id AS IDNo,
@@ -362,7 +401,7 @@ UNION ALL SELECT
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_agent aa 
+      entry_agent aa 
 UNION ALL SELECT 
     'Employee' AS Type,
     aa.entry_employee_id AS IDNo,
@@ -370,7 +409,7 @@ UNION ALL SELECT
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_employee aa 
+      entry_employee aa 
 UNION ALL SELECT 
     'Supplier' AS Type,
     aa.entry_supplier_id AS IDNo,
@@ -378,7 +417,7 @@ UNION ALL SELECT
     CONCAT(aa.lastname, ', ', aa.firstname) AS Shortname,
     aa.address
 FROM
-    upward_insurance.entry_supplier aa 
+      entry_supplier aa 
 UNION ALL SELECT 
     'Fixed Assets' AS Type,
     aa.entry_fixed_assets_id AS IDNo,
@@ -386,7 +425,7 @@ UNION ALL SELECT
     aa.fullname AS Shortname,
     CONCAT(aa.description, ' - ', aa.remarks) AS address
 FROM
-    upward_insurance.entry_fixed_assets aa 
+      entry_fixed_assets aa 
 UNION ALL SELECT 
     'Others' AS Type,
     aa.entry_others_id AS IDNo,
@@ -394,12 +433,12 @@ UNION ALL SELECT
     aa.description AS Shortname,
     CONCAT(aa.description, ' - ', aa.remarks) AS address
 FROM
-    upward_insurance.entry_others aa
+      entry_others aa
            ) a
-          left join upward_insurance.sub_account b on a.sub_account = b.Sub_Acct
+          left join   sub_account b on a.sub_account = b.Sub_Acct
           ) d on a.IDNo = d.IDNo
               INNER JOIN
-          upward_insurance.vpolicy c ON c.PolicyNo = a.PolicyNo
+            vpolicy c ON c.PolicyNo = a.PolicyNo
           
       WHERE
           (

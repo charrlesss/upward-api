@@ -26,6 +26,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const FirePolicy = express.Router();
 FirePolicy.get("/get-fire-policy", async (req: Request, res: Response) => {
@@ -197,6 +198,17 @@ async function insertFirePolicy({
   });
 }
 FirePolicy.post("/add-fire-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+
   const { sub_account, client_id, PolicyAccount, PolicyNo, occupancy } =
     req.body;
   try {
@@ -230,6 +242,16 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
   }
 });
 FirePolicy.post("/update-fire-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo, occupancy } =
     req.body;
   try {
@@ -269,6 +291,16 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
   }
 });
 FirePolicy.post("/delete-fire-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { PolicyAccount, form_type, PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "Fire Policy"))) {

@@ -22,6 +22,7 @@ import {
 } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 
 const MSPRPolicy = express.Router();
 
@@ -45,6 +46,17 @@ MSPRPolicy.get("/get-mspr-policy", (req, res) => {
 });
 
 MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
+  
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
     if (await findPolicy(PolicyNo)) {
@@ -89,6 +101,16 @@ MSPRPolicy.get("/search-mspr-policy", async (req, res) => {
 });
 
 MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { sub_account, client_id, PolicyAccount, PolicyNo, policyType } =
     req.body;
   try {
@@ -131,6 +153,16 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
 });
 
 MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: "CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!",
+      success: false,
+    });
+  }
   const { PolicyNo } = req.body;
   try {
     if (!(await saveUserLogsCode(req, "delete", PolicyNo, "MSPR Policy"))) {

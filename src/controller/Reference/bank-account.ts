@@ -8,9 +8,9 @@ import {
 } from "../../model/Reference/bank-account";
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const BankAccount = express.Router();
-
 BankAccount.get("/get-bank-account", async (req: Request, res: Response) => {
   const { bankAccountSearch } = req.query;
   try {
@@ -23,7 +23,6 @@ BankAccount.get("/get-bank-account", async (req: Request, res: Response) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BankAccount.get("/search-client", async (req: Request, res: Response) => {
   const { searchClientInput } = req.query;
   try {
@@ -36,8 +35,18 @@ BankAccount.get("/search-client", async (req: Request, res: Response) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BankAccount.post("/add-bank-account", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+
   try {
     delete req.body.search;
     delete req.body.mode;
@@ -55,10 +64,20 @@ BankAccount.post("/add-bank-account", async (req: Request, res: Response) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BankAccount.post(
   "/update-bank-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       if (
         !(await saveUserLogsCode(req, "edit", req.body.Auto, "Bank-Account"))
@@ -83,10 +102,20 @@ BankAccount.post(
     }
   }
 );
-
 BankAccount.post(
   "/delete-bank-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
+
     try {
       if (
         !(await saveUserLogsCode(req, "delete", req.body.Auto, "Bank-Account"))
@@ -105,7 +134,6 @@ BankAccount.post(
     }
   }
 );
-
 BankAccount.get("/search-bank-account", async (req: Request, res: Response) => {
   const { bankAccountSearch } = req.query;
   try {
@@ -118,5 +146,4 @@ BankAccount.get("/search-bank-account", async (req: Request, res: Response) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 export default BankAccount;

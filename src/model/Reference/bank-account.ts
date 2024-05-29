@@ -1,27 +1,35 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../controller";
 
 export async function addBankAccount(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.bankaccounts.create({ data });
 }
 
 export async function updateBankAccount(data: any, Auto: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.bankaccounts.update({ data, where: { Auto } });
 }
 export async function removeBankAccount(Auto: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.bankaccounts.delete({ where: { Auto } });
 }
 
 export async function getBankAccount(bankAccountSearch: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
             a.*, b.Bank AS BankName, c.Acct_Title AS Account_ID_Name
       FROM
-      upward_insurance.bankaccounts a
+            bankaccounts a
             LEFT JOIN
-      upward_insurance.bank b ON a.Desc = b.Bank_Code
+            bank b ON a.Desc = b.Bank_Code
             LEFT JOIN
-      upward_insurance.chart_account c ON a.Account_ID = c.Acct_Code
+            chart_account c ON a.Account_ID = c.Acct_Code
       WHERE
             a.Account_No LIKE '%${bankAccountSearch}%'
             OR a.Account_Name LIKE '%${bankAccountSearch}%'
@@ -34,6 +42,8 @@ export async function getBankAccount(bankAccountSearch: string) {
 }
 
 export async function searchClient(search: string) {
+      const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   select 
       a.IDType,
@@ -52,7 +62,7 @@ export async function searchClient(search: string) {
           aa.entry_client_id as client_id,
                 aa.address
             FROM
-                upward_insurance.entry_client aa
+                  entry_client aa
                 union all
           SELECT 
           "Agent" as IDType,
@@ -62,7 +72,7 @@ export async function searchClient(search: string) {
                 aa.entry_agent_id as client_id,
                 aa.address
             FROM
-                upward_insurance.entry_agent aa
+                  entry_agent aa
                 union all
           SELECT 
           "Employee" as IDType,
@@ -72,7 +82,7 @@ export async function searchClient(search: string) {
                 aa.entry_employee_id as client_id,
                 aa.address
             FROM
-                upward_insurance.entry_employee aa
+                  entry_employee aa
           union all
           SELECT 
           "Supplier" as IDType,
@@ -82,7 +92,7 @@ export async function searchClient(search: string) {
                  aa.entry_supplier_id as client_id,
                  aa.address
             FROM
-                upward_insurance.entry_supplier aa
+                  entry_supplier aa
                 union all
           SELECT 
           "Fixed Assets" as IDType,
@@ -92,7 +102,7 @@ export async function searchClient(search: string) {
                 aa.entry_fixed_assets_id as client_id,
                CONCAT(aa.description, " - ", aa.remarks) AS address
             FROM
-                upward_insurance.entry_fixed_assets aa
+                  entry_fixed_assets aa
                 union all
           SELECT 
           "Others" as IDType,
@@ -102,7 +112,7 @@ export async function searchClient(search: string) {
                 aa.entry_others_id as client_id,
                 CONCAT(aa.description, " - ", aa.remarks) AS address
             FROM
-                upward_insurance.entry_others aa
+                  entry_others aa
     ) a
       WHERE
         a.IDNo LIKE '%${search}%'

@@ -4,7 +4,7 @@ import { addCTPL } from "../../model/Reference/ctpl.model";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
 import { v4 as uuid } from "uuid";
 const testReport = express.Router();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({datasources:{db:{url:"mysql://root:charles@localhost:3306/upward_insurance_umis"}}});
 let countResponse = 0;
 let prev = "";
 testReport.post("/add-petty-log", async (req, res) => {

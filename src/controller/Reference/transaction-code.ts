@@ -8,6 +8,7 @@ import {
 } from "../../model/Reference/transaction-account.model";
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const TransactionCode = express.Router();
 
@@ -32,6 +33,16 @@ TransactionCode.get(
 TransactionCode.post(
   "/add-transaction-code",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       delete req.body.mode;
       delete req.body.search;
@@ -59,6 +70,16 @@ TransactionCode.post(
 TransactionCode.post(
   "/update-transaction-code",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (
         !(await saveUserLogsCode(
@@ -90,6 +111,16 @@ TransactionCode.post(
 TransactionCode.post(
   "/delete-transaction-code",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (
         !(await saveUserLogsCode(

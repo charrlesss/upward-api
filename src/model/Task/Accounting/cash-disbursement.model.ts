@@ -1,25 +1,33 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 import { format } from "date-fns";
+import { __DB_URL } from "../../../controller";
 
 export async function GenerateCashDisbursementID() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
       SELECT 
         concat(DATE_FORMAT(NOW(), '%y%m'),'-', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as id   
       FROM
-        upward_insurance.id_sequence a
+          id_sequence a
       WHERE
         a.type = 'cash-disbursement'`);
 }
 
 export async function AddNewCashDisbursement(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.cash_disbursement.create({ data });
 }
 export async function AddNewJournalFromCashDisbursement(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.create({ data });
 }
 
 export async function DeleteNewCashDisbursement(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.cash_disbursement.deleteMany({
     where: {
       Source_No,
@@ -31,6 +39,8 @@ export async function DeleteNewCashDisbursement(Source_No: string) {
 }
 
 export async function DeleteNewJournalFromCashDisbursement(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.journal.deleteMany({
     where: {
       Source_No,
@@ -42,8 +52,10 @@ export async function DeleteNewJournalFromCashDisbursement(Source_No: string) {
 }
 
 export async function updateCashDisbursementID(last_count: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      UPDATE upward_insurance.id_sequence a 
+      UPDATE  id_sequence a 
         SET 
             a.last_count = '${last_count}',
             a.year = DATE_FORMAT(NOW(), '%y'),
@@ -54,11 +66,15 @@ export async function updateCashDisbursementID(last_count: string) {
 }
 
 export async function findCashDisbursement(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
-    `SELECT * FROM upward_insurance.cash_disbursement where Source_No = '${Source_No}' and Source_Type = 'CV'`
+    `SELECT * FROM  cash_disbursement where Source_No = '${Source_No}' and Source_Type = 'CV'`
   );
 }
 export async function findSearchSelectedCashDisbursement(Source_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
     `SELECT 
         Branch_Code,
@@ -84,12 +100,14 @@ export async function findSearchSelectedCashDisbursement(Source_No: string) {
         OR_Invoice_No as invoice,
         VATItemNo as TempID
     FROM 
-    upward_insurance.cash_disbursement 
+      cash_disbursement 
       where 
       Source_No = '${Source_No}' and Source_Type = 'CV'`
   );
 }
 export async function searchCashDisbursement(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(
     `
     SELECT 
@@ -97,7 +115,7 @@ export async function searchCashDisbursement(search: string) {
           Source_No , 
           Explanation 
       FROM 
-          upward_insurance.cash_disbursement
+            cash_disbursement
       WHERE 
           LEFT(Explanation, 7) <> '-- Void' 
           AND (Source_No LIKE '%${search}%' OR Explanation LIKE '%${search}%')
@@ -114,9 +132,11 @@ export async function insertVoidJournalFromCashDisbursement(
   refNo: string,
   dateEntry: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
-  upward_insurance.journal 
+    journal 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation,Source_No_Ref_ID)
   VALUES ('HO',"${new Date(dateEntry)}",'CV','${refNo}','-- Void(${format(
     new Date(),
@@ -129,10 +149,11 @@ export async function insertVoidCashDisbursement(
   refNo: string,
   dateEntry: string
 ) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
-  upward_insurance.cash_disbursement 
+    cash_disbursement 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
   VALUES ('HO','${format(new Date(dateEntry),'yyyy-MM-dd HH:mm:ss.SSS')}','CV','${refNo}','-- Void(${format(
     new Date(),

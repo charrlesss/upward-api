@@ -8,6 +8,7 @@ import {
 } from "../../model/Reference/chart-account.model";
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const ChartAccount = express.Router();
 
@@ -25,6 +26,16 @@ ChartAccount.get("/get-chart-accounts", async (req: Request, res: Response) => {
 });
 
 ChartAccount.post("/add-chart-account", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     delete req.body.mode;
     delete req.body.search;
@@ -50,6 +61,16 @@ ChartAccount.post("/add-chart-account", async (req: Request, res: Response) => {
 ChartAccount.post(
   "/update-chart-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (!(await saveUserLogsCode(req, "edit", req.body.Acct_Code, "Chart Account"))) {
         return res.send({ message: "Invalid User Code", success: false });
@@ -76,6 +97,16 @@ ChartAccount.post(
 ChartAccount.post(
   "/delete-chart-account",
   async (req: Request, res: Response) => {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
+    }
     try {
       if (!(await saveUserLogsCode(req, "delete", req.body.Acct_Code, "Chart Account"))) {
         return res.send({ message: "Invalid User Code", success: false });

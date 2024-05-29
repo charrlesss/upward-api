@@ -13,6 +13,7 @@ import {
 import saveUserLogs from "../../lib/save_user_logs";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
+import { VerifyToken } from "../Authentication";
 
 const Subline = express.Router();
 
@@ -35,6 +36,16 @@ Subline.get("/get-subline", async (req: Request, res: Response) => {
 });
 
 Subline.post("/add-subline", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     delete req.body.mode;
     delete req.body.search;
@@ -60,6 +71,16 @@ Subline.post("/add-subline", async (req: Request, res: Response) => {
 });
 
 Subline.post("/delete-subline", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T DELETE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Subline"))) {
       return res.send({ message: "Invalid User Code", success: false });
@@ -75,6 +96,16 @@ Subline.post("/delete-subline", async (req: Request, res: Response) => {
 });
 
 Subline.post("/update-subline", async (req: Request, res: Response) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (!(await saveUserLogsCode(req, "edit", req.body.ID, "Subline"))) {
       return res.send({ message: "Invalid User Code", success: false });

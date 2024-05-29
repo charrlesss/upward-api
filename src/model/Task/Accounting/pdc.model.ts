@@ -1,8 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { client_ids } from "../../db/stored-procedured";
-const prisma = new PrismaClient();
+import { __DB_URL } from "../../../controller";
+
 
 export async function getPdcPolicyIdAndCLientId(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const selectClient = `
         SELECT 
           "Client" as IDType,
@@ -11,7 +13,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
           aa.entry_client_id as client_id  
         FROM
-        upward_insurance.entry_client aa
+          entry_client aa
         union all
         SELECT 
           "Agent" as IDType,
@@ -20,7 +22,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
           aa.entry_agent_id as client_id  
         FROM
-        upward_insurance.entry_agent aa
+          entry_agent aa
         union all
         SELECT 
           "Employee" as IDType,
@@ -29,7 +31,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
           aa.entry_employee_id as client_id
         FROM
-        upward_insurance.entry_employee aa
+          entry_employee aa
         union all
         SELECT 
           "Supplier" as IDType,
@@ -38,7 +40,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
           aa.entry_supplier_id as client_id
         FROM
-        upward_insurance.entry_supplier aa
+          entry_supplier aa
         union all
         SELECT 
           "Fixed Assets" as IDType,
@@ -47,7 +49,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           aa.fullname AS Shortname,
           aa.entry_fixed_assets_id as client_id
         FROM
-        upward_insurance.entry_fixed_assets aa
+          entry_fixed_assets aa
         union all
         SELECT 
           "Others" as IDType,
@@ -56,7 +58,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           aa.description AS Shortname,
           aa.entry_others_id as client_id
         FROM
-        upward_insurance.entry_others aa
+          entry_others aa
   `;
   const qry = `
   SELECT 
@@ -74,7 +76,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
           (${selectClient}) a
       WHERE
           a.IDNo NOT IN 
-          (SELECT IDNo FROM upward_insurance.policy GROUP BY IDNo) 
+          (SELECT IDNo FROM   policy GROUP BY IDNo) 
       UNION ALL SELECT 
               'Policy' AS IDType,
               a.PolicyNo AS IDNo,
@@ -82,7 +84,7 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
               b.Shortname,
               a.IDNo AS client_id
       FROM
-          upward_insurance.policy a
+            policy a
       LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
       WHERE
           a.PolicyNo NOT IN 
@@ -98,20 +100,28 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
 }
 
 export async function getPdcBanks(search: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   const query = `
-    SELECT a.Bank_Code, a.Bank FROM upward_insurance.bank a where  a.Bank_Code like '%${search}%' OR a.Bank like '%${search}%' limit 100; 
+    SELECT a.Bank_Code, a.Bank FROM   bank a where  a.Bank_Code like '%${search}%' OR a.Bank like '%${search}%' limit 100; 
     `;
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function findPdc(Ref_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.pdc.findMany({ where: { Ref_No } });
 }
 
 export async function pdcUploads(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.pdc_uploads.create({ data });
 }
 export async function pdcUploadsUpdate(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.pdc_uploads.updateMany({
     data: {
       upload: data.upload,
@@ -123,31 +133,39 @@ export async function pdcUploadsUpdate(data: any) {
 }
 
 export async function getPdcUpload(ref_no:string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return  await  prisma.$queryRawUnsafe(`
   SELECT 
     a.upload
   FROM
-    upward_insurance.pdc_uploads a 
+      pdc_uploads a 
   WHERE
   a.Ref_No = '${ref_no}'
   `)
 }
 export async function deletePdcByRefNo(Ref_No: string) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.pdc.deleteMany({ where: { Ref_No } });
 }
 
 export async function createPDC(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.pdc.create({ data });
 }
 
 export async function searchPDC(search: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
         a.Ref_No,
         DATE_FORMAT(a.Date, '%m/%d/%Y') AS Date,
         a.Name
     FROM
-        upward_insurance.pdc a
+          pdc a
     WHERE
         LEFT(a.Name, 7) <> '--Void'
             AND (a.Ref_No LIKE '%${search}%' OR a.Name LIKE '%${search}%')
@@ -158,6 +176,8 @@ export async function searchPDC(search: any) {
 }
 
 export async function getSearchPDCheck(ref_no: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
     SELECT 
       a.Ref_No,
@@ -177,28 +197,32 @@ export async function getSearchPDCheck(ref_no: any) {
       DATE_FORMAT(a.DateDepo, '%m/%d/%Y') AS DateDeposit,
       a.ORNum AS OR_No
     FROM
-      upward_insurance.pdc a
+        pdc a
           LEFT JOIN
-      upward_insurance.bank b ON a.Bank = b.Bank_Code
+        bank b ON a.Bank = b.Bank_Code
     WHERE
     a.Ref_No = '${ref_no}'
   `);
 }
 
 export async function pdcIDGenerator() {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
   SELECT 
     concat(a.year,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as pdcID
   FROM
-    upward_insurance.id_sequence a
+      id_sequence a
   WHERE
     type = 'pdc';
 ;`);
 }
 
 export async function updatePDCIDSequence(data: any) {
+  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
   return await prisma.$queryRawUnsafe(`
-      update upward_insurance.id_sequence a
+      update  id_sequence a
       set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
       where a.type ='pdc'
     `);

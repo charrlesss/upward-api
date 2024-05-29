@@ -9,7 +9,7 @@ ReportFields.get("/report-fields/accounts", async (req, res) => {
   try {
     res.send({
       accounts: await prisma.$queryRawUnsafe(
-        `SELECT Account FROM upward_insurance.policy_account `
+        `SELECT Account FROM  policy_account `
       ),
     });
   } catch (error:any) {
@@ -28,12 +28,12 @@ ReportFields.get("/report-fields/policy", async (req, res) => {
             UNION ALL SELECT DISTINCT
                 PolicyType
             FROM
-            upward_insurance.policy
+              policy
             WHERE
                 PolicyType NOT IN (SELECT 
                         SublineName
                     FROM
-                    upward_insurance.subline
+                      subline
                     WHERE
                         Line = 'Bonds')
             GROUP BY PolicyType

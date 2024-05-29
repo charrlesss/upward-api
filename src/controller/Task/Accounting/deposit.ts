@@ -25,6 +25,7 @@ import {
 } from "../../../model/Task/Accounting/deposit.model";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
+import { VerifyToken } from "../../Authentication";
 const Deposit = express.Router();
 
 Deposit.get("/getCashCollection", async (req, res) => {
@@ -73,6 +74,17 @@ Deposit.get("/get-deposit-slipcode", async (req, res) => {
   }
 });
 Deposit.post("/add-deposit", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T SAVE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
+  
   try {
     if ((await findDepositBySlipCode(req.body.depositSlip)).length > 0) {
       return res.send({
@@ -178,6 +190,16 @@ Deposit.post("/search-cash-check", async (req, res) => {
   }
 });
 Deposit.post("/update-deposit", async (req, res) => {
+  const { userAccess }: any = await VerifyToken(
+    req.cookies["up-ac-login"] as string,
+    process.env.USER_ACCESS as string
+  );
+  if (userAccess.includes("ADMIN")) {
+    return res.send({
+      message: `CAN'T UPDATE, ADMIN IS FOR VIEWING ONLY!`,
+      success: false,
+    });
+  }
   try {
     if (
       !(await saveUserLogsCode(req, "edit", req.body.depositSlip, "Deposit"))
