@@ -33,6 +33,7 @@ PDC.post("/add-pdc", async (req, res) => {
       success: false,
     });
   }
+  
   try {
     if ((await findPdc(req.body.Ref_No)).length > 0) {
       return res.send({ message: "REF No. Is Already Exist!", success: false });
@@ -119,6 +120,7 @@ PDC.post("/add-pdc", async (req, res) => {
   }
 });
 PDC.post("/update-pdc", async (req, res) => {
+
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -151,6 +153,7 @@ PDC.post("/update-pdc", async (req, res) => {
     num = parseInt(count, 10);
     let newId = "";
     checks.forEach(async (check: any) => {
+
       newId = num.toString().padStart(count.length, "0");
       num++;
 
@@ -163,7 +166,7 @@ PDC.post("/update-pdc", async (req, res) => {
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
-          Bank: req.body.BankCode,
+          Bank: check.BankCode,
           Branch: check.Branch,
           Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,
@@ -181,7 +184,7 @@ PDC.post("/update-pdc", async (req, res) => {
           Date: new Date(req.body.Date),
           Name: req.body.Name,
           Remarks: req.body.Remarks,
-          Bank: req.body.BankCode,
+          Bank: check.BankCode,
           Branch: check.Branch,
           Check_Date: new Date(check.Check_Date),
           Check_No: check.Check_No,

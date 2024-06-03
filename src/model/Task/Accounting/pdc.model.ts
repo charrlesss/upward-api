@@ -4,13 +4,12 @@ import { __DB_URL } from "../../../controller";
 
 export async function getPdcPolicyIdAndCLientId(search: string) {
   const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
   const selectClient = `
         SELECT 
           "Client" as IDType,
           aa.entry_client_id AS IDNo,
           aa.sub_account,
-          if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+          if(aa.company = "", CONCAT(aa.lastname, ", ", aa.firstname), aa.company) as Shortname,
           aa.entry_client_id as client_id  
         FROM
           entry_client aa
@@ -195,7 +194,8 @@ export async function getSearchPDCheck(ref_no: any) {
       a.Check_Remarks,
       a.SlipCode AS Deposit_Slip,
       DATE_FORMAT(a.DateDepo, '%m/%d/%Y') AS DateDeposit,
-      a.ORNum AS OR_No
+      a.ORNum AS OR_No,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS SEQ
     FROM
         pdc a
           LEFT JOIN

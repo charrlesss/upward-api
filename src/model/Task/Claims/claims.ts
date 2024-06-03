@@ -116,51 +116,7 @@ export async function claimsPolicy(search: string) {
   return await prisma.$queryRawUnsafe(qry);
 }
 function comnputationQry() {
-  // return `
-  // SELECT 
-  //     format(MIN(b.TotalDue),2) as totaDue,
-  //     if( MAX(ifnull(d.remitted,0)) > 0,
-  //     if(SUM(a.Credit) - MIN(b.TotalDue) = 0, 0.00, format((SUM(a.Credit) - MIN(b.TotalDue) - MIN(ifnull(d.remitted,0))),2)),
-  //      format(SUM(a.Credit) - MIN(b.TotalDue),2)) AS  totalpaid,
-  //     if(MAX(ifnull(d.remitted,0)) > 0 , format(MIN(b.TotalDue) - (SUM(a.Credit) - MIN(b.TotalDue) - MAX(ifnull(d.remitted,0))),2) , format(MIN(b.TotalDue) - (MIN(c.accountTotal) - MIN(b.TotalDue)),2))  as balance,
-  //     format(MAX(ifnull(d.remitted,0)),2) as remitted ,
-  //     MAX(b.PolicyNo) as PolicyNo
-  //   FROM
-  //     journal a
-  //         LEFT JOIN
-  //     policy b ON a.ID_No = b.PolicyNo OR  a.ID_No = b.IDNo 
-  //         LEFT JOIN
-  //     (
-  //     SELECT 
-  //         ID_No,
-  //             IF(SUM(Credit) = SUM(Debit), SUM(Credit), IF(SUM(a.credit) > SUM(a.debit), SUM(a.credit), SUM(a.debit))) AS accountTotal
-  //       FROM
-  //         journal a
-  //   GROUP BY ID_No) AS c ON a.ID_No = c.ID_No 
-  //       left join (
-  //       SELECT 
-  //         IF(SUM(a.Debit) > SUM(a.Credit),
-  //         SUM(a.Debit),
-  //         SUM(a.Credit)) AS remitted,
-  //               MIN(b.PolicyNo) as PolicyNo,
-  //                  MIN(a.ID_No) as ID_No
-  //       FROM
-  //         journal a
-  //           LEFT JOIN
-  //         policy b ON a.ID_No = b.IDNo
-  //       WHERE
-  //         a.Explanation LIKE '%remit%'
-  //           AND a.Source_Type = 'GL'
-  //           AND a.GL_Acct = '4.02.01'
-            
-  //       GROUP BY Source_No
-  //     ) d on a.ID_No = d.ID_No OR a.ID_No = d.PolicyNo
-  //   WHERE
-    
-  //      (a.Source_Type = 'PL' OR  a.Source_Type = 'OR' OR a.Source_Type = 'GL')
-  //   GROUP BY a.ID_No
-  // `;
-
+ 
   return `
   select 
   format(a.TotalDue,2) as totaDue,
@@ -176,11 +132,26 @@ function comnputationQry() {
         SUM(a.Credit) as Credit,
         b.PolicyNo,
         MAX(b.TotalDue) as TotalDue,
-        if(SUM(a.Debit) > SUM(a.Credit), MAX(b.TotalDue) - SUM(a.Debit) , MAX(b.TotalDue) - SUM(a.Credit) ) as balance
+        if(SUM(a.Debit) > SUM(a.Credit), MAX(b.TotalDue) - (SUM(a.Debit) + MAX(c.Discount)) , MAX(b.TotalDue) -(SUM(a.Credit) + MAX(c.Discount))  ) as balance
       FROM journal a
       left join policy b on a.ID_No = b.PolicyNo
+      left join (
+        SELECT 
+          MAX(b.Debit) AS Discount , MAX(a.ID_No) as PolicyNo
+        FROM
+          upward_insurance_umis.journal a
+            LEFT JOIN
+          upward_insurance_umis.journal_voucher b ON a.ID_No = b.ID_No
+        WHERE
+             a.GL_Acct = '7.10.15'
+            AND a.cGL_Acct = 'Discount'
+        GROUP BY a.GL_Acct
+          ) c on a.ID_No = c.PolicyNo
       where a.Source_Type = 'OR' and  a.GL_Acct = '1.03.01'
       group by b.PolicyNo 
+
+
+
     ) b on a.PolicyNo = b.PolicyNo
     left join (
     SELECT 
@@ -367,12 +338,11 @@ export async function deleteClaims(claims_id: string) {
   ]);
 }
 function reportQry(header: string, where: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
   return `
 SELECT * FROM (
   SELECT 
-  '${header}' AS UnitInsured,
+  '${header}' as AssuredName,
+  '' AS UnitInsured,
   '' AS PolicyNo,
   '' AS ChassisNo,
   '' AS PlateNo,
@@ -387,6 +357,7 @@ SELECT * FROM (
   '1' AS header
 UNION ALL 
   SELECT 
+  b.AssuredName,
   IF(b.Model = '' AND b.Make = ''
           AND b.BodyType = '',
       '---',
@@ -418,7 +389,6 @@ FROM
 ) a 
   `;
 }
-
 export async function claimReport(addWhere: string, status: number) {
   const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
