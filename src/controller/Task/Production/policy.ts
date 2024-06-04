@@ -22,7 +22,7 @@ Policy.get("/get-clients", async (req, res) => {
     res.send({
       message: "successfully get client",
       success: true,
-      clients: await getClients(clientSearch as string),
+      clients: await getClients(clientSearch as string,false,req),
     });
   } catch (err: any) {
     console.log(err);
@@ -36,7 +36,7 @@ Policy.get("/get-agents", async (req, res) => {
     res.send({
       message: "successfully get agents",
       success: true,
-      agents: await getAgents(agentSearch as string),
+      agents: await getAgents(agentSearch as string,false,req),
     });
   } catch (err: any) {
     res.send({ message: "SERVER:ERROR", success: false, agents: [] });
@@ -47,7 +47,7 @@ Policy.get("/get-sub_account", async (req, res) => {
     res.send({
       message: "successfully get sub account",
       success: true,
-      sub_account: await getSubAccount(),
+      sub_account: await getSubAccount(req),
     });
   } catch (err: any) {
     res.send({ message: "SERVER:ERROR", success: false, sub_account: [] });
@@ -59,8 +59,8 @@ Policy.get("/get-policy-account", async (req, res) => {
       message: "successfully get policy account",
       success: true,
       policy_account: {
-        COM: await getPolicyAccounts("COM", "Vehicle"),
-        TPL: await getPolicyAccounts("TPL", "Vehicle"),
+        COM: await getPolicyAccounts("COM", "Vehicle",req),
+        TPL: await getPolicyAccounts("TPL", "Vehicle",req),
       },
     });
   } catch (err: any) {
@@ -76,7 +76,7 @@ Policy.get("/policy-accounts-by-line", async (req, res) => {
     res.send({
       message: "successfully get policy account",
       success: true,
-      policyAccounts: await policyAccounts(req.query.Line as string),
+      policyAccounts: await policyAccounts(req.query.Line as string,req),
     });
   } catch (err: any) {
     res.send({
@@ -92,7 +92,7 @@ Policy.get("/get-policy-account-types", async (req, res) => {
     res.send({
       message: "successfully get policy account",
       success: true,
-      getPolicyAccountType: await getPolicyAccountType(),
+      getPolicyAccountType: await getPolicyAccountType(req),
     });
   } catch (err: any) {
     res.send({
@@ -108,7 +108,7 @@ Policy.get("/get-policy-account-bonds", async (req, res) => {
     res.send({
       message: "successfully get policy account",
       success: true,
-      getPolicyAccountByBonds: await getPolicyAccountByBonds(),
+      getPolicyAccountByBonds: await getPolicyAccountByBonds(req),
     });
   } catch (err: any) {
     res.send({
@@ -126,7 +126,7 @@ Policy.get("/get-rates", async (req, res) => {
       res.send({
         message: "successfully get rates",
         success: true,
-        rates: await getRates(Type, Account),
+        rates: await getRates(Type, Account,req),
       });
     }, 2000);
   } catch (err: any) {
@@ -148,7 +148,7 @@ Policy.post("/get-rates", async (req, res) => {
     res.send({
       message: "successfully get rates",
       success: true,
-      rates: await getRates(Type, Account),
+      rates: await getRates(Type, Account,req),
     });
   } catch (err: any) {
     res.send({
@@ -165,8 +165,8 @@ Policy.get("/get-mortgagee", async (req, res) => {
       message: "successfully get mortgagee",
       success: true,
       mortgagee: {
-        COM: await getMortgagee("COM"),
-        TPL: await getMortgagee("TPL"),
+        COM: await getMortgagee("COM",req),
+        TPL: await getMortgagee("TPL",req),
       },
     });
   } catch (err: any) {
@@ -184,7 +184,7 @@ Policy.get("/search-policy-account", async (req, res) => {
     res.send({
       message: "successfully get policy account",
       success: true,
-      policy_account: await getPolicyAccount(policyAccountSearch as string),
+      policy_account: await getPolicyAccount(policyAccountSearch as string,req),
     });
   } catch (err: any) {
     res.send({
@@ -202,7 +202,7 @@ Policy.get("/search-rates", async (req, res) => {
     res.send({
       message: "successfully get rates",
       success: true,
-      rates: await getRateType(ratesSearch as string),
+      rates: await getRateType(ratesSearch as string,req),
     });
   } catch (err: any) {
     res.send({
@@ -223,7 +223,7 @@ Policy.get("/search-mortgagee", async (req, res) => {
     res.send({
       message: "successfully get mortgagee",
       success: true,
-      mortgagee: await getMortgagee(mortgageeSearch as string),
+      mortgagee: await getMortgagee(mortgageeSearch as string,req),
     });
   } catch (err: any) {
     res.send({
@@ -240,9 +240,9 @@ Policy.get("/bond-policy-account", async (req, res) => {
       message: "successfully get bond policy account",
       success: true,
       policy_account: {
-        G02: await getPolicyAccount("G02"),
-        G13: await getPolicyAccount("G13"),
-        G16: await getPolicyAccount("G16"),
+        G02: await getPolicyAccount("G02",req),
+        G13: await getPolicyAccount("G13",req),
+        G16: await getPolicyAccount("G16",req),
       },
     });
   } catch (err: any) {
@@ -263,7 +263,7 @@ Policy.get("/policy-type", async (req, res) => {
     res.send({
       message: "successfully get Bonds",
       success: true,
-      policy_type: await getPolicyType("Bonds"),
+      policy_type: await getPolicyType("Bonds",req),
     });
   } catch (err: any) {
     res.send({

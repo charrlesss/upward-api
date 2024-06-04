@@ -31,7 +31,7 @@ CheckPostponement.get(
       res.send({
         message: "Successfully Get ID",
         success: true,
-        id: await checkPostponementRequestAutoID(),
+        id: await checkPostponementRequestAutoID(req),
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
@@ -43,7 +43,8 @@ CheckPostponement.get("/check-postponement/pn-no", async (req, res) => {
   const { pnclientSearch } = req.query;
   try {
     const clientCheckName = await getCheckPostponementPNNo(
-      pnclientSearch as string
+      pnclientSearch as string,
+      req
     );
     res.send({
       message: "Successfully Search",
@@ -62,7 +63,7 @@ CheckPostponement.get(
     try {
       const selectedChecks = await getSelectedCheckPostponementPNNo(
         pnno as string,
-        check as string
+        check as string, req
       );
       res.send({
         message: "Successfully Get Search Selected",
@@ -90,9 +91,8 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       success: false,
     });
   }
-  
-  try {
 
+  try {
     const user = await getUserById((req.user as any).UserId);
     const data = {
       RPCDNo: req.body.RPCD,
@@ -112,7 +112,7 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       Requested_By: user?.Username,
       Requested_Date: new Date(),
     };
-    await createPostponement(data);
+    await createPostponement(data, req);
     JSON.parse(req.body.checkSelected).forEach(async (item: any) => {
       const details = {
         RPCD: req.body.RPCD,
@@ -122,7 +122,7 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
         NewCheckDate: new Date(item.New_Check_Date),
         Reason: item.Reason,
       };
-      await createPostponementDetails(details);
+      await createPostponementDetails(details, req);
     });
     const subtitle = `
       <h3>Check Deposit Postponement Request</h3>
@@ -144,9 +144,9 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       RPCD: req.body.RPCD,
       For_User: Requested_By,
       Approved_Code: approvalCode.toString(),
-      Disapproved_Code: "",
-    });
-    await updateAnyId("check-postponement");
+      Disapproved_Code: ""
+    }, req);
+    await updateAnyId("check-postponement",req);
     await saveUserLogs(req, req.body.RPCD, `add request`, "Check-Postponement");
     res.send({ message: "Save Successfully.", success: true });
   } catch (error: any) {
@@ -158,7 +158,7 @@ CheckPostponement.get("/check-postponement/search-edit", async (req, res) => {
   const { searchEdit } = req.query;
   try {
     const selectedRequest = await searchEditPostponentRequest(
-      searchEdit as string
+      searchEdit as string, req
     );
     res.send({
       message: "Successfully Get Search Selected",
@@ -179,7 +179,7 @@ CheckPostponement.post(
   async (req, res) => {
     try {
       const selectedSearchEdit = await searchSelectedEditPostponentRequest(
-        req.body.RPCD
+        req.body.RPCD, req
       );
       res.send({
         message: "Successfully Get Search Selected",
@@ -211,8 +211,8 @@ CheckPostponement.post(
     }
 
     try {
-      await updateOnCancelPostponentRequest(req.body.RPCD);
-      await updateOnCancelPostponentRequestDetails(req.body.RPCD);
+      await updateOnCancelPostponentRequest(req.body.RPCD, req);
+      await updateOnCancelPostponentRequestDetails(req.body.RPCD, req);
       await saveUserLogs(
         req,
         req.body.RPCD,
@@ -259,7 +259,7 @@ CheckPostponement.post(
       }
       const isAuthorized: any = await findApprovalPostponementCode(
         req.body.code,
-        req.body.RPCD
+        req.body.RPCD, req
       );
 
       if (isAuthorized.length <= 0) {
@@ -273,11 +273,11 @@ CheckPostponement.post(
       await updatePostponementStatus(
         req.body.isApproved,
         req.body.RPCD,
-        user?.Username as string
+        user?.Username as string, req
       );
       await updateApprovalPostponementCode(
         user?.Username as string,
-        req.body.RPCD
+        req.body.RPCD, req
       );
       const subtitle = `
         <h3>Check Deposit Postponement Request</h3>

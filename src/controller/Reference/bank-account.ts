@@ -17,7 +17,7 @@ BankAccount.get("/get-bank-account", async (req: Request, res: Response) => {
     res.send({
       message: "Get Bank Account Successfully!",
       success: true,
-      bankAccount: await getBankAccount(bankAccountSearch as string),
+      bankAccount: await getBankAccount(bankAccountSearch as string ,req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -29,7 +29,7 @@ BankAccount.get("/search-client", async (req: Request, res: Response) => {
     res.send({
       message: "Search Client Account Successfully!",
       success: true,
-      client: await searchClient(searchClientInput as string),
+      client: await searchClient(searchClientInput as string,req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -54,7 +54,7 @@ BankAccount.post("/add-bank-account", async (req: Request, res: Response) => {
     delete req.body.BankName;
     await saveUserLogs(req, `${req.body.Auto}`, "add", "Bank-Account");
     delete req.body.Auto;
-    await addBankAccount(req.body);
+    await addBankAccount(req.body,req);
     res.send({
       message: "Create Bank Account Successfully!",
       success: true,
@@ -91,7 +91,7 @@ BankAccount.post(
       delete req.body.BankName;
       req.body.Inactive = Boolean(req.body.Inactive);
       const { Auto, ...rest } = req.body;
-      await updateBankAccount(rest, Auto);
+      await updateBankAccount(rest, Auto,req);
       res.send({
         message: "Update Bank Account Successfully!",
         success: true,
@@ -123,7 +123,7 @@ BankAccount.post(
         return res.send({ message: "Invalid User Code", success: false });
       }
 
-      await removeBankAccount(req.body.Auto);
+      await removeBankAccount(req.body.Auto,req);
       res.send({
         message: "Delete Bank Account Successfully!",
         success: true,
@@ -140,7 +140,7 @@ BankAccount.get("/search-bank-account", async (req: Request, res: Response) => {
     res.send({
       message: "Search Bank Account Successfuly",
       success: true,
-      bankAccount: await getBankAccount(bankAccountSearch as string),
+      bankAccount: await getBankAccount(bankAccountSearch as string,req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

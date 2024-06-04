@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function getBondRate(account: string, type: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getBondRate(account: string, type: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     SELECT * FROM rates WHERE
@@ -14,24 +14,24 @@ export async function getBondRate(account: string, type: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function createMarinePolicy(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createMarinePolicy(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.mpolicy.create({
     data,
   });
 }
 
-export async function createBondsPolicy(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createBondsPolicy(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.bpolicy.create({
     data: data,
   });
 }
 
-export async function searchBondsPolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchBondsPolicy(search: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   select a.*,b.*, 
@@ -55,8 +55,8 @@ export async function searchBondsPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from bpolicy 
@@ -69,8 +69,8 @@ export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string) {
 export async function deletePolicyFromBond(
   policyType: string,
   PolicyNo: string
-) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from policy 
@@ -81,8 +81,8 @@ export async function deletePolicyFromBond(
 }
 
 // SELECT SublineName FROM subline where Line = 'Bonds';
-export async function deletePolicyFromBonds(policyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePolicyFromBonds(policyNo: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from policy 
@@ -92,15 +92,15 @@ export async function deletePolicyFromBonds(policyNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getAllBondsType() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getAllBondsType(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT SublineName FROM subline where Line = 'Bonds'
   `);
 }
 
-// export async function getAllAccount() {
+// export async function getAllAccount(,req: Request) {
 //   let qry = "";
 //   const d: any = await getAllBondsType();
 

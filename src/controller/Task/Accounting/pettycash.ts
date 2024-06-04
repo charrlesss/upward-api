@@ -23,7 +23,7 @@ PettyCash.get("/get-petty-log", async (req, res) => {
     res.send({
       message: "Successfully get petty log",
       success: true,
-      pettyLog: await getPettyLog(),
+      pettyLog: await getPettyLog(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -36,7 +36,7 @@ PettyCash.get("/get-petty-cash-id", async (req, res) => {
     res.send({
       message: "Successfully get petty cash id",
       success: true,
-      pettyCashId: await generatePettyCashID(),
+      pettyCashId: await generatePettyCashID(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -70,7 +70,7 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
 
     if (
       !hasSelected &&
-      ((await findPettyCash(req.body.refNo)) as Array<any>).length > 1
+      ((await findPettyCash(req.body.refNo, req)) as Array<any>).length > 1
     ) {
       return res.send({
         message: `${req.body.refNo} already exist!`,
@@ -83,71 +83,80 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
       },
       0
     );
-    await deletePettyCash(refNo);
+    await deletePettyCash(refNo, req);
     pettyCash.forEach(async (item: any, i: number) => {
-      addPettyCash({
-        Branch_Code: "HO",
-        PC_Date: datePetty,
-        PC_No: refNo,
-        Payee: payee,
-        Explanation: explanation,
-        DRPurpose: item.purpose,
-        Debit: parseFloat(item.amount.replace(/,/g, "")),
-        DRAcct_Code: item.accountCode,
-        DRShort: item.accountShort,
-        Sub_Acct: item.sub_account,
-        IDNo: item.clientID,
-        ShortName: item.clientName,
-        CRAcct_Code: "1.01.02",
-        CRShort: "Petty Cash",
-        Credit: i === 0 ? totalAmount : "0.00",
-        DRVATType: item.vatType,
-        DRInvoiceNo: item.invoice,
-        VATItemNo: await generateUniqueUUID("petty_cash", "VATItemNo"),
-      });
+      addPettyCash(
+        {
+          Branch_Code: "HO",
+          PC_Date: datePetty,
+          PC_No: refNo,
+          Payee: payee,
+          Explanation: explanation,
+          DRPurpose: item.purpose,
+          Debit: parseFloat(item.amount.replace(/,/g, "")),
+          DRAcct_Code: item.accountCode,
+          DRShort: item.accountShort,
+          Sub_Acct: item.sub_account,
+          IDNo: item.clientID,
+          ShortName: item.clientName,
+          CRAcct_Code: "1.01.02",
+          CRShort: "Petty Cash",
+          Credit: i === 0 ? totalAmount : "0.00",
+          DRVATType: item.vatType,
+          DRInvoiceNo: item.invoice,
+          VATItemNo: await generateUniqueUUID("petty_cash", "VATItemNo"),
+        },
+        req
+      );
     });
-    await deleteJournalFromPettyCash(refNo);
+    await deleteJournalFromPettyCash(refNo, req);
     pettyCash.forEach(async (item: any, i: number) => {
-      await addJournalFromPettyCash({
+      await addJournalFromPettyCash(
+        {
+          Branch_Code: "HO",
+          Date_Entry: datePetty,
+          Source_Type: "PC",
+          Source_No: refNo,
+          Explanation: explanation,
+          Payto: payee,
+          GL_Acct: item.accountCode,
+          cGL_Acct: item.accountShort,
+          Sub_Acct: item.sub_account,
+          ID_No: item.clientID,
+          cID_No: item.clientName,
+          Debit: parseFloat(item.amount.replace(/,/g, "")),
+          Credit: "0.00",
+          Remarks: item.purpose,
+          VAT_Type: item.vatType,
+          OR_Invoice_No: item.invoice,
+          VATItemNo: parseInt(item.TempID),
+          Source_No_Ref_ID: "",
+        },
+        req
+      );
+    });
+    await addJournalFromPettyCash(
+      {
         Branch_Code: "HO",
-        Date_Entry: datePetty,
+        Date_Entry: payee,
         Source_Type: "PC",
         Source_No: refNo,
         Explanation: explanation,
         Payto: payee,
-        GL_Acct: item.accountCode,
-        cGL_Acct: item.accountShort,
-        Sub_Acct: item.sub_account,
-        ID_No: item.clientID,
-        cID_No: item.clientName,
-        Debit: parseFloat(item.amount.replace(/,/g, "")),
-        Credit: "0.00",
-        Remarks: item.purpose,
-        VAT_Type: item.vatType,
-        OR_Invoice_No: item.invoice,
-        VATItemNo: parseInt(item.TempID),
+        GL_Acct: "1.01.02",
+        cGL_Acct: "Petty Cash",
+        Sub_Acct: "HO",
+        cSub_Acct: "Head Office",
+        Credit: totalAmount,
+        Remarks: "",
+        ID_No: "UIA-1501-030",
+        cID_No: "UIA EDSA OFFICE",
         Source_No_Ref_ID: "",
-      });
-    });
-    await addJournalFromPettyCash({
-      Branch_Code: "HO",
-      Date_Entry: payee,
-      Source_Type: "PC",
-      Source_No: refNo,
-      Explanation: explanation,
-      Payto: payee,
-      GL_Acct: "1.01.02",
-      cGL_Acct: "Petty Cash",
-      Sub_Acct: "HO",
-      cSub_Acct: "Head Office",
-      Credit: totalAmount,
-      Remarks: "",
-      ID_No: "UIA-1501-030",
-      cID_No: "UIA EDSA OFFICE",
-      Source_No_Ref_ID: "",
-    });
+      },
+      req
+    );
     if (!hasSelected) {
-      await updatePettyCashID(req.body.refNo.split("-")[1]);
+      await updatePettyCashID(req.body.refNo.split("-")[1], req);
     }
     if (!hasSelected) {
       await saveUserLogs(req, refNo, "add", "Petty Cash");
@@ -171,7 +180,7 @@ PettyCash.get("/search-petty-cash", async (req, res) => {
     res.send({
       message: "Successfully search petty cash",
       success: true,
-      searchPettyCash: await searchPettyCash(search as string),
+      searchPettyCash: await searchPettyCash(search as string, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -186,7 +195,7 @@ PettyCash.post("/load-selected-petty-cash", async (req, res) => {
     res.send({
       message: "Successfully search petty cash",
       success: true,
-      loadSelectedPettyCash: await loadSelectedPettyCash(PC_No),
+      loadSelectedPettyCash: await loadSelectedPettyCash(PC_No, req),
     });
   } catch (error: any) {
     console.log(error.message);

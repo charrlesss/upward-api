@@ -34,7 +34,7 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
       success: false,
     });
   }
-  
+
   const [s, ym, newCount] = req.body.entry_client_id.split("-");
   const newMonth = ym.substring(0, 2);
   const newYear = ym.substring(2);
@@ -42,8 +42,8 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateClientEntry(req.body);
-    await UpdateId("entry client", newCount, newMonth, newYear);
+    await CreateClientEntry(req.body, req);
+    await UpdateId("entry client", newCount, newMonth, newYear, req);
     await saveUserLogs(req, req.body.entry_client_id, "add", "Entry Client");
 
     res.send({
@@ -75,8 +75,8 @@ ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateEmployeeEntry(req.body);
-    await UpdateId("entry employee", newCount, newMonth, newYear);
+    await CreateEmployeeEntry(req.body, req);
+    await UpdateId("entry employee", newCount, newMonth, newYear, req);
     await saveUserLogs(
       req,
       req.body.entry_employee_id,
@@ -112,8 +112,8 @@ ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateAgentEntry(req.body);
-    await UpdateId("entry agent", newCount, newMonth, newYear);
+    await CreateAgentEntry(req.body, req);
+    await UpdateId("entry agent", newCount, newMonth, newYear, req);
     await saveUserLogs(req, req.body.entry_agent_id, "add", "Entry Agent");
 
     res.send({
@@ -144,8 +144,8 @@ ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateFixedAssetstEntry(req.body);
-    await UpdateId("entry fixed assets", newCount, newMonth, newYear);
+    await CreateFixedAssetstEntry(req.body, req);
+    await UpdateId("entry fixed assets", newCount, newMonth, newYear, req);
     await saveUserLogs(
       req,
       req.body.entry_fixed_assets_id,
@@ -181,8 +181,8 @@ ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateSupplierEntry(req.body);
-    await UpdateId("entry supplier", newCount, newMonth, newYear);
+    await CreateSupplierEntry(req.body, req);
+    await UpdateId("entry supplier", newCount, newMonth, newYear, req);
     await saveUserLogs(
       req,
       req.body.entry_supplier_id,
@@ -218,8 +218,8 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
-    await CreateOtherEntry(req.body);
-    await UpdateId("entry others", newCount, newMonth, newYear);
+    await CreateOtherEntry(req.body, req);
+    await UpdateId("entry others", newCount, newMonth, newYear, req);
     await saveUserLogs(req, req.body.entry_others_id, "add", "Entry Others");
 
     res.send({
@@ -271,7 +271,7 @@ ID_Entry.post("/entry-update", async (req, res) => {
     delete req.body.search;
     delete req.body.userCodeConfirmation;
 
-    await updateEntry(req.query.entry as string, req.body);
+    await updateEntry(req.query.entry as string, req.body, req);
     res.send({ message: "Update Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
@@ -283,7 +283,7 @@ ID_Entry.post("/id-entry-generate-id", async (req: Request, res: Response) => {
   res.send({
     success: false,
     message: "Generate ID Successfully",
-    generateID: await IDGenerator(req.body.sign, req.body.type),
+    generateID: await IDGenerator(req.body.sign, req.body.type, req),
   });
 });
 
@@ -292,7 +292,7 @@ ID_Entry.get("/id-entry-subaccounts", async (req: Request, res: Response) => {
     res.send({
       success: true,
       message: "Successfully Get All Sub Account",
-      subaccount: await getAllSubAccount(),
+      subaccount: await getAllSubAccount(req),
     });
   } catch (err: any) {
     res.send({ success: false, message: err.message });
@@ -305,7 +305,12 @@ ID_Entry.get("/search-entry", async (req, res) => {
     res.send({
       success: true,
       message: "Successfully Get All Client Entry ",
-      entry: await searchEntry(entry as string, entrySearch as string),
+      entry: await searchEntry(
+        entry as string,
+        entrySearch as string,
+        false,
+        req
+      ),
     });
   } catch (err: any) {
     res.send({ success: false, message: err.message, entry: [] });
@@ -445,13 +450,18 @@ ID_Entry.get("/export-entry", async (req, res) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchEntry(entry as string, "", true)) as Array<any>,
+      (await searchEntry(entry as string, "", true, req)) as Array<any>,
       entryHeaders,
       entry as string
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchEntry(entry as string, entrySearch as string)) as Array<any>,
+      (await searchEntry(
+        entry as string,
+        entrySearch as string,
+        false,
+        req
+      )) as Array<any>,
       entryHeaders,
       entry as string
     );
@@ -482,7 +492,7 @@ ID_Entry.post("/entry-delete", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await deleteEntry(req.query.entry as string, req.body.id);
+    await deleteEntry(req.query.entry as string, req.body.id, req);
     res.send({
       success: true,
       message: "Successfully Delete",
@@ -495,7 +505,7 @@ ID_Entry.post("/entry-delete", async (req, res) => {
 
 ID_Entry.get("/sub-account", async (req: Request, res: Response) => {
   try {
-    const subAccount: any = await getSubAccounts();
+    const subAccount: any = await getSubAccounts(req);
     const defaultValue = subAccount.filter(
       (itms: any) => itms.Acronym === "HO"
     );

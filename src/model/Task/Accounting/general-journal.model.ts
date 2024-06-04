@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-
 import { format } from "date-fns";
-import { __DB_URL } from "../../../controller";
+import { PrismaList } from "../../connection";
+import { Request } from "express";
+const { CustomPrismaClient } = PrismaList();
 
-export async function GenerateGeneralJournalID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function GenerateGeneralJournalID(req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -15,8 +15,8 @@ export async function GenerateGeneralJournalID() {
         a.type = 'general-journal'`);
 }
 
-export async function getChartOfAccount(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getChartOfAccount(search: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -34,8 +34,8 @@ export async function getChartOfAccount(search: string) {
     `);
 }
 
-export async function getPolicyIdClientIdRefId(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPolicyIdClientIdRefId(search: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -142,8 +142,8 @@ FROM
       `);
 }
 
-export async function getTransactionAccount(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getTransactionAccount(search: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -158,19 +158,19 @@ export async function getTransactionAccount(search: string) {
     `);
 }
 
-export async function addJournalVoucher(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addJournalVoucher(data: any, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return prisma.journal_voucher.create({ data });
 }
-export async function addJournalFromJournalVoucher(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addJournalFromJournalVoucher(data: any, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return prisma.journal.create({ data });
 }
 
-export async function updateGeneralJournalID(last_count: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateGeneralJournalID(last_count: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
       UPDATE  id_sequence a 
@@ -182,8 +182,8 @@ export async function updateGeneralJournalID(last_count: string) {
             a.type = 'general-journal'
       `);
 }
-export async function deleteGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteGeneralJournal(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
     DELETE
@@ -195,8 +195,11 @@ export async function deleteGeneralJournal(Source_No: string) {
       `);
 }
 
-export async function deleteJournalFromGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteJournalFromGeneralJournal(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
       DELETE
@@ -207,15 +210,15 @@ export async function deleteJournalFromGeneralJournal(Source_No: string) {
             AND a.Source_Type = 'GL'
         `);
 }
-export async function findeGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findeGeneralJournal(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(
     `SELECT * FROM  journal_voucher where Source_No = '${Source_No}'`
   );
 }
-export async function voidGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function voidGeneralJournal(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
         DELETE
@@ -228,9 +231,10 @@ export async function voidGeneralJournal(Source_No: string) {
 }
 export async function insertVoidGeneralJournal(
   refNo: string,
-  dateEntry: string
+  dateEntry: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
@@ -243,8 +247,11 @@ export async function insertVoidGeneralJournal(
   `);
 }
 
-export async function voidJournalFromGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function voidJournalFromGeneralJournal(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
     DELETE
@@ -258,9 +265,10 @@ export async function voidJournalFromGeneralJournal(Source_No: string) {
 
 export async function insertVoidJournalFromGeneralJournal(
   refNo: string,
-  dateEntry: string
+  dateEntry: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
@@ -273,8 +281,8 @@ export async function insertVoidJournalFromGeneralJournal(
   `);
 }
 
-export async function searchGeneralJournal(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchGeneralJournal(search: string, req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -291,8 +299,11 @@ export async function searchGeneralJournal(search: string) {
       `);
 }
 
-export async function getSelectedSearchGeneralJournal(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSelectedSearchGeneralJournal(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -318,8 +329,8 @@ export async function getSelectedSearchGeneralJournal(Source_No: string) {
       `);
 }
 
-export async function doRPTTransactionLastRow() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function doRPTTransactionLastRow(req: Request) {
+  const prisma = CustomPrismaClient("UMIS");
 
   return prisma.$queryRawUnsafe(`
   SELECT 
@@ -335,9 +346,10 @@ export async function doRPTTransactionLastRow() {
 export async function doMonthlyProduction(
   account: string,
   month: number,
-  year: number
+  year: number,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
   return prisma.$queryRawUnsafe(`
   SELECT 
@@ -358,9 +370,10 @@ export async function doMonthlyProduction(
 export async function doRPTTransaction(
   from: string,
   to: string,
-  Mortgagee: string
+  Mortgagee: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
   return prisma.$queryRawUnsafe(`
   SELECT 

@@ -1,11 +1,10 @@
 import express from "express";
+import { PrismaList } from "../model/connection";
 const Dashboard = express.Router();
-
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from ".";
+const { CustomPrismaClient } = PrismaList();
 
 Dashboard.get("/get-renewal-this-month", async (req, res) => {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
   try {
     let qry = "";
@@ -85,7 +84,6 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
       }
     );
 
-    
     Promise.all(renewalData).then((results) => {
       res.send({
         message: `Successfully Get Renewal This Month`,
@@ -99,6 +97,8 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
 });
 
 Dashboard.get("/get-claims-notice", async (req, res) => {
+  const prisma = CustomPrismaClient("UMIS");
+
   const claimType = [
     "OWN DAMAGE",
     "LOST/CARNAP",
@@ -134,9 +134,6 @@ WHERE
   status <> 1 and status <> 2`;
 
   try {
-    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
-
     const claims: any = await prisma.$queryRawUnsafe(qry);
     const claimsStatusSort = claimsStatus.sort();
     claims.map((itm: any) => {

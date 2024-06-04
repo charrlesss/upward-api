@@ -1,11 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import { TemplateRenewalNotice } from "../db/stored-procedured";
-import { __DB_URL } from "../../controller";
-
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
 export async function getClients(search: string) {
-    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
   const query = `
   SELECT 
     Policy.PolicyNo,
@@ -75,15 +72,16 @@ WHERE
         OR Policy.PolicyType LIKE '%${search}%'
 LIMIT 500
     `;
+  const prisma = CustomPrismaClient("UMIS");
 
   return await prisma.$queryRawUnsafe(query);
 }
 
 export async function getSelectedClient(policyType: string, policyNo: string) {
-    const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient("UMIS");
 
-  const query = TemplateRenewalNotice(policyType,policyNo);
+  const query = TemplateRenewalNotice(policyType, policyNo);
 
-  console.log(query)
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }

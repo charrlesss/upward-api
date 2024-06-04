@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
-
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
 interface SublineType {
   Line: string;
@@ -9,9 +9,10 @@ interface SublineType {
 
 export async function searchSubline(
   sublineSearch: string,
-  hasLimit: boolean = false
+  hasLimit: boolean = false,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query2 = `
     SELECT 
@@ -30,13 +31,17 @@ export async function searchSubline(
   return await prisma.$queryRawUnsafe(query2);
 }
 
-export async function findSubline(Line: string, SublineName: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findSubline(
+  Line: string,
+  SublineName: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.subline.findMany({ where: { Line, SublineName } });
 }
-export async function getline() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getline(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query1 = `
       SELECT
@@ -48,22 +53,25 @@ export async function getline() {
   return await prisma.$queryRawUnsafe(query1);
 }
 
-export async function addSubline(data: SublineType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addSubline(data: SublineType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.subline.create({
     data,
   });
 }
 
-export async function updateSubline({
-  ID,
-  SublineName,
-}: {
-  ID: string;
-  SublineName: string;
-}) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateSubline(
+  {
+    ID,
+    SublineName,
+  }: {
+    ID: string;
+    SublineName: string;
+  },
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.subline.update({
     data: {
@@ -75,21 +83,20 @@ export async function updateSubline({
   });
 }
 
-export async function deletesubline(ID: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletesubline(ID: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.subline.delete({ where: { ID } });
 }
 
+export async function getNextId(tablename: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
-export async function getNextId(tablename:string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
-  const result:any = await prisma.$queryRawUnsafe(`
+  const result: any = await prisma.$queryRawUnsafe(`
     SELECT AUTO_INCREMENT
     FROM information_schema.TABLES
     WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = '${tablename}'`);
 
-  return result
+  return result;
 }

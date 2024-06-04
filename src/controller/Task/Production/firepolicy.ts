@@ -32,10 +32,10 @@ const FirePolicy = express.Router();
 FirePolicy.get("/get-fire-policy", async (req: Request, res: Response) => {
   try {
     promiseAll([
-      getSubAccount(),
-      getPolicyAccount("FIRE"),
-      getMortgagee("FIRE"),
-      getRateType("Fire"),
+      getSubAccount(req),
+      getPolicyAccount("FIRE", req),
+      getMortgagee("FIRE", req),
+      getRateType("Fire", req),
     ]).then(([sub_account, policy_account, mortgagee, subline]: any) => {
       res.send({
         message: "Successfully get data",
@@ -59,7 +59,7 @@ FirePolicy.get(
       res.send({
         message: "Successfully get data",
         success: true,
-        agents: await getAgents(req.query.searchAgent as string),
+        agents: await getAgents(req.query.searchAgent as string, false, req),
       });
     } catch (error: any) {
       res.send({ message: error.message, success: false, agents: null });
@@ -73,7 +73,7 @@ FirePolicy.get(
       res.send({
         message: "Successfully get data",
         success: true,
-        clients: await getClients(req.query.searchClient as string),
+        clients: await getClients(req.query.searchClient as string, false, req),
       });
     } catch (error: any) {
       res.send({ message: error.message, success: false, clients: null });
@@ -86,7 +86,7 @@ FirePolicy.get("/search-fire-policy", async (req: Request, res: Response) => {
     res.send({
       message: "Successfully search data",
       success: true,
-      firePolicy: await searchFirePolicy(req.query.searchFirePolicy as string),
+      firePolicy: await searchFirePolicy(req.query.searchFirePolicy as string,req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, vehiclePolicy: null });
@@ -120,7 +120,7 @@ async function insertFirePolicy({
   totalDue,
   strArea,
   cStrArea,
-}: any) {
+}: any ,req:Request) {
   await createPolicy({
     IDNo: client_id,
     Account: PolicyAccount,
@@ -140,7 +140,7 @@ async function insertFirePolicy({
     Journal: false,
     AgentID: agent_id,
     AgentCom: agent_com,
-  });
+  },req);
 
   await createFirePolicy({
     PolicyNo,
@@ -157,7 +157,7 @@ async function insertFirePolicy({
     Warranties: warranties,
     InsuredValue: insuredValue,
     Percentage: percentagePremium,
-  });
+  },req);
 
   await createJournal({
     Branch_Code: sub_account,
@@ -176,7 +176,7 @@ async function insertFirePolicy({
     TC: "P/R",
     Remarks: "",
     Source_No_Ref_ID: "FIRE",
-  });
+  },req);
 
   await createJournal({
     Branch_Code: sub_account,
@@ -195,7 +195,7 @@ async function insertFirePolicy({
     TC: "A/P",
     Remarks: "",
     Source_No_Ref_ID: "FIRE",
-  });
+  },req);
 }
 FirePolicy.post("/add-fire-policy", async (req, res) => {
   const { userAccess }: any = await VerifyToken(
@@ -212,7 +212,7 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, occupancy } =
     req.body;
   try {
-    if (await findPolicy(PolicyNo)) {
+    if (await findPolicy(PolicyNo,req)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
@@ -220,7 +220,7 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
     }
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Fire", occupancy)) as Array<any>
+      (await getRate(PolicyAccount, "Fire", occupancy,req)) as Array<any>
     )[0];
 
     if (rate == null) {
@@ -230,11 +230,11 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id,req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-    await insertFirePolicy({ ...req.body, cStrArea, strArea });
+    await insertFirePolicy({ ...req.body, cStrArea, strArea },req);
     await saveUserLogs(req, PolicyNo, "add", "Fire Policy");
     res.send({ message: "Create Fire Policy Successfully", success: true });
   } catch (err: any) {
@@ -261,7 +261,7 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
 
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Fire", occupancy)) as Array<any>
+      (await getRate(PolicyAccount, "Fire", occupancy,req)) as Array<any>
     )[0];
 
     if (rate == null) {
@@ -271,20 +271,20 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id,req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicyFromFire(PolicyNo);
+    await deletePolicyFromFire(PolicyNo,req);
     //delete v policy
-    await deleteFirePolicy(PolicyNo);
+    await deleteFirePolicy(PolicyNo,req);
     //delete journal
-    await deleteJournalBySource(PolicyNo, "PL");
+    await deleteJournalBySource(PolicyNo, "PL",req);
 
     // insert fire policy
-    await insertFirePolicy({ ...req.body, cStrArea, strArea });
+    await insertFirePolicy({ ...req.body, cStrArea, strArea },req);
     res.send({ message: "Update Fire Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -308,9 +308,9 @@ FirePolicy.post("/delete-fire-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicyFromFire(PolicyNo);
+    await deletePolicyFromFire(PolicyNo,req);
     // //delete v policy
-    await deleteFirePolicy(PolicyNo);
+    await deleteFirePolicy(PolicyNo,req);
     res.send({
       message: "Delete Fire Policy Successfully",
       success: true,

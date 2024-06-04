@@ -1,38 +1,34 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
-// const prisma = new PrismaClient();
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function findChartAccount(Acct_Code: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findChartAccount(Acct_Code: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.chart_account.findUnique({ where: { Acct_Code } });
 }
 
-export async function addChartAccount(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function addChartAccount(data: any, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.chart_account.create({ data });
 }
 
-export async function updateChartAccount(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function updateChartAccount(data: any, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.chart_account.update({
     data,
     where: { Acct_Code: data.Acct_Code },
   });
 }
-export async function deleteChartAccount(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function deleteChartAccount(data: any, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.chart_account.delete({
     where: { Acct_Code: data.Acct_Code },
   });
 }
 
-export async function getChartAccount(chartAccountSearch: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function getChartAccount(chartAccountSearch: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
     SELECT 
     IF(a.IDNo = 0, 'NO', 'YES') AS IDNo,

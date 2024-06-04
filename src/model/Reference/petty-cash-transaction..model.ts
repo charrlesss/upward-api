@@ -1,8 +1,12 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function getPettyCashTransaction(transactionCodeSearch: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPettyCashTransaction(
+  transactionCodeSearch: any,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -20,22 +24,22 @@ export async function getPettyCashTransaction(transactionCodeSearch: any) {
       `);
 }
 
-export async function addPettyCashTransaction(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addPettyCashTransaction(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.petty_log.create({ data });
 }
 
-export async function updatePettyCashTransaction(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePettyCashTransaction(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.petty_log.update({
     data,
     where: { Petty_Log: data.Petty_Log },
   });
 }
-export async function deletePettyCashTransaction(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePettyCashTransaction(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.petty_log.delete({
     where: { Petty_Log: data.Petty_Log },

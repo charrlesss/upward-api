@@ -1,25 +1,25 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function addBankAccount(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function addBankAccount(data: any, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.bankaccounts.create({ data });
 }
 
-export async function updateBankAccount(data: any, Auto: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateBankAccount(data: any, Auto: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.bankaccounts.update({ data, where: { Auto } });
 }
-export async function removeBankAccount(Auto: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function removeBankAccount(Auto: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.bankaccounts.delete({ where: { Auto } });
 }
 
-export async function getBankAccount(bankAccountSearch: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getBankAccount(bankAccountSearch: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -41,8 +41,8 @@ export async function getBankAccount(bankAccountSearch: string) {
     `);
 }
 
-export async function searchClient(search: string) {
-      const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchClient(search: string, req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   select 

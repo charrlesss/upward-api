@@ -1,14 +1,15 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function createCGLPolicy(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createCGLPolicy(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.cglpolicy.create({ data });
 }
 
-export async function searchCGLPolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchCGLPolicy(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
       select a.*,b.*, 
@@ -34,8 +35,8 @@ export async function searchCGLPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteCGLPolicy(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteCGLPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     delete from cglpolicy 
@@ -45,8 +46,8 @@ export async function deleteCGLPolicy(PolicyNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePolicyByCGL(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePolicyByCGL(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     delete from policy 

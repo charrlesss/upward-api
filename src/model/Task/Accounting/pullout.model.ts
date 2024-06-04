@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function pulloutRequestAutoID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function pulloutRequestAutoID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -13,8 +14,8 @@ export async function pulloutRequestAutoID() {
     type = 'pullout';
 ;`);
 }
-export async function pulloutRequestPNoWithName(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function pulloutRequestPNoWithName(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -32,8 +33,8 @@ export async function pulloutRequestPNoWithName(search: string) {
   LIMIT 100;
 ;`);
 }
-export async function getSelectedRequestCheck(PNNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSelectedRequestCheck(PNNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT DISTINCT
@@ -100,8 +101,8 @@ export async function getSelectedRequestCheck(PNNo: string) {
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getSelectedEditRequestCheck(RCPNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSelectedEditRequestCheck(RCPNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     SELECT 
@@ -124,35 +125,39 @@ export async function getSelectedEditRequestCheck(RCPNo: string) {
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function checkPNNo(PNNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function checkPNNo(PNNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pullout_request.findMany({ where: { PNNo } });
 }
-export async function createPulloutRequest(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createPulloutRequest(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pullout_request.create({ data });
 }
-export async function updatePulloutRequest(data: any, RCPNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePulloutRequest(
+  data: any,
+  RCPNo: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pullout_request.update({ data, where: { RCPNo } });
 }
-export async function updatePulloutRequestDetails(RCPNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePulloutRequestDetails(RCPNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `update   pullout_request_details a set a.cancel = 1 where RCPNo = '${RCPNo}';`
   );
 }
-export async function createPulloutRequestDetails(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createPulloutRequestDetails(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pullout_request_details.create({ data });
 }
-export async function updateAnyId(type: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateAnyId(type: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE  id_sequence a
@@ -172,8 +177,8 @@ export async function updateAnyId(type: string) {
     a.type = '${type}'
   `);
 }
-export async function searchPulloutRequestOnEdit(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchPulloutRequestOnEdit(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT 
@@ -324,9 +329,10 @@ export async function searchPulloutRequestOnEdit(search: string) {
 export async function approvedPullout(
   RCPNo: string,
   username: string,
-  isApproved: boolean
+  isApproved: boolean,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   update  pullout_request a
@@ -339,14 +345,18 @@ export async function approvedPullout(
   `;
   return prisma.$queryRawUnsafe(query);
 }
-export async function insertApprovalCode(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function insertApprovalCode(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pullout_auth_codes.create({ data });
 }
 
-export async function existApprovalCode(RCPN: string, Approved_Code: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function existApprovalCode(
+  RCPN: string,
+  Approved_Code: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -361,9 +371,10 @@ export async function existApprovalCode(RCPN: string, Approved_Code: string) {
 export async function updateApprovalCode(
   RCPN: string,
   Approved_Code: string,
-  used_by: string
+  used_by: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   update 

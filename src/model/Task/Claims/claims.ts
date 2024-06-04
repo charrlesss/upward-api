@@ -1,16 +1,16 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function getInsuranceList() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getInsuranceList(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `SELECT distinct Account FROM policy_account;`;
   return await prisma.$queryRawUnsafe(qry);
 }
 
-export async function claimsPolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function claimsPolicy(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
   select * from (
@@ -116,7 +116,6 @@ export async function claimsPolicy(search: string) {
   return await prisma.$queryRawUnsafe(qry);
 }
 function comnputationQry() {
- 
   return `
   select 
   format(a.TotalDue,2) as totaDue,
@@ -169,10 +168,10 @@ function comnputationQry() {
                 AND a.GL_Acct = '4.02.01'
                 group by PolicyNo
     ) c on a.PolicyNo = c.PolicyNo
-  `
+  `;
 }
-export async function claimnsPolicyComputation(id: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function claimnsPolicyComputation(id: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
   select  * from (
@@ -182,8 +181,8 @@ export async function claimnsPolicyComputation(id: string) {
   `;
   return await prisma.$queryRawUnsafe(qry);
 }
-export async function GenerateClaimsID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function GenerateClaimsID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -203,25 +202,28 @@ export async function GenerateClaimsID() {
   WHERE
     a.type = 'claims'`);
 }
-export async function createClaim({ claims, claims_details }: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createClaim(
+  { claims, claims_details }: any,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.claims.create({ data: claims });
   await prisma.claims_details.create({ data: claims_details });
 }
-export async function createClaimDetails(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createClaimDetails(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.claims_details.create({ data });
 }
-export async function createClaims(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createClaims(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.claims.create({ data });
 }
 
-export async function updateClaimIDSequence(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateClaimIDSequence(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       update id_sequence a
@@ -229,8 +231,8 @@ export async function updateClaimIDSequence(data: any) {
       where a.type ='claims'
     `);
 }
-export async function searchClaims(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchClaims(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
   SELECT 
@@ -270,8 +272,8 @@ export async function searchClaims(search: string) {
 
   return await prisma.$queryRawUnsafe(qry);
 }
-export async function selectedData(claims_id: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function selectedData(claims_id: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT
@@ -325,8 +327,8 @@ export async function selectedData(claims_id: string) {
   where a.claims_id = '${claims_id}';
   `);
 }
-export async function deleteClaims(claims_id: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteClaims(claims_id: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.$transaction([
     prisma.claims.delete({ where: { claims_id } }),
@@ -389,8 +391,12 @@ FROM
 ) a 
   `;
 }
-export async function claimReport(addWhere: string, status: number) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function claimReport(
+  addWhere: string,
+  status: number,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   let qry = "";
   if (status === 0) {
@@ -424,5 +430,3 @@ export async function claimReport(addWhere: string, status: number) {
   console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }
-
-

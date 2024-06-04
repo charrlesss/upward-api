@@ -1,15 +1,15 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function createPAPolicy(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createPAPolicy(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.papolicy.create({ data });
 }
 
-export async function searchPAPolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchPAPolicy(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   select a.*,b.*, 
@@ -34,8 +34,8 @@ export async function searchPAPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePAPolicy(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePAPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from papolicy 
@@ -44,8 +44,8 @@ export async function deletePAPolicy(PolicyNo: string) {
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function findPAPolicy(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findPAPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   select *  from papolicy 
@@ -55,8 +55,8 @@ export async function findPAPolicy(PolicyNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePolicyByPAPolicy(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePolicyByPAPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from policy 

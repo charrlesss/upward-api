@@ -21,7 +21,8 @@ TransactionCode.get(
         message: "Get Transaction Code Successfully!",
         success: true,
         transactionCode: await getTransactionCode(
-          transactionCodeSearch as string
+          transactionCodeSearch as string,
+          req
         ),
       });
     } catch (err: any) {
@@ -47,13 +48,13 @@ TransactionCode.post(
       delete req.body.mode;
       delete req.body.search;
 
-      if (await findTransactionCode(req.body.Acct_Code)) {
+      if (await findTransactionCode(req.body.Acct_Code, req)) {
         return res.send({
           message: "Transaction Code is Already Exist!",
           success: false,
         });
       }
-      await addTransactionCode(req.body);
+      await addTransactionCode(req.body, req);
       await saveUserLogs(req, req.body.Acct_Code, "add", "Transaction Account");
 
       res.send({
@@ -96,7 +97,7 @@ TransactionCode.post(
       delete req.body.userCodeConfirmation;
 
       req.body.Inactive = Boolean(req.body.Inactive);
-      await updateTransactionCode(req.body);
+      await updateTransactionCode(req.body, req);
       res.send({
         message: "Update Transaction Code Successfully!",
         success: true,
@@ -132,7 +133,7 @@ TransactionCode.post(
       ) {
         return res.send({ message: "Invalid User Code", success: false });
       }
-      await deleteTransactionCode(req.body);
+      await deleteTransactionCode(req.body, req);
       res.send({
         message: "Delete Transaction Code Successfully!",
         success: true,
@@ -153,7 +154,8 @@ TransactionCode.get(
         message: "Get Transacation Code Successfully!",
         success: true,
         transactionCode: await getTransactionCode(
-          transactionCodeSearch as string
+          transactionCodeSearch as string,
+          req
         ),
       });
     } catch (err: any) {

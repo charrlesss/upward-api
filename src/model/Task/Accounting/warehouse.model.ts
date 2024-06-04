@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { format } from "date-fns";
-import { __DB_URL } from "../../../controller";
+import { PrismaList } from "../../connection";
+import { Request } from "express";
+const { CustomPrismaClient } = PrismaList();
 
-export async function getWarehouseSearch(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getWarehouseSearch(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     SELECT 
@@ -26,11 +27,13 @@ export async function getWarehouseSearch(search: string) {
 
 export async function warehouseSelectedSearch(
   policy: string,
-  pdcStatus: string
+  pdcStatus: string,
+  req: Request
 ) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   let strWhere = "";
   const pdcStatusList = ["Received", "Stored", "Stored"];
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   if (parseInt(pdcStatus) !== 2) {
     strWhere = ")";
@@ -64,9 +67,10 @@ export async function warehouseSelectedSearch(
 
 export async function pullout(
   PNNo: string,
-  CheckNo: string
+  CheckNo: string,
+  req: Request
 ): Promise<Array<any>> {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT 
@@ -79,12 +83,12 @@ export async function pullout(
     PNNo = '${PNNo}' AND CheckNo = '${CheckNo}'
         AND Status = 'APPROVED'
   `;
-  console.log(query)
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getApprovedPulloutWarehouse(RCPNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getApprovedPulloutWarehouse(RCPNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT DISTINCT
@@ -106,8 +110,11 @@ export async function getApprovedPulloutWarehouse(RCPNo: string) {
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getApprovedPulloutWarehouseCheckList(RCPNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getApprovedPulloutWarehouseCheckList(
+  RCPNo: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT 
@@ -135,9 +142,10 @@ ORDER BY B.RCPNo
   return await prisma.$queryRawUnsafe(query);
 }
 export async function getApprovedPulloutWarehouseCheckListSelected(
-  RCPNo: string
+  RCPNo: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     select 
@@ -164,9 +172,10 @@ export async function getApprovedPulloutWarehouseCheckListSelected(
 export async function updatePDCChecks(
   pdcStatus: string,
   remarks: string,
-  PDC_ID: string
+  PDC_ID: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   function convertDate(date: any) {
     return format(date, "yyyy-MM-dd");
@@ -184,7 +193,7 @@ export async function updatePDCChecks(
       : ` WHERE PDC_ID='${PDC_ID}'`
   }
 `;
-console.log(query)
+  console.log(query);
 
   return await prisma.$queryRawUnsafe(query);
 }

@@ -25,7 +25,7 @@ SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
       success: false,
     });
   }
-  
+
   try {
     delete req.body.Sub_Acct;
     delete req.body.mode;
@@ -33,7 +33,7 @@ SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
     delete req.body.userCodeConfirmation;
     req.body.createdAt = new Date();
     const Sub_Acct = await generateUniqueUUID("sub_account", "Sub_Acct");
-    await createSubAccount({ Sub_Acct, ...req.body });
+    await createSubAccount({ Sub_Acct, ...req.body }, req);
     await saveUserLogs(req, Sub_Acct, "add", "Sub Account");
     res.send({ message: "Create Sub Account Successfully!", success: true });
   } catch (err: any) {
@@ -46,7 +46,11 @@ SubAccount.get("/get-sub-account", async (req: Request, res: Response) => {
   const { subaccountSearch } = req.query;
 
   try {
-    const subaccount = await searchSubAccount(subaccountSearch as string);
+    const subaccount = await searchSubAccount(
+      subaccountSearch as string,
+      false,
+      req
+    );
     res.send({
       message: "Get Sub Account Successfully!",
       success: true,
@@ -60,7 +64,11 @@ SubAccount.get("/get-sub-account", async (req: Request, res: Response) => {
 SubAccount.get("/search-sub-account", async (req: Request, res: Response) => {
   const { subaccountSearch } = req.query;
   try {
-    const subaccount = await searchSubAccount(subaccountSearch as string);
+    const subaccount = await searchSubAccount(
+      subaccountSearch as string,
+      false,
+      req
+    );
     res.send({
       message: "Search Sub Account Successfully!",
       success: true,
@@ -95,7 +103,7 @@ SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
     const { Sub_Acct, ...rest } = req.body;
 
     delete rest.createdAt;
-    await updateSubAccount({ ...rest, update: new Date() }, Sub_Acct);
+    await updateSubAccount({ ...rest, update: new Date() }, Sub_Acct, req);
     res.send({
       message: "Update Sub Account Successfully!",
       success: true,
@@ -123,7 +131,7 @@ SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await deleteSubAccount(req.body.Sub_Acct);
+    await deleteSubAccount(req.body.Sub_Acct, req);
     res.send({
       message: "Delete Sub Account Successfully!",
       success: true,
@@ -153,13 +161,17 @@ SubAccount.get("/export-sub-account", async (req, res) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchSubAccount("", true)) as Array<any>,
+      (await searchSubAccount("", true, req)) as Array<any>,
       subAccountHeaders,
       "SubAccount"
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchSubAccount(policySearch as string)) as Array<any>,
+      (await searchSubAccount(
+        policySearch as string,
+        false,
+        req
+      )) as Array<any>,
       subAccountHeaders,
       "SubAccount"
     );

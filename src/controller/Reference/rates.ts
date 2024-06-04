@@ -21,9 +21,9 @@ const Rates = express.Router();
 Rates.get("/get-rates", async (req: Request, res: Response) => {
   const { ratesSearch } = req.query;
   try {
-    const rate = await searchRate(ratesSearch as string);
-    const line = await getline();
-    const policy = await getPolicyAccounts();
+    const rate = await searchRate(ratesSearch as string, false, req);
+    const line = await getline(req);
+    const policy = await getPolicyAccounts(req);
     res.send({
       message: "Get Rates Successfully!",
       success: true,
@@ -32,8 +32,8 @@ Rates.get("/get-rates", async (req: Request, res: Response) => {
         line,
         policy,
         type: {
-          Bonds: await getBonds(),
-          Fire: await getFire(),
+          Bonds: await getBonds(req),
+          Fire: await getFire(req),
         },
       },
     });
@@ -59,7 +59,7 @@ Rates.post("/add-rates", async (req: Request, res: Response) => {
     delete req.body.ID;
     const ID = await generateUniqueUUID("subline", "ID");
     req.body.createdAt = new Date();
-    await addRate({ ID, ...req.body });
+    await addRate({ ID, ...req.body }, req);
     await saveUserLogs(req, ID, "add", "Rates");
     res.send({
       message: "Create Rates Successfully!",
@@ -85,12 +85,12 @@ Rates.post("/update-rates", async (req: Request, res: Response) => {
   try {
     if (!(await saveUserLogsCode(req, "edit", req.body.ID, "Rates"))) {
       return res.send({ message: "Invalid User Code", success: false });
-    } 
+    }
     delete req.body.mode;
     delete req.body.search;
     delete req.body.userCodeConfirmation;
 
-    await updateRate(req.body.ID, req.body.Type, req.body.Rate);
+    await updateRate(req.body.ID, req.body.Type, req.body.Rate, req);
     res.send({
       message: "Update Rates Successfully!",
       success: true,
@@ -116,7 +116,7 @@ Rates.post("/delete-rates", async (req: Request, res: Response) => {
     if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Rates"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    await deleteRate(req.body.ID);
+    await deleteRate(req.body.ID, req);
     res.send({
       message: "Delete Rates Successfully!",
       success: true,
@@ -130,7 +130,7 @@ Rates.post("/delete-rates", async (req: Request, res: Response) => {
 Rates.get("/search-rates", async (req: Request, res: Response) => {
   const { ratesSearch } = req.query;
   try {
-    const rates: any = await searchRate(ratesSearch as string);
+    const rates: any = await searchRate(ratesSearch as string, false, req);
     res.send({
       message: "Search Policy Account Successfuly",
       success: true,
@@ -153,13 +153,13 @@ Rates.get("/export-rates", async (req: Request, res: Response) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchRate("", true)) as Array<any>,
+      (await searchRate("", true, req)) as Array<any>,
       subAccountHeaders,
       "Rates"
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchRate(ratesSearch as string)) as Array<any>,
+      (await searchRate(ratesSearch as string, false, req)) as Array<any>,
       subAccountHeaders,
       "Rates"
     );

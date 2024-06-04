@@ -1,23 +1,21 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function getMSPRRate(Account: string, Line: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getMSPRRate(Account: string, Line: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `select * from rates where trim(Account)='${Account.trim()}' AND  Line = '${Line}'`;
   console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
-export async function createMSPRPolicy(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function createMSPRPolicy(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.msprpolicy.create({ data });
 }
 
-export async function searchMsprPolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function searchMsprPolicy(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
     select 
     a.*,
@@ -42,9 +40,8 @@ export async function searchMsprPolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteMsprPolicy( PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function deleteMsprPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from msprpolicy 
   where 
@@ -53,10 +50,8 @@ export async function deleteMsprPolicy( PolicyNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-
-export async function deletePolicyFromMspr(policyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function deletePolicyFromMspr(policyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from policy 
   where 

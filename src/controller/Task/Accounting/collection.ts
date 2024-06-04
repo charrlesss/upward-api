@@ -13,7 +13,6 @@ import {
   getTransactionBanksDetails,
   getTransactionBanksDetailsDebit,
   getTransactionDescription,
-  postTransactionBanksDetails,
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
@@ -31,7 +30,8 @@ Collection.get("/get-client-checked-by-id", async (req, res) => {
   try {
     const data1 = await getClientCheckedList(
       searchCheckedList as string,
-      PNo as string
+      PNo as string,
+      req
     );
     res.send({
       message: "get Data Successfully",
@@ -52,8 +52,8 @@ Collection.get("/get-transaction-code-title", async (req, res) => {
     res.send({
       message: "Get Data Successfully",
       success: true,
-      banktransaction: await getTransactionBanksDetails(),
-      transactionDesc: await getTransactionDescription(),
+      banktransaction: await getTransactionBanksDetails(req),
+      transactionDesc: await getTransactionDescription(req),
     });
   } catch (error: any) {
     res.send({
@@ -70,7 +70,7 @@ Collection.get("/get-new-or-number", async (req, res) => {
     res.send({
       message: "Get New OR Number Successfully",
       success: true,
-      ORNo: await collectionIDGenerator(),
+      ORNo: await collectionIDGenerator(req),
     });
   } catch (error: any) {
     res.send({
@@ -92,10 +92,9 @@ Collection.post("/add-collection", async (req, res) => {
       success: false,
     });
   }
-  
-  try {
 
-    const isFind = await findORnumber(req.body.ORNo);
+  try {
+    const isFind = await findORnumber(req.body.ORNo, req);
     if (isFind.length > 0) {
       return res.send({
         message: `${req.body.ORNo} Already Exists!`,
@@ -105,12 +104,15 @@ Collection.post("/add-collection", async (req, res) => {
     }
 
     AddCollection(req);
-    await updateCollectionIDSequence({
-      last_count: req.body.ORNo.split(".")[1],
-      year: req.body.ORNo.split(".")[0].slice(0, 2),
-      month: req.body.ORNo.split(".")[0].slice(-2),
-    });
-    const newID = await collectionIDGenerator();
+    await updateCollectionIDSequence(
+      {
+        last_count: req.body.ORNo.split(".")[1],
+        year: req.body.ORNo.split(".")[0].slice(0, 2),
+        month: req.body.ORNo.split(".")[0].slice(-2),
+      },
+      req
+    );
+    const newID = await collectionIDGenerator(req);
     await saveUserLogs(req, req.body.ORNo, "add", "Collection");
     res.send({
       message: "Create Collection Successfully!",
@@ -133,7 +135,7 @@ Collection.get("/get-collection-data-search", async (req, res) => {
     res.send({
       message: "Search Collection Successfully",
       success: true,
-      collection: await getSearchCollection(ORNo as string),
+      collection: await getSearchCollection(ORNo as string, req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, collection: [] });
@@ -146,7 +148,7 @@ Collection.get("/search-collection", async (req, res) => {
     res.send({
       message: "Search Collection Successfully",
       success: true,
-      collection: await getCollections(searchCollectionInput as string),
+      collection: await getCollections(searchCollectionInput as string, req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, collection: [] });
@@ -170,7 +172,7 @@ Collection.post("/update-collection", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await deleteCollection(req.body.ORNo);
+    await deleteCollection(req.body.ORNo, req);
     AddCollection(req);
     res.send({
       message: "Update Collection Successfully!",
@@ -215,7 +217,8 @@ async function AddCollection(req: any) {
 
     if (i <= debit.length - 1) {
       const [transaction] = (await getTransactionBanksDetailsDebit(
-        debit[i].TC
+        debit[i].TC,
+        req
       )) as Array<any>;
       Payment = debit[i].Payment;
       Debit = debit[i].Amount;
@@ -230,7 +233,10 @@ async function AddCollection(req: any) {
     }
     if (i <= credit.length - 1) {
       const { Acct_Code, Acct_Title } = (
-        (await TransactionAndChartAccount(credit[i].transaction)) as Array<any>
+        (await TransactionAndChartAccount(
+          credit[i].transaction,
+          req
+        )) as Array<any>
       )[0];
       Purpose = credit[i].transaction;
       Credit = credit[i].amount;
@@ -280,23 +286,27 @@ async function AddCollection(req: any) {
       CRInvoiceNo: CRInvoiceNo,
     };
 
-    await createCollection(newCollection);
+    await createCollection(newCollection, req);
 
     if (i <= debit.length - 1) {
       if (debit[i].Payment.trim().toLowerCase() === "check") {
-        await updatePDCCheck({
-          ORNum: OR.toUpperCase(),
-          PNo: req.body.PNo,
-          CheckNo: CheckNo,
-        });
+        await updatePDCCheck(
+          {
+            ORNum: OR.toUpperCase(),
+            PNo: req.body.PNo,
+            CheckNo: CheckNo,
+          },
+          req
+        );
       }
     }
   }
 
-  await deleteFromJournalToCollection(req.body.ORNo);
+  await deleteFromJournalToCollection(req.body.ORNo, req);
   for (let i = 0; i <= debit.length - 1; i++) {
     const [transaction] = (await getTransactionBanksDetailsDebit(
-      debit[i].TC
+      debit[i].TC,
+      req
     )) as Array<any>;
 
     const Payment = debit[i].Payment;
@@ -308,26 +318,29 @@ async function AddCollection(req: any) {
     const DRTitle = transaction.Acct_Title;
     const DRRemarks = debit[i].TC;
 
-    await createJournal({
-      Branch_Code: "HO",
-      Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
-      Source_Type: "OR",
-      Source_No: req.body.ORNo.toUpperCase(),
-      Explanation: `${Payment} Collection at Head Office`,
-      Check_No: CheckNo,
-      Check_Date: CheckDate,
-      Check_Bank: Bank,
-      Payto: req.body.Name,
-      GL_Acct: DRCode,
-      cGL_Acct: DRTitle,
-      Sub_Acct: "HO",
-      cSub_Acct: "Upward Insurance Agency",
-      ID_No: req.body.PNo,
-      cID_No: req.body.Name,
-      Debit: Debit.replaceAll(",", ""),
-      TC: DRRemarks,
-      Source_No_Ref_ID: "",
-    });
+    await createJournal(
+      {
+        Branch_Code: "HO",
+        Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
+        Source_Type: "OR",
+        Source_No: req.body.ORNo.toUpperCase(),
+        Explanation: `${Payment} Collection at Head Office`,
+        Check_No: CheckNo,
+        Check_Date: CheckDate,
+        Check_Bank: Bank,
+        Payto: req.body.Name,
+        GL_Acct: DRCode,
+        cGL_Acct: DRTitle,
+        Sub_Acct: "HO",
+        cSub_Acct: "Upward Insurance Agency",
+        ID_No: req.body.PNo,
+        cID_No: req.body.Name,
+        Debit: Debit.replaceAll(",", ""),
+        TC: DRRemarks,
+        Source_No_Ref_ID: "",
+      },
+      req
+    );
   }
 
   for (let i = 0; i <= credit.length - 1; i++) {
@@ -340,25 +353,28 @@ async function AddCollection(req: any) {
     const CRInvoiceNo = credit[i].invoiceNo;
     const TC = credit[i].TC;
 
-    await createJournal({
-      Branch_Code: "HO",
-      Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
-      Source_Type: "OR",
-      Source_No: req.body.ORNo.toUpperCase(),
-      GL_Acct: CRCode,
-      cGL_Acct: CRTitle,
-      ID_No: req.body.PNo,
-      cID_No: req.body.Name,
-      Explanation: Purpose,
-      Sub_Acct: "HO",
-      cSub_Acct: "Upward Insurance Agency",
-      Credit: Credit.replaceAll(",", ""),
-      Remarks: CRRemarks,
-      TC: TC,
-      VAT_Type: CRVatType,
-      OR_Invoice_No: CRInvoiceNo,
-      Source_No_Ref_ID: "",
-    });
+    await createJournal(
+      {
+        Branch_Code: "HO",
+        Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
+        Source_Type: "OR",
+        Source_No: req.body.ORNo.toUpperCase(),
+        GL_Acct: CRCode,
+        cGL_Acct: CRTitle,
+        ID_No: req.body.PNo,
+        cID_No: req.body.Name,
+        Explanation: Purpose,
+        Sub_Acct: "HO",
+        cSub_Acct: "Upward Insurance Agency",
+        Credit: Credit.replaceAll(",", ""),
+        Remarks: CRRemarks,
+        TC: TC,
+        VAT_Type: CRVatType,
+        OR_Invoice_No: CRInvoiceNo,
+        Source_No_Ref_ID: "",
+      },
+      req
+    );
   }
 }
 export default Collection;

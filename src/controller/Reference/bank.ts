@@ -18,7 +18,7 @@ Bank.get("/get-banks", async (req: Request, res: Response) => {
     res.send({
       message: "Get Rates Successfully!",
       success: true,
-      bank: await getBanks(bankSearch as string),
+      bank: await getBanks(bankSearch as string,req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -41,10 +41,10 @@ Bank.post("/add-bank", async (req: Request, res: Response) => {
     delete req.body.mode;
     delete req.body.search;
 
-    if (await findBank(req.body.Bank_Code)) {
+    if (await findBank(req.body.Bank_Code,req)) {
       return res.send({ message: "Bank is Already Exist!", success: false });
     }
-    await addBank(req.body);
+    await addBank(req.body,req);
     await saveUserLogs(req, req.body.Bank_Code, "add", "Bank");
 
     res.send({
@@ -76,7 +76,7 @@ Bank.post("/update-bank", async (req: Request, res: Response) => {
     delete req.body.search;
     delete req.body.userCodeConfirmation;
     req.body.Inactive = Boolean(req.body.Inactive);
-    await updateBank(req.body);
+    await updateBank(req.body,req);
     res.send({
       message: "Update Bank Successfully!",
       success: true,
@@ -103,7 +103,7 @@ Bank.post("/delete-bank", async (req: Request, res: Response) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await removeBank(req.body.Bank_Code);
+    await removeBank(req.body.Bank_Code,req);
     res.send({
       message: "Delete Bank Successfully!",
       success: true,
@@ -120,7 +120,7 @@ Bank.get("/search-bank", async (req: Request, res: Response) => {
     res.send({
       message: "Search Bank Successfuly",
       success: true,
-      bank: await getBanks(bankSearch as string),
+      bank: await getBanks(bankSearch as string,req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });

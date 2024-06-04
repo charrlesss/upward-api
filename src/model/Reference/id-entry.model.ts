@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
-// const prisma = new PrismaClient();
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
 interface DataEntryClientTypes {
   entry_client_id: string;
@@ -217,8 +217,11 @@ const queryList: any = {
   },
 };
 
-export async function CreateClientEntry(data: DataEntryClientTypes) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function CreateClientEntry(
+  data: DataEntryClientTypes,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const { email, telephone, mobile, ...rest } = data;
   await prisma.entry_client.create({
@@ -234,16 +237,20 @@ export async function CreateClientEntry(data: DataEntryClientTypes) {
     },
   });
 }
-export async function CreateEmployeeEntry(data: EntryEmployeeType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function CreateEmployeeEntry(
+  data: EntryEmployeeType,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.entry_employee.create({
     data,
   });
 }
-export async function CreateAgentEntry(data: EntryAgentType) {
+export async function CreateAgentEntry(data: EntryAgentType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   const { email, telephone, mobile, ...rest } = data;
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.entry_agent.create({
     data: {
@@ -258,16 +265,23 @@ export async function CreateAgentEntry(data: EntryAgentType) {
     },
   });
 }
-export async function CreateFixedAssetstEntry(data: EntryFixedAssetsType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function CreateFixedAssetstEntry(
+  data: EntryFixedAssetsType,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.entry_fixed_assets.create({
     data,
   });
 }
-export async function CreateSupplierEntry(data: EntrySupplierType) {
+export async function CreateSupplierEntry(
+  data: EntrySupplierType,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   const { email, telephone, mobile, ...rest } = data;
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.entry_supplier.create({
     data: {
@@ -282,15 +296,15 @@ export async function CreateSupplierEntry(data: EntrySupplierType) {
     },
   });
 }
-export async function CreateOtherEntry(data: EntryOthersType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function CreateOtherEntry(data: EntryOthersType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   await prisma.entry_others.create({
     data,
   });
 }
-export async function getAllSubAccount() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getAllSubAccount(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     SELECT 
@@ -302,8 +316,8 @@ export async function getAllSubAccount() {
     `;
   return await prisma.$queryRawUnsafe(query);
 }
-async function updateClient(data: DataEntryClientTypes) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+async function updateClient(data: DataEntryClientTypes, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const getEntryClient = await prisma.entry_client.findUnique({
     where: { entry_client_id: data.entry_client_id },
@@ -353,7 +367,9 @@ async function updateClient(data: DataEntryClientTypes) {
     prisma.$queryRawUnsafe(query2),
   ]);
 }
-async function updateEmployee(data: EntryEmployeeType) {
+async function updateEmployee(data: EntryEmployeeType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   const query = `
   update 
       \`entry_employee\`
@@ -367,12 +383,12 @@ async function updateEmployee(data: EntryEmployeeType) {
     where 
       \`entry_employee_id\`= '${data.entry_employee_id}'
    `;
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.$queryRawUnsafe(query);
 }
-async function updateAgent(data: EntryAgentType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+
+async function updateAgent(data: EntryAgentType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const getEntryClient = await prisma.entry_agent.findUnique({
     where: { entry_agent_id: data.entry_agent_id },
@@ -406,7 +422,9 @@ async function updateAgent(data: EntryAgentType) {
     prisma.$queryRawUnsafe(query2),
   ]);
 }
-async function updateFixedAssets(data: EntryFixedAssetsType) {
+async function updateFixedAssets(data: EntryFixedAssetsType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   const query = `
   update 
       \`entry_fixed_assets\`
@@ -419,12 +437,11 @@ async function updateFixedAssets(data: EntryFixedAssetsType) {
     where 
       \`entry_fixed_assets_id\`= '${data.entry_fixed_assets_id}'
    `;
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
 
   await prisma.$queryRawUnsafe(query);
 }
-async function updateOthers(data: EntryOthersType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+async function updateOthers(data: EntryOthersType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   update 
@@ -439,8 +456,8 @@ async function updateOthers(data: EntryOthersType) {
    `;
   await prisma.$queryRawUnsafe(query);
 }
-async function updateSupplier(data: EntrySupplierType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+async function updateSupplier(data: EntrySupplierType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const getEntryClient = await prisma.entry_supplier.findUnique({
     where: { entry_supplier_id: data.entry_supplier_id },
@@ -494,38 +511,39 @@ async function updateSupplier(data: EntrySupplierType) {
 export async function searchEntry(
   entry: string,
   search: string,
-  hasLimit: boolean = false
+  hasLimit: boolean = false,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     queryList[`${entry}`].query(search, hasLimit)
   );
 }
-export async function updateEntry(entry: string, data: any) {
+export async function updateEntry(entry: string, data: any, req: Request) {
   switch (entry) {
     case "Client":
-      await updateClient(data);
+      await updateClient(data, req);
       break;
     case "Employee":
-      await updateEmployee(data);
+      await updateEmployee(data, req);
       break;
     case "Agent":
-      await updateAgent(data);
+      await updateAgent(data, req);
       break;
     case "Fixed Assets":
-      await updateFixedAssets(data);
+      await updateFixedAssets(data, req);
       break;
     case "Supplier":
-      await updateSupplier(data);
+      await updateSupplier(data, req);
       break;
     case "Others":
-      await updateOthers(data);
+      await updateOthers(data, req);
       break;
   }
 }
-export async function deleteEntry(entry: string, id: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteEntry(entry: string, id: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   switch (entry) {
     case "Client":
@@ -583,12 +601,14 @@ export async function deleteEntry(entry: string, id: string) {
       break;
   }
 }
-export async function getClientInIdEntry(where: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getClientInIdEntry(where: string,req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
 }
-export async function getSubAccounts() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSubAccounts(req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   return await prisma.$queryRawUnsafe(` 
   SELECT 
     a.Sub_Acct,
@@ -598,8 +618,9 @@ export async function getSubAccounts() {
     sub_account a`);
 }
 
-export async function IDGenerator(sign: string, type: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function IDGenerator(sign: string, type: string,req:Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   const lastSeq = await prisma.id_sequence.findFirst({ where: { type } });
   const newCount = incrementLastCount(lastSeq?.last_count as string);
   const newMonth = getMonth();
@@ -610,9 +631,11 @@ export async function UpdateId(
   type: string,
   newCount: string,
   newMonth: string,
-  newYear: string
+  newYear: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   await prisma.id_sequence.update({
     where: {
       type,

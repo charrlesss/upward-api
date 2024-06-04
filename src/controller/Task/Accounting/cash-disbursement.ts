@@ -22,7 +22,7 @@ CashDisbursement.get("/cash-disbursement/generate-id", async (req, res) => {
     res.send({
       message: "Successfully get cash disbursement id",
       success: true,
-      generatedId: await GenerateCashDisbursementID(),
+      generatedId: await GenerateCashDisbursementID(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -39,7 +39,9 @@ CashDisbursement.post(
     );
     if (userAccess.includes("ADMIN")) {
       return res.send({
-        message: `CAN'T ${req.body.hasSelected ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+        message: `CAN'T ${
+          req.body.hasSelected ? "UPDATE" : "SAVE"
+        }, ADMIN IS FOR VIEWING ONLY!`,
         success: false,
       });
     }
@@ -58,7 +60,8 @@ CashDisbursement.post(
       }
 
       const cashDisbursement = (await findCashDisbursement(
-        req.body.refNo
+        req.body.refNo,
+        req
       )) as Array<any>;
       if (cashDisbursement.length > 0 && !req.body.hasSelected) {
         return res.send({
@@ -66,63 +69,69 @@ CashDisbursement.post(
           success: true,
         });
       }
-      await DeleteNewCashDisbursement(req.body.refNo);
-      await DeleteNewJournalFromCashDisbursement(req.body.refNo);
+      await DeleteNewCashDisbursement(req.body.refNo, req);
+      await DeleteNewJournalFromCashDisbursement(req.body.refNo, req);
       req.body.cashDisbursement.forEach(async (item: any, index: number) => {
-        await AddNewCashDisbursement({
-          Branch_Code: item.BranchCode,
-          Date_Entry: req.body.dateEntry,
-          Source_Type: "CV",
-          Source_No: req.body.refNo,
-          Explanation: req.body.explanation,
-          Particulars: req.body.particulars,
-          Payto: item.Payto,
-          Address: item.address,
-          GL_Acct: item.code,
-          cGL_Acct: item.acctName,
-          cSub_Acct: item.subAcctName,
-          cID_No: item.ClientName,
-          Debit: parseFloat(item.debit.replace(/,/g, "")),
-          Credit: parseFloat(item.credit.replace(/,/g, "")),
-          Check_No: item.code === "1.01.10" ? item.checkNo : "",
-          Check_Date: item.code === "1.01.10" ? item.checkDate : "",
-          Remarks: item.remarks,
-          Sub_Acct: item.subAcct,
-          ID_No: item.IDNo,
-          TC: item.TC_Code,
-          VAT_Type: item.vatType,
-          OR_Invoice_No: item.invoice,
-          VATItemNo: parseInt(item.TempID),
-        });
-        await AddNewJournalFromCashDisbursement({
-          Branch_Code: "HO",
-          Date_Entry: req.body.dateEntry,
-          Source_Type: "CV",
-          Source_No: req.body.refNo,
-          Explanation: req.body.explanation,
-          Particulars: req.body.particulars,
-          Payto: item.Payto,
-          Address: item.address,
-          GL_Acct: item.code,
-          cGL_Acct: item.acctName,
-          cSub_Acct: item.subAcctName,
-          cID_No: item.ClientName,
-          Debit: parseFloat(item.debit.replace(/,/g, "")),
-          Credit: parseFloat(item.credit.replace(/,/g, "")),
-          Check_No: item.code === "1.01.10" ? item.checkNo : "",
-          Check_Date: item.code === "1.01.10" ? item.checkDate : "",
-          Remarks: item.remarks,
-          Sub_Acct: "HO",
-          ID_No: item.IDNo,
-          TC: item.TC_Code,
-          VAT_Type: item.vatType,
-          OR_Invoice_No: item.invoice,
-          VATItemNo: parseInt(item.TempID),
-          Source_No_Ref_ID: "",
-        });
+        await AddNewCashDisbursement(
+          {
+            Branch_Code: item.BranchCode,
+            Date_Entry: req.body.dateEntry,
+            Source_Type: "CV",
+            Source_No: req.body.refNo,
+            Explanation: req.body.explanation,
+            Particulars: req.body.particulars,
+            Payto: item.Payto,
+            Address: item.address,
+            GL_Acct: item.code,
+            cGL_Acct: item.acctName,
+            cSub_Acct: item.subAcctName,
+            cID_No: item.ClientName,
+            Debit: parseFloat(item.debit.replace(/,/g, "")),
+            Credit: parseFloat(item.credit.replace(/,/g, "")),
+            Check_No: item.code === "1.01.10" ? item.checkNo : "",
+            Check_Date: item.code === "1.01.10" ? item.checkDate : "",
+            Remarks: item.remarks,
+            Sub_Acct: item.subAcct,
+            ID_No: item.IDNo,
+            TC: item.TC_Code,
+            VAT_Type: item.vatType,
+            OR_Invoice_No: item.invoice,
+            VATItemNo: parseInt(item.TempID),
+          },
+          req
+        );
+        await AddNewJournalFromCashDisbursement(
+          {
+            Branch_Code: "HO",
+            Date_Entry: req.body.dateEntry,
+            Source_Type: "CV",
+            Source_No: req.body.refNo,
+            Explanation: req.body.explanation,
+            Particulars: req.body.particulars,
+            Payto: item.Payto,
+            Address: item.address,
+            GL_Acct: item.code,
+            cGL_Acct: item.acctName,
+            cSub_Acct: item.subAcctName,
+            cID_No: item.ClientName,
+            Debit: parseFloat(item.debit.replace(/,/g, "")),
+            Credit: parseFloat(item.credit.replace(/,/g, "")),
+            Check_No: item.code === "1.01.10" ? item.checkNo : "",
+            Check_Date: item.code === "1.01.10" ? item.checkDate : "",
+            Remarks: item.remarks,
+            Sub_Acct: "HO",
+            ID_No: item.IDNo,
+            TC: item.TC_Code,
+            VAT_Type: item.vatType,
+            OR_Invoice_No: item.invoice,
+            VATItemNo: parseInt(item.TempID),
+            Source_No_Ref_ID: "",
+          },
+          req
+        );
       });
       if (!req.body.hasSelected) {
-        await updateCashDisbursementID(req.body.refNo.split("-")[1]);
+        await updateCashDisbursementID(req.body.refNo.split("-")[1], req);
         await saveUserLogs(req, req.body.refNo, "add", "Cash-Disbursement");
       }
 
@@ -165,13 +174,14 @@ CashDisbursement.post(
         return res.send({ message: "Invalid User Code", success: false });
       }
 
-      await DeleteNewCashDisbursement(req.body.refNo);
+      await DeleteNewCashDisbursement(req.body.refNo, req);
       await insertVoidJournalFromCashDisbursement(
         req.body.refNo,
-        req.body.dateEntry
+        req.body.dateEntry,
+        req
       );
-      await DeleteNewJournalFromCashDisbursement(req.body.refNo);
-      await insertVoidCashDisbursement(req.body.refNo, req.body.dateEntry);
+      await DeleteNewJournalFromCashDisbursement(req.body.refNo, req);
+      await insertVoidCashDisbursement(req.body.refNo, req.body.dateEntry, req);
       await saveUserLogs(req, req.body.refNo, "void", "Cash-Disbursement");
       res.send({
         message: `Successfully void ${req.body.refNo} in cash disbursement`,
@@ -192,7 +202,7 @@ CashDisbursement.get(
       res.send({
         message: "Successfully get search cash disbursement",
         success: true,
-        search: await searchCashDisbursement(search as string),
+        search: await searchCashDisbursement(search as string, req),
       });
     } catch (error: any) {
       console.log(error.message);
@@ -206,7 +216,8 @@ CashDisbursement.post(
   async (req, res) => {
     try {
       const selectedCashDisbursement = await findSearchSelectedCashDisbursement(
-        req.body.Source_No
+        req.body.Source_No,
+        req
       );
       res.send({
         message: "Successfully get selected search in cash disbursement",

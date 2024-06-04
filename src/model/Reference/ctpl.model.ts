@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
-// const prisma = new PrismaClient();
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
 interface CTPLType {
   Prefix: string;
@@ -14,9 +14,10 @@ interface CTPLType {
 
 export async function searchCTPL(
   ctplSearch: string,
-  hasLimit: boolean = false
+  hasLimit: boolean = false,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
       SELECT 
@@ -36,7 +37,7 @@ export async function searchCTPL(
           OR  a.NumSeriesFrom like '%${ctplSearch}%'
           OR  a.NumSeriesTo like '%${ctplSearch}%'
           ORDER BY a.Prefix asc
-          ${hasLimit ? "" : "limit 500"}
+          limit 100
       `;
   const data = await prisma.$queryRawUnsafe(query);
 
@@ -49,23 +50,23 @@ export async function searchCTPL(
 
   return convertCostToFixed(data);
 }
-export async function getPrefix() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPrefix(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctplprefix.findMany({ select: { prefixName: true } });
 }
-export async function getType() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getType(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctpltype.findMany({ select: { typeName: true } });
 }
-export async function addCTPL(data: CTPLType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addCTPL(data: CTPLType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctplregistration.create({ data });
 }
-export async function updateCTPL(data: CTPLType, ctplId: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateCTPL(data: CTPLType, ctplId: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctplregistration.update({
     data: {
@@ -75,23 +76,26 @@ export async function updateCTPL(data: CTPLType, ctplId: string) {
     where: { ctplId },
   });
 }
-export async function deleteCTPL(ctplId: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteCTPL(ctplId: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctplregistration.delete({ where: { ctplId } });
 }
 
-export async function findCtplById(ctplId: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findCtplById(ctplId: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.ctplregistration.findUnique({ where: { ctplId } });
 }
-export async function findCtplfExist(where: {
-  Prefix: string;
-  NumSeriesFrom: string;
-  NumSeriesTo: string;
-}) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findCtplfExist(
+  where: {
+    Prefix: string;
+    NumSeriesFrom: string;
+    NumSeriesTo: string;
+  },
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       SELECT 

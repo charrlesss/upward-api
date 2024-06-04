@@ -38,9 +38,9 @@ function getZeroFirstInput(data: string) {
 CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
   const { ctplSearch } = req.query;
   try {
-    const ctpl = await searchCTPL(ctplSearch as string);
-    const prefix = await getPrefix();
-    const type = await getType();
+    const ctpl = await searchCTPL(ctplSearch as string, false, req);
+    const prefix = await getPrefix(req);
+    const type = await getType(req);
 
     res.send({
       message: "Get CTPL Successfully!",
@@ -93,7 +93,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
         success: false,
       });
     }
-    if (((await findCtplfExist(req.body)) as any).length > 0) {
+    if (((await findCtplfExist(req.body, req)) as any).length > 0) {
       return res.send({
         message: "This data is already exist",
         success: false,
@@ -103,42 +103,51 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
     for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
       const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
       // DEBIT'
-      await createJournal({
-        Source_No: _sourceNo,
-        Branch_Code: "HO",
-        Date_Entry: new Date().toLocaleDateString(),
-        Source_Type: "GL",
-        Explanation: "CTPL Registration",
-        GL_Acct: "1.04.01",
-        cGL_Acct: "CTPL Inventory",
-        Debit: parseFloat(Cost),
-        Credit: 0,
-        TC: "CTI",
-        Source_No_Ref_ID: ctplID,
-      });
+      await createJournal(
+        {
+          Source_No: _sourceNo,
+          Branch_Code: "HO",
+          Date_Entry: new Date().toLocaleDateString(),
+          Source_Type: "GL",
+          Explanation: "CTPL Registration",
+          GL_Acct: "1.04.01",
+          cGL_Acct: "CTPL Inventory",
+          Debit: parseFloat(Cost),
+          Credit: 0,
+          TC: "CTI",
+          Source_No_Ref_ID: ctplID,
+        },
+        req
+      );
       // Credit
-      await createJournal({
-        Source_No: _sourceNo,
-        Branch_Code: "HO",
-        Date_Entry: new Date().toLocaleDateString(),
-        Source_Type: "GL",
-        Explanation: "CTPL Registration",
-        GL_Acct: "1.04.01",
-        cGL_Acct: "Advance Remittance",
-        Debit: 0,
-        Credit: parseFloat(Cost),
-        TC: "ADR",
-        Source_No_Ref_ID: ctplID,
-      });
+      await createJournal(
+        {
+          Source_No: _sourceNo,
+          Branch_Code: "HO",
+          Date_Entry: new Date().toLocaleDateString(),
+          Source_Type: "GL",
+          Explanation: "CTPL Registration",
+          GL_Acct: "1.04.01",
+          cGL_Acct: "Advance Remittance",
+          Debit: 0,
+          Credit: parseFloat(Cost),
+          TC: "ADR",
+          Source_No_Ref_ID: ctplID,
+        },
+        req
+      );
     }
     req.body.NumSeriesFrom = req.body.NumSeriesFrom;
     req.body.NumSeriesTo = req.body.NumSeriesTo;
 
-    await addCTPL({
-      ...req.body,
-      ctplId: ctplID,
-      CreatedBy: (user as any)?.Username,
-    });
+    await addCTPL(
+      {
+        ...req.body,
+        ctplId: ctplID,
+        CreatedBy: (user as any)?.Username,
+      },
+      req
+    );
     await saveUserLogs(req, ctplID, "add", "CTPL");
     return res.send({
       message: "Create CTPL Successfully!",
@@ -167,15 +176,15 @@ CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    const ctpl = await findCtplById(tpldID);
+    const ctpl = await findCtplById(tpldID, req);
     if (ctpl == null) {
       return res.send({
         message: "Cannot Find Ctpl ID!",
         success: false,
       });
     }
-    await deleteJournal(tpldID);
-    await deleteCTPL(tpldID);
+    await deleteJournal(tpldID, req);
+    await deleteCTPL(tpldID, req);
     res.send({
       message: "Delete CTPL Successfully!",
       success: true,
@@ -203,7 +212,7 @@ CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
     delete rest.createdAt;
     delete rest.CreatedBy;
 
-    const journal = await findManyJournal(ctplId);
+    const journal = await findManyJournal(ctplId, req);
     journal.forEach(async (data) => {
       const sourceCount = (
         (data.Source_No as string).match(/\d+/) as Array<any>
@@ -211,10 +220,15 @@ CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
       await updateJournal(
         `${rest.Prefix}${sourceCount}`,
         rest.Cost,
-        data.AutoNo
+        data.AutoNo,
+        req
       );
     });
-    await updateCTPL({ ...rest, CreatedBy: (user as any).Username }, ctplId);
+    await updateCTPL(
+      { ...rest, CreatedBy: (user as any).Username },
+      ctplId,
+      req
+    );
 
     res.send({
       message: "Update Ctpl Successfully!",
@@ -229,7 +243,7 @@ CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
 CTPL.get("/search-ctpl", async (req: Request, res: Response) => {
   const { ctplSearch } = req.query;
   try {
-    const ctpl: any = await searchCTPL(ctplSearch as string);
+    const ctpl: any = await searchCTPL(ctplSearch as string, false, req);
     res.send({
       message: "Search Policy Account Successfuly",
       success: true,
@@ -266,13 +280,13 @@ CTPL.get("/export-ctpl", async (req, res) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchCTPL("", true)) as Array<any>,
+      (await searchCTPL("", true, req)) as Array<any>,
       subAccountHeaders,
       "CTPL"
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchCTPL(ctplSearch as string)) as Array<any>,
+      (await searchCTPL(ctplSearch as string, false, req)) as Array<any>,
       subAccountHeaders,
       "CTPL"
     );

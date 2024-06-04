@@ -1,4 +1,4 @@
-import express, { response } from "express";
+import express, { Request, response } from "express";
 import {
   getTransactionAccount,
   getPolicyIdClientIdRefId,
@@ -35,7 +35,9 @@ GeneralJournal.post(
     );
     if (userAccess.includes("ADMIN")) {
       return res.send({
-        message: `CAN'T ${req.body.hasSelected ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
+        message: `CAN'T ${
+          req.body.hasSelected ? "UPDATE" : "SAVE"
+        }, ADMIN IS FOR VIEWING ONLY!`,
         success: false,
       });
     }
@@ -53,7 +55,8 @@ GeneralJournal.post(
       }
 
       const generalJournal = (await findeGeneralJournal(
-        req.body.refNo
+        req.body.refNo,
+        req
       )) as Array<any>;
       if (generalJournal.length > 0 && !req.body.hasSelected) {
         return res.send({
@@ -61,55 +64,61 @@ GeneralJournal.post(
           success: false,
         });
       }
-      await deleteGeneralJournal(req.body.refNo);
-      await deleteJournalFromGeneralJournal(req.body.refNo);
+      await deleteGeneralJournal(req.body.refNo, req);
+      await deleteJournalFromGeneralJournal(req.body.refNo, req);
 
       req.body.generalJournal.forEach(async (item: any) => {
-        await addJournalVoucher({
-          Branch_Code: "HO",
-          Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
-          Source_Type: "GL",
-          Source_No: req.body.refNo,
-          Explanation: req.body.explanation,
-          GL_Acct: item.code,
-          cGL_Acct: item.acctName,
-          cSub_Acct: "HO",
-          cID_No: item.ClientName,
-          Debit: parseFloat(item.debit.replace(/,/g, "")),
-          Credit: parseFloat(item.credit.replace(/,/g, "")),
-          TC: item.TC_Code,
-          Remarks: item.remarks,
-          Sub_Acct: item.subAcct,
-          ID_No: item.IDNo,
-          VAT_Type: item.vatType,
-          OR_Invoice_No: item.invoice,
-          VATItemNo: parseInt(item.TempID),
-        });
-        await addJournalFromJournalVoucher({
-          Branch_Code: "HO",
-          Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
-          Source_Type: "GL",
-          Source_No: req.body.refNo,
-          Explanation: req.body.explanation,
-          GL_Acct: item.code,
-          cGL_Acct: item.acctName,
-          cSub_Acct: "HO",
-          cID_No: item.ClientName,
-          Debit: parseFloat(item.debit.replace(/,/g, "")),
-          Credit: parseFloat(item.credit.replace(/,/g, "")),
-          TC: item.TC_Code,
-          Remarks: item.remarks,
-          Sub_Acct: item.subAcct,
-          ID_No: item.IDNo,
-          VAT_Type: item.vatType,
-          OR_Invoice_No: item.invoice,
-          VATItemNo: parseInt(item.TempID),
-          Source_No_Ref_ID: "",
-        });
+        await addJournalVoucher(
+          {
+            Branch_Code: "HO",
+            Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
+            Source_Type: "GL",
+            Source_No: req.body.refNo,
+            Explanation: req.body.explanation,
+            GL_Acct: item.code,
+            cGL_Acct: item.acctName,
+            cSub_Acct: "HO",
+            cID_No: item.ClientName,
+            Debit: parseFloat(item.debit.replace(/,/g, "")),
+            Credit: parseFloat(item.credit.replace(/,/g, "")),
+            TC: item.TC_Code,
+            Remarks: item.remarks,
+            Sub_Acct: item.subAcct,
+            ID_No: item.IDNo,
+            VAT_Type: item.vatType,
+            OR_Invoice_No: item.invoice,
+            VATItemNo: parseInt(item.TempID),
+          },
+          req
+        );
+        await addJournalFromJournalVoucher(
+          {
+            Branch_Code: "HO",
+            Date_Entry: req.body.dateEntry, // Assuming dtpDate is a valid date
+            Source_Type: "GL",
+            Source_No: req.body.refNo,
+            Explanation: req.body.explanation,
+            GL_Acct: item.code,
+            cGL_Acct: item.acctName,
+            cSub_Acct: "HO",
+            cID_No: item.ClientName,
+            Debit: parseFloat(item.debit.replace(/,/g, "")),
+            Credit: parseFloat(item.credit.replace(/,/g, "")),
+            TC: item.TC_Code,
+            Remarks: item.remarks,
+            Sub_Acct: item.subAcct,
+            ID_No: item.IDNo,
+            VAT_Type: item.vatType,
+            OR_Invoice_No: item.invoice,
+            VATItemNo: parseInt(item.TempID),
+            Source_No_Ref_ID: "",
+          },
+          req
+        );
       });
 
       if (!req.body.hasSelected) {
-        await updateGeneralJournalID(req.body.refNo.split("-")[1]);
+        await updateGeneralJournalID(req.body.refNo.split("-")[1], req);
         await saveUserLogs(req, req.body.refNo, "add", "General-Journal");
       }
 
@@ -152,12 +161,13 @@ GeneralJournal.post(
         return res.send({ message: "Invalid User Code", success: false });
       }
 
-      await voidGeneralJournal(req.body.refNo);
-      await insertVoidGeneralJournal(req.body.refNo, req.body.dateEntry);
-      await voidJournalFromGeneralJournal(req.body.refNo);
+      await voidGeneralJournal(req.body.refNo, req);
+      await insertVoidGeneralJournal(req.body.refNo, req.body.dateEntry, req);
+      await voidJournalFromGeneralJournal(req.body.refNo, req);
       await insertVoidJournalFromGeneralJournal(
         req.body.refNo,
-        req.body.dateEntry
+        req.body.dateEntry,
+        req
       );
       await saveUserLogs(req, req.body.refNo, "void", "General-Journal");
       res.send({
@@ -180,7 +190,7 @@ GeneralJournal.get(
       res.send({
         message: "Successfully get get general journal id",
         success: true,
-        generateGeneralJournalID: await GenerateGeneralJournalID(),
+        generateGeneralJournalID: await GenerateGeneralJournalID(req),
       });
     } catch (error: any) {
       res.send({
@@ -198,7 +208,7 @@ GeneralJournal.get("/general-journal/get-chart-account", async (req, res) => {
     res.send({
       message: "Successfully get chart account",
       success: true,
-      getChartOfAccount: await getChartOfAccount(search as string),
+      getChartOfAccount: await getChartOfAccount(search as string, req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false });
@@ -214,7 +224,8 @@ GeneralJournal.get(
         message: "Successfully get policy, client, ref, ID",
         success: true,
         getPolicyIdClientIdRefId: await getPolicyIdClientIdRefId(
-          search as string
+          search as string,
+          req
         ),
       });
     } catch (error: any) {
@@ -231,7 +242,10 @@ GeneralJournal.get(
       res.send({
         message: "Successfully get transaction account",
         success: true,
-        getTransactionAccount: await getTransactionAccount(search as string),
+        getTransactionAccount: await getTransactionAccount(
+          search as string,
+          req
+        ),
       });
     } catch (error: any) {
       res.send({
@@ -251,7 +265,7 @@ GeneralJournal.get(
       res.send({
         message: "Successfully get get general journal id",
         success: true,
-        searchGeneralJournal: await searchGeneralJournal(search as string),
+        searchGeneralJournal: await searchGeneralJournal(search as string, req),
       });
     } catch (error: any) {
       res.send({
@@ -271,7 +285,8 @@ GeneralJournal.post(
         message: "Successfully get selected  general journal ",
         success: true,
         getSelectedSearchGeneralJournal: await getSelectedSearchGeneralJournal(
-          req.body.Source_No
+          req.body.Source_No,
+          req
         ),
       });
     } catch (error: any) {
@@ -311,8 +326,10 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
         (await doRPTTransaction(
           fromNilData,
           toNilDate,
-          "N I L - HN"
-        )) as Array<any>
+          "N I L - HN",
+          req
+        )) as Array<any>,
+        req
       );
       break;
     case "5":
@@ -320,7 +337,13 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
         req.body.jobTransactionDate
       );
       response = await RPTComputation(
-        (await doRPTTransaction(fromAMIFIN, toAMIFIN, "AMIFIN")) as Array<any>
+        (await doRPTTransaction(
+          fromAMIFIN,
+          toAMIFIN,
+          "AMIFIN",
+          req
+        )) as Array<any>,
+        req
       );
       break;
     case "6":
@@ -335,19 +358,22 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
     case "9":
       response = await MonthlyProductionComputation(
         req.body.jobTransactionDate,
-        "MILESTONE GUARANTEE"
+        "MILESTONE GUARANTEE",
+        req
       );
       break;
     case "10":
       response = await MonthlyProductionComputation(
         req.body.jobTransactionDate,
-        "LIBERTY INSURANCE CO"
+        "LIBERTY INSURANCE CO",
+        req
       );
       break;
     case "11":
       response = await MonthlyProductionComputation(
         req.body.jobTransactionDate,
-        "FEDERAL PHOENIX"
+        "FEDERAL PHOENIX",
+        req
       );
       break;
     default:
@@ -369,7 +395,7 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
   }
 });
 
-async function RPTComputation(jobs: Array<any>) {
+async function RPTComputation(jobs: Array<any>, req: Request) {
   let response = [];
   const debit = jobs.reduce((a: number, b: any) => {
     return a + parseFloat(b.credit.replace(/,/g, ""));
@@ -403,7 +429,7 @@ async function RPTComputation(jobs: Array<any>) {
     IDNo: "",
     BranchCode: "",
     TempID: (jobs.length + 1).toString().padStart(3, "0"),
-    ...((await doRPTTransactionLastRow()) as Array<any>)[0],
+    ...((await doRPTTransactionLastRow(req)) as Array<any>)[0],
   };
 
   response = jobs.map((d: any) => {
@@ -433,7 +459,8 @@ function RPTComputationDate(jobTransactionDate: any) {
 
 async function MonthlyProductionComputation(
   jobTransactionDate: any,
-  account: string
+  account: string,
+  req: Request
 ) {
   const id = {
     "MILESTONE GUARANTEE": "UIA-1207-018",
@@ -446,7 +473,8 @@ async function MonthlyProductionComputation(
   const milestone = (await doMonthlyProduction(
     account,
     month,
-    year
+    year,
+    req
   )) as Array<any>;
   const addItem = {
     code: "4.02.01",

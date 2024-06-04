@@ -2,23 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import express, { NextFunction, Request, Response } from "express";
 import { compareSync } from "bcrypt";
 import jwt from "jsonwebtoken";
-import saveUserLogs from "../lib/save_user_logs";
 
 const Authentication = express.Router();
 const prisma = new PrismaClient();
-
-export const dbURL = [
-  {
-    department: "UMIS",
-    key: "FJzuPdMfeVu",
-    url: "mysql://root:charles@localhost:3306/upward_insurance_umis",
-  },
-  {
-    department: "UCSMI",
-    key: "THluGdHMfDe",
-    url: "mysql://root:charles@localhost:3306/upward_insurance_ucsmi",
-  },
-];
 
 function generateAccessToken(UserId: string) {
   return jwt.sign({ UserId }, process.env.ACCESS_TOKEN as string, {
@@ -114,26 +100,23 @@ Authentication.post("/login", async (req: Request, res: Response) => {
     );
 
     const department = findUser.Department;
-    const dbUrl = dbURL.filter((itm) => itm.department === department)[0];
 
     res.cookie("up-ac-login", userAccess, { httpOnly: true });
     res.cookie("up-dpm-login", department, { httpOnly: true });
     res.cookie("up-at-login", accessToken, { httpOnly: true });
     res.cookie("up-rt-login", refreshToken, { httpOnly: true });
-    res.cookie("db-k-d", dbUrl.key, { httpOnly: true });
 
     await prisma.system_logs.create({
       data: {
-        action:"login",
+        action: "login",
         username: req.body.username,
-        dataString:findUser.UserId,
+        dataString: findUser.UserId,
         createdAt: new Date(),
         user_id: findUser.UserId,
-        module:"Authentication",
+        module: "Authentication",
         account_type: findUser?.AccountType,
       },
     });
-    
 
     return res.send({
       message: "Successfully Login",
@@ -144,7 +127,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
         accessToken,
         refreshToken,
         userAccess: findUser.AccountType,
-        department
+        department,
       },
     });
   } else {
@@ -182,7 +165,7 @@ Authentication.get("/token", async (req, res) => {
     const newAccessToken = generateAccessToken(user.UserId);
     res.cookie("up-at-login", newAccessToken, { httpOnly: true });
     req.user = user;
-    res.send({ accessToken, refreshToken, userAccess ,department });
+    res.send({ accessToken, refreshToken, userAccess, department });
   } catch (err: any) {
     console.log(err.message);
     return res.send(null);

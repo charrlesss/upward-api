@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { format } from "date-fns";
-import { __DB_URL } from "../../../controller";
+import { PrismaList } from "../../connection";
+import { Request } from "express";
+const { CustomPrismaClient } = PrismaList();
 
-export async function GenerateCashDisbursementID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function GenerateCashDisbursementID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -14,19 +15,25 @@ export async function GenerateCashDisbursementID() {
         a.type = 'cash-disbursement'`);
 }
 
-export async function AddNewCashDisbursement(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function AddNewCashDisbursement(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.cash_disbursement.create({ data });
 }
-export async function AddNewJournalFromCashDisbursement(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function AddNewJournalFromCashDisbursement(
+  data: any,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.create({ data });
 }
 
-export async function DeleteNewCashDisbursement(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function DeleteNewCashDisbursement(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.cash_disbursement.deleteMany({
     where: {
@@ -38,8 +45,11 @@ export async function DeleteNewCashDisbursement(Source_No: string) {
   });
 }
 
-export async function DeleteNewJournalFromCashDisbursement(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function DeleteNewJournalFromCashDisbursement(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.deleteMany({
     where: {
@@ -51,8 +61,11 @@ export async function DeleteNewJournalFromCashDisbursement(Source_No: string) {
   });
 }
 
-export async function updateCashDisbursementID(last_count: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateCashDisbursementID(
+  last_count: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       UPDATE  id_sequence a 
@@ -65,15 +78,18 @@ export async function updateCashDisbursementID(last_count: string) {
       `);
 }
 
-export async function findCashDisbursement(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findCashDisbursement(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `SELECT * FROM  cash_disbursement where Source_No = '${Source_No}' and Source_Type = 'CV'`
   );
 }
-export async function findSearchSelectedCashDisbursement(Source_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findSearchSelectedCashDisbursement(
+  Source_No: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `SELECT 
@@ -105,8 +121,8 @@ export async function findSearchSelectedCashDisbursement(Source_No: string) {
       Source_No = '${Source_No}' and Source_Type = 'CV'`
   );
 }
-export async function searchCashDisbursement(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchCashDisbursement(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `
@@ -130,9 +146,10 @@ export async function searchCashDisbursement(search: string) {
 
 export async function insertVoidJournalFromCashDisbursement(
   refNo: string,
-  dateEntry: string
+  dateEntry: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
@@ -147,17 +164,18 @@ export async function insertVoidJournalFromCashDisbursement(
 
 export async function insertVoidCashDisbursement(
   refNo: string,
-  dateEntry: string
+  dateEntry: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
     cash_disbursement 
   (Branch_Code,Date_Entry,Source_Type,Source_No,Explanation)
-  VALUES ('HO','${format(new Date(dateEntry),'yyyy-MM-dd HH:mm:ss.SSS')}','CV','${refNo}','-- Void(${format(
-    new Date(),
-    "MM/dd/yyyy"
-  )}) --')
+  VALUES ('HO','${format(
+    new Date(dateEntry),
+    "yyyy-MM-dd HH:mm:ss.SSS"
+  )}','CV','${refNo}','-- Void(${format(new Date(), "MM/dd/yyyy")}) --')
   `);
 }

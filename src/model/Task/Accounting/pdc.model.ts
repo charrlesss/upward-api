@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
+export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
-export async function getPdcPolicyIdAndCLientId(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
   const selectClient = `
         SELECT 
           "Client" as IDType,
@@ -98,8 +99,8 @@ export async function getPdcPolicyIdAndCLientId(search: string) {
   return await prisma.$queryRawUnsafe(qry);
 }
 
-export async function getPdcBanks(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPdcBanks(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
     SELECT a.Bank_Code, a.Bank FROM   bank a where  a.Bank_Code like '%${search}%' OR a.Bank like '%${search}%' limit 100; 
@@ -107,19 +108,19 @@ export async function getPdcBanks(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function findPdc(Ref_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findPdc(Ref_No: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc.findMany({ where: { Ref_No } });
 }
 
-export async function pdcUploads(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function pdcUploads(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc_uploads.create({ data });
 }
-export async function pdcUploadsUpdate(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function pdcUploadsUpdate(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc_uploads.updateMany({
     data: {
@@ -131,32 +132,32 @@ export async function pdcUploadsUpdate(data: any) {
   });
 }
 
-export async function getPdcUpload(ref_no:string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPdcUpload(ref_no: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
-  return  await  prisma.$queryRawUnsafe(`
+  return await prisma.$queryRawUnsafe(`
   SELECT 
     a.upload
   FROM
       pdc_uploads a 
   WHERE
   a.Ref_No = '${ref_no}'
-  `)
+  `);
 }
-export async function deletePdcByRefNo(Ref_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePdcByRefNo(Ref_No: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc.deleteMany({ where: { Ref_No } });
 }
 
-export async function createPDC(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createPDC(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc.create({ data });
 }
 
-export async function searchPDC(search: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchPDC(search: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -174,8 +175,8 @@ export async function searchPDC(search: any) {
   `);
 }
 
-export async function getSearchPDCheck(ref_no: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSearchPDCheck(ref_no: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -205,8 +206,8 @@ export async function getSearchPDCheck(ref_no: any) {
   `);
 }
 
-export async function pdcIDGenerator() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function pdcIDGenerator(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -218,8 +219,8 @@ export async function pdcIDGenerator() {
 ;`);
 }
 
-export async function updatePDCIDSequence(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePDCIDSequence(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       update  id_sequence a

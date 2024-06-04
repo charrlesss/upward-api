@@ -18,8 +18,12 @@ const Mortgagee = express.Router();
 Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
   const { mortgageeSearch } = req.query;
   try {
-    const mortgagee = await searchMortgagee(mortgageeSearch as string);
-    const policy = await getMortgageePolicy();
+    const mortgagee = await searchMortgagee(
+      mortgageeSearch as string,
+      false,
+      req
+    );
+    const policy = await getMortgageePolicy(req);
     res.send({
       message: "Get Mortgagee Successfully!",
       success: true,
@@ -47,23 +51,23 @@ Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
   try {
     delete req.body.mode;
     delete req.body.search;
-    
-    req.body.createdAt = new Date()
-    if (await findMortgagee(req.body.Mortgagee)) {
+
+    req.body.createdAt = new Date();
+    if (await findMortgagee(req.body.Mortgagee, req)) {
       return res.send({
         message: "Mortgagee is Already Exist Successfully!",
         success: false,
       });
     }
 
-    await addMortgagee(req.body);
+    await addMortgagee(req.body, req);
     await saveUserLogs(req, req.body.Mortgagee, "add", "Mortgagee");
     return res.send({
       message: "Create Mortgagee Successfully!",
       success: true,
     });
   } catch (err: any) {
-    console.log(err.message)
+    console.log(err.message);
     res.send({ message: err.message, success: false });
   }
 });
@@ -82,13 +86,11 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
   const { Mortgagee } = req.body;
 
   try {
-    if (
-      !(await saveUserLogsCode(req, "delete", Mortgagee, "Mortgagee"))
-    ) {
+    if (!(await saveUserLogsCode(req, "delete", Mortgagee, "Mortgagee"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await deleteMortgagee(Mortgagee);
+    await deleteMortgagee(Mortgagee, req);
     res.send({
       message: "Delete Mortgagee Successfully!",
       success: true,
@@ -119,7 +121,7 @@ Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
     delete req.body.mode;
     delete req.body.search;
     delete req.body.userCodeConfirmation;
-    await updateMortgagee(req.body);
+    await updateMortgagee(req.body, req);
     res.send({
       message: "Update Mortgagee Successfully!",
       success: true,
@@ -132,7 +134,11 @@ Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
 Mortgagee.get("/search-mortgagee", async (req: Request, res: Response) => {
   const { mortgageeSearch } = req.query;
   try {
-    const mortgagee: any = await searchMortgagee(mortgageeSearch as string);
+    const mortgagee: any = await searchMortgagee(
+      mortgageeSearch as string,
+      false,
+      req
+    );
     res.send({
       message: "Search Policy Account Successfuly",
       success: true,
@@ -155,13 +161,17 @@ Mortgagee.get("/export-mortgagee", async (req, res) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchMortgagee("", true)) as Array<any>,
+      (await searchMortgagee("", true, req)) as Array<any>,
       subAccountHeaders,
       "Mortgagee"
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchMortgagee(mortgageeSearch as string)) as Array<any>,
+      (await searchMortgagee(
+        mortgageeSearch as string,
+        false,
+        req
+      )) as Array<any>,
       subAccountHeaders,
       "Mortgagee"
     );
@@ -169,6 +179,5 @@ Mortgagee.get("/export-mortgagee", async (req, res) => {
 
   ExportToExcel(data, res);
 });
-
 
 export default Mortgagee;

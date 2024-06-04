@@ -20,8 +20,8 @@ const Subline = express.Router();
 Subline.get("/get-subline", async (req: Request, res: Response) => {
   const { sublineSearch } = req.query;
   try {
-    const subline = await searchSubline(sublineSearch as string);
-    const line = await getline();
+    const subline = await searchSubline(sublineSearch as string,false,req);
+    const line = await getline(req);
     res.send({
       message: "Get Subline Successfully!",
       success: true,
@@ -51,14 +51,14 @@ Subline.post("/add-subline", async (req: Request, res: Response) => {
     delete req.body.search;
     delete req.body.ID;
     req.body.createdAt = new Date();
-    if ((await findSubline(req.body.Line, req.body.SublineName)).length > 0) {
+    if ((await findSubline(req.body.Line, req.body.SublineName,req)).length > 0) {
       return res.send({
         message: "Already Exist!",
         success: false,
       });
     }
     const ID = await generateUniqueUUID("subline", "ID");
-    await addSubline({ ID, ...req.body });
+    await addSubline({ ID, ...req.body },req);
     await saveUserLogs(req, ID, "add", "Subline");
     return res.send({
       message: "Create Mortgagee Successfully!",
@@ -85,7 +85,7 @@ Subline.post("/delete-subline", async (req: Request, res: Response) => {
     if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Subline"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    await deletesubline(req.body.ID);
+    await deletesubline(req.body.ID,req);
     res.send({
       message: "Delete Subline Successfully!",
       success: true,
@@ -117,7 +117,7 @@ Subline.post("/update-subline", async (req: Request, res: Response) => {
     await updateSubline({
       SublineName: req.body.SublineName,
       ID: req.body.ID,
-    });
+    },req);
     res.send({
       message: "Update Subline Successfully!",
       success: true,
@@ -130,7 +130,7 @@ Subline.post("/update-subline", async (req: Request, res: Response) => {
 Subline.get("/search-subline", async (req: Request, res: Response) => {
   const { sublineSearch } = req.query;
   try {
-    const subline: any = await searchSubline(sublineSearch as string);
+    const subline: any = await searchSubline(sublineSearch as string,false,req);
     res.send({
       message: "Search Subline Successfuly",
       success: true,
@@ -153,13 +153,13 @@ Subline.get("/export-subline", async (req, res) => {
   let data = [];
   if (JSON.parse(isAll as string)) {
     data = mapDataBasedOnHeaders(
-      (await searchSubline("", true)) as Array<any>,
+      (await searchSubline("", true,req)) as Array<any>,
       subAccountHeaders,
       "Subline"
     );
   } else {
     data = mapDataBasedOnHeaders(
-      (await searchSubline(sublineSearch as string)) as Array<any>,
+      (await searchSubline(sublineSearch as string,false,req)) as Array<any>,
       subAccountHeaders,
       "Subline"
     );

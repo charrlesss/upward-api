@@ -1,32 +1,38 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../controller";
+import { Request } from "express";
+import { PrismaList } from "../connection";
+const { CustomPrismaClient } = PrismaList();
 
 interface SubAccountType {
   Acronym: string;
   ShortName: string;
   Description: string;
 }
-export async function createSubAccount(data: SubAccountType) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createSubAccount(data: SubAccountType, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.sub_account.create({ data });
 }
-export async function updateSubAccount(data: SubAccountType, Sub_Acct: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateSubAccount(
+  data: SubAccountType,
+  Sub_Acct: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.sub_account.update({ data, where: { Sub_Acct } });
 }
-export async function deleteSubAccount(Sub_Acct: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteSubAccount(Sub_Acct: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.sub_account.delete({ where: { Sub_Acct } });
 }
 
 export async function searchSubAccount(
   subaccountSearch: string,
-  hasLimit: boolean = false
+  hasLimit: boolean = false,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = ` 
   SELECT 

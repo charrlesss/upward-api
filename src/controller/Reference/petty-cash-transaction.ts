@@ -21,7 +21,8 @@ PettyCashTransaction.get(
         message: "Get Petty Cash Transaction Successfully!",
         success: true,
         pettyCashTransaction: await getPettyCashTransaction(
-          pettyCashtTransactionSearch as string
+          pettyCashtTransactionSearch as string,
+          req
         ),
       });
     } catch (err: any) {
@@ -49,7 +50,7 @@ PettyCashTransaction.post(
       delete req.body.search;
       delete req.body.createdAt;
       const Petty_Log = await generateUniqueUUID("petty_log", "Petty_Log");
-      await addPettyCashTransaction({ Petty_Log, ...req.body });
+      await addPettyCashTransaction({ Petty_Log, ...req.body }, req);
       await saveUserLogs(req, Petty_Log, "add", "Petty Cash");
       res.send({
         message: "Create Petty Cash Transaction Successfully!",
@@ -85,7 +86,7 @@ PettyCashTransaction.post(
       delete req.body.search;
       delete req.body.userCodeConfirmation;
       req.body.Inactive = Boolean(req.body.Inactive);
-      await updatePettyCashTransaction(req.body);
+      await updatePettyCashTransaction(req.body, req);
       res.send({
         message: "Update Petty Cash Transaction Successfully!",
         success: true,
@@ -121,7 +122,7 @@ PettyCashTransaction.post(
       ) {
         return res.send({ message: "Invalid User Code", success: false });
       }
-      await deletePettyCashTransaction(req.body);
+      await deletePettyCashTransaction(req.body, req);
       res.send({
         message: "Delete Petty Cash Transaction Successfully!",
         success: true,
@@ -142,7 +143,8 @@ PettyCashTransaction.get(
         message: "Get Petty Cash Transaction Successfully!",
         success: true,
         pettyCashTransaction: await getPettyCashTransaction(
-          pettyCashtTransactionSearch as string
+          pettyCashtTransactionSearch as string,
+          req
         ),
       });
     } catch (err: any) {

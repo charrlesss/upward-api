@@ -33,7 +33,7 @@ Deposit.get("/getCashCollection", async (req, res) => {
     res.send({
       message: "Successfully Get Cash Collection.",
       success: true,
-      cash: await getCashCollection(""),
+      cash: await getCashCollection("", req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, cash: [] });
@@ -44,7 +44,7 @@ Deposit.get("/getCheckCollection", async (req, res) => {
     res.send({
       message: "Successfully Get Check Collection.",
       success: true,
-      check: await getCheckCollection(""),
+      check: await getCheckCollection("", req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, check: [] });
@@ -56,7 +56,7 @@ Deposit.get("/getBanks", async (req, res) => {
     res.send({
       message: "Successfully Get Deposit Banks.",
       success: true,
-      banks: await getBanksFromDeposit(bankDepositSearch as string),
+      banks: await getBanksFromDeposit(bankDepositSearch as string, req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, banks: [] });
@@ -67,7 +67,7 @@ Deposit.get("/get-deposit-slipcode", async (req, res) => {
     res.send({
       message: "Successfully Get Deposit Slipcode Successfully.",
       success: true,
-      slipcode: await depositIDSlipCodeGenerator(),
+      slipcode: await depositIDSlipCodeGenerator(req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, slipcode: [] });
@@ -84,9 +84,9 @@ Deposit.post("/add-deposit", async (req, res) => {
       success: false,
     });
   }
-  
+
   try {
-    if ((await findDepositBySlipCode(req.body.depositSlip)).length > 0) {
+    if ((await findDepositBySlipCode(req.body.depositSlip, req)).length > 0) {
       return res.send({
         message: `${req.body.depositSlip} already exists`,
         success: false,
@@ -96,11 +96,14 @@ Deposit.post("/add-deposit", async (req, res) => {
     let parts = req.body.depositSlip.split(".");
     let firstPart = parts[0].slice(0, 2);
     let secondPart = parts[0].slice(2);
-    updateDepositIDSequence({
-      last_count: parts[1],
-      year: firstPart,
-      month: secondPart,
-    });
+    updateDepositIDSequence(
+      {
+        last_count: parts[1],
+        year: firstPart,
+        month: secondPart,
+      },
+      req
+    );
     await saveUserLogs(req, req.body.depositSlip, "add", "Deposit");
     res.send({
       message: "Successfully Create New Deposit.",
@@ -113,7 +116,10 @@ Deposit.post("/add-deposit", async (req, res) => {
 });
 Deposit.get("/search-deposit", async (req, res) => {
   try {
-    const deposit: any = await searchDeposit(req.query.searchDeposit as string);
+    const deposit: any = await searchDeposit(
+      req.query.searchDeposit as string,
+      req
+    );
     res.send({
       message: "Successfully Search Deposit.",
       success: true,
@@ -142,9 +148,9 @@ Deposit.post("/search-cash-check", async (req, res) => {
       Cnt_05: ".05",
       Cnt_01: ".01",
     };
-    const cash = await getCashDeposit(req.body.SlipCode);
-    const check = await getCheckDeposit(req.body.SlipCode);
-    const cashBreakDown: any = await getCashBreakDown(req.body.SlipCode);
+    const cash = await getCashDeposit(req.body.SlipCode, req);
+    const check = await getCheckDeposit(req.body.SlipCode, req);
+    const cashBreakDown: any = await getCashBreakDown(req.body.SlipCode, req);
     const cashBreakDownToArray = Object.entries(cashBreakDown[0]).map(
       (items: any) => {
         const newItems = {
@@ -166,7 +172,8 @@ Deposit.post("/search-cash-check", async (req, res) => {
     );
 
     const getBankFromDeposit = await getBanksFromDepositByAccountNo(
-      req.body.BankAccount
+      req.body.BankAccount,
+      req
     );
     const totalValue3 = cashBreakDownToArray.reduce(
       (total, obj) => total + parseFloat(obj.value3.replace(/,/g, "")),
@@ -207,11 +214,11 @@ Deposit.post("/update-deposit", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await removeDepositFromCollection(req.body.depositSlip);
-    await deleteSlipCode(req.body.depositSlip);
-    await deleteDeposit(req.body.depositSlip);
-    await deleteCashBreakDown(req.body.depositSlip);
-    await deleteJournalFromDeposit(req.body.depositSlip);
+    await removeDepositFromCollection(req.body.depositSlip, req);
+    await deleteSlipCode(req.body.depositSlip, req);
+    await deleteDeposit(req.body.depositSlip, req);
+    await deleteCashBreakDown(req.body.depositSlip, req);
+    await deleteJournalFromDeposit(req.body.depositSlip, req);
     await addDeposit(req);
     // await saveUserLogs(req, req.body.depositSlip, "edit", "Deposit");
     res.send({
@@ -246,135 +253,155 @@ async function addDeposit(req: any) {
     },
     0.0
   );
-  await addDepositSlip({
-    Date: req.body.depositdate,
-    SlipCode: req.body.depositSlip,
-    Slip: req.body.Desc,
-    BankAccount: req.body.Account_No,
-    AccountName: req.body.Account_Name,
-    CheckDeposit: checkTotal.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
-    CashDeposit: cashTotal.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
-    IDNo: req.body.IDNo,
-  });
+  await addDepositSlip(
+    {
+      Date: req.body.depositdate,
+      SlipCode: req.body.depositSlip,
+      Slip: req.body.Desc,
+      BankAccount: req.body.Account_No,
+      AccountName: req.body.Account_Name,
+      CheckDeposit: checkTotal.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      CashDeposit: cashTotal.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      IDNo: req.body.IDNo,
+    },
+    req
+  );
   let Cnt = 0;
   const Amount = [checkTotal, cashTotal];
   for (let i = 0; i < 2; i++) {
     if (Amount[i] !== 0) {
       Cnt++;
-      await addCashCheckInDeposit({
-        Date_Deposit: Cnt > 1 ? null : req.body.depositdate,
-        Slip_Code: Cnt > 1 ? null : req.body.depositSlip,
-        Account_ID: req.body.Account_No,
-        Account_Name: req.body.Account_Name,
-        Debit: Amount[i].toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-        Temp_SlipCode: req.body.depositSlip,
-        Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
-        Temp_SlipDate: req.body.depositdate,
-        Type: "HO",
-        IDNo: req.body.ShortName,
-      });
+      await addCashCheckInDeposit(
+        {
+          Date_Deposit: Cnt > 1 ? null : req.body.depositdate,
+          Slip_Code: Cnt > 1 ? null : req.body.depositSlip,
+          Account_ID: req.body.Account_No,
+          Account_Name: req.body.Account_Name,
+          Debit: Amount[i].toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+          Temp_SlipCode: req.body.depositSlip,
+          Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
+          Temp_SlipDate: req.body.depositdate,
+          Type: "HO",
+          IDNo: req.body.ShortName,
+        },
+        req
+      );
     }
   }
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
-    await addCashCheckInDeposit({
-      Account_ID: selectedCollectionValue.DRCode,
-      Account_Name: selectedCollectionValue.Short,
-      Credit: selectedCollectionValue.Amount,
-      Check_Date: selectedCollectionValue.Check_Date,
-      Check_No: selectedCollectionValue.Check_No,
-      Bank: selectedCollectionValue.Bank,
-      Temp_SlipCode: req.body.depositSlip,
-      Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
-      Temp_SlipDate: req.body.depositdate,
-      IDNo: selectedCollectionValue.Name,
-      Type: "HO",
-      Ref_No: selectedCollectionValue.ORNo,
-    });
+    await addCashCheckInDeposit(
+      {
+        Account_ID: selectedCollectionValue.DRCode,
+        Account_Name: selectedCollectionValue.Short,
+        Credit: selectedCollectionValue.Amount,
+        Check_Date: selectedCollectionValue.Check_Date,
+        Check_No: selectedCollectionValue.Check_No,
+        Bank: selectedCollectionValue.Bank,
+        Temp_SlipCode: req.body.depositSlip,
+        Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
+        Temp_SlipDate: req.body.depositdate,
+        IDNo: selectedCollectionValue.Name,
+        Type: "HO",
+        Ref_No: selectedCollectionValue.ORNo,
+      },
+      req
+    );
   }
-  await addCashBreakDown({
-    Slip_Code: req.body.depositSlip,
-    Pap_1000: tableRowsInputValue[0].value2,
-    Pap_500: tableRowsInputValue[1].value2,
-    Pap_200: tableRowsInputValue[2].value2,
-    Pap_100: tableRowsInputValue[3].value2,
-    Pap_50: tableRowsInputValue[4].value2,
-    Pap_20: tableRowsInputValue[5].value2,
-    Pap_10: tableRowsInputValue[6].value2,
-    Pap_5: tableRowsInputValue[7].value2,
-    Coin_5: tableRowsInputValue[7].value2,
-    Coin_2: tableRowsInputValue[8].value2,
-    Coin_1: tableRowsInputValue[9].value2,
-    Cnt_50: tableRowsInputValue[10].value2,
-    Cnt_25: tableRowsInputValue[11].value2,
-    Cnt_10: tableRowsInputValue[12].value2,
-    Cnt_05: tableRowsInputValue[13].value2,
-    Cnt_01: tableRowsInputValue[14].value2,
-  });
+  await addCashBreakDown(
+    {
+      Slip_Code: req.body.depositSlip,
+      Pap_1000: tableRowsInputValue[0].value2,
+      Pap_500: tableRowsInputValue[1].value2,
+      Pap_200: tableRowsInputValue[2].value2,
+      Pap_100: tableRowsInputValue[3].value2,
+      Pap_50: tableRowsInputValue[4].value2,
+      Pap_20: tableRowsInputValue[5].value2,
+      Pap_10: tableRowsInputValue[6].value2,
+      Pap_5: tableRowsInputValue[7].value2,
+      Coin_5: tableRowsInputValue[7].value2,
+      Coin_2: tableRowsInputValue[8].value2,
+      Coin_1: tableRowsInputValue[9].value2,
+      Cnt_50: tableRowsInputValue[10].value2,
+      Cnt_25: tableRowsInputValue[11].value2,
+      Cnt_10: tableRowsInputValue[12].value2,
+      Cnt_05: tableRowsInputValue[13].value2,
+      Cnt_01: tableRowsInputValue[14].value2,
+    },
+    req
+  );
   for (let i = 0; i < 2; i++) {
     if (Amount[i] !== 0) {
-      addJournal({
-        Branch_Code: "HO",
-        Date_Entry: req.body.depositdate,
-        Source_Type: "DC",
-        Source_No: req.body.depositSlip,
-        Particulars: i === 0 ? req.body.ShortName : "",
-        Payto: i === 1 ? req.body.ShortName : "",
-        GL_Acct: req.body.Account_ID,
-        cGL_Acct: req.body.Short,
-        Sub_Acct: "HO",
-        cSub_Acct: req.body.Sub_ShortName,
-        ID_No: req.body.IDNo,
-        cID_No: req.body.ShortName,
-        Debit: i == 0 ? checkTotal : cashTotal,
-        Source_No_Ref_ID: "",
-      });
+      addJournal(
+        {
+          Branch_Code: "HO",
+          Date_Entry: req.body.depositdate,
+          Source_Type: "DC",
+          Source_No: req.body.depositSlip,
+          Particulars: i === 0 ? req.body.ShortName : "",
+          Payto: i === 1 ? req.body.ShortName : "",
+          GL_Acct: req.body.Account_ID,
+          cGL_Acct: req.body.Short,
+          Sub_Acct: "HO",
+          cSub_Acct: req.body.Sub_ShortName,
+          ID_No: req.body.IDNo,
+          cID_No: req.body.ShortName,
+          Debit: i == 0 ? checkTotal : cashTotal,
+          Source_No_Ref_ID: "",
+        },
+        req
+      );
     }
   }
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
     const IsCheck = selectedCollectionValue.Check_No !== "";
 
-    addJournal({
-      Branch_Code: "HO",  
-      Date_Entry: req.body.depositdate,
-      Source_Type: "DC",
-      Source_No: req.body.depositSlip,
-      Explanation: "",
-      Check_Date: IsCheck ? selectedCollectionValue.Check_Date : "",
-      Check_No: IsCheck ? selectedCollectionValue.Check_No : "",
-      Check_Bank: IsCheck ? selectedCollectionValue.Bank : "",
-      Remarks: IsCheck ? selectedCollectionValue.DRRemarks : "",
-      Payto: selectedCollectionValue.Name,
-      GL_Acct: selectedCollectionValue.DRCode,
-      cGL_Acct: selectedCollectionValue.Short,
-      Sub_Acct: "HO",
-      cSub_Acct: req.body.Sub_ShortName,
-      ID_No: selectedCollectionValue.IDNo,
-      cID_No: selectedCollectionValue.Name,
-      Credit: selectedCollectionValue.Amount.replace(/,/g, ""),
-      Source_No_Ref_ID: "",
-    });
+    addJournal(
+      {
+        Branch_Code: "HO",
+        Date_Entry: req.body.depositdate,
+        Source_Type: "DC",
+        Source_No: req.body.depositSlip,
+        Explanation: "",
+        Check_Date: IsCheck ? selectedCollectionValue.Check_Date : "",
+        Check_No: IsCheck ? selectedCollectionValue.Check_No : "",
+        Check_Bank: IsCheck ? selectedCollectionValue.Bank : "",
+        Remarks: IsCheck ? selectedCollectionValue.DRRemarks : "",
+        Payto: selectedCollectionValue.Name,
+        GL_Acct: selectedCollectionValue.DRCode,
+        cGL_Acct: selectedCollectionValue.Short,
+        Sub_Acct: "HO",
+        cSub_Acct: req.body.Sub_ShortName,
+        ID_No: selectedCollectionValue.IDNo,
+        cID_No: selectedCollectionValue.Name,
+        Credit: selectedCollectionValue.Amount.replace(/,/g, ""),
+        Source_No_Ref_ID: "",
+      },
+      req
+    );
 
     await updateCollectioSlipCode(
       req.body.depositSlip,
-      selectedCollectionValue.TempOR
+      selectedCollectionValue.TempOR,
+      req
     );
     if (IsCheck)
       await updatePDCSlipCode(
         req.body.depositSlip,
         req.body.depositdate,
         selectedCollectionValue.IDNo,
-        selectedCollectionValue.Check_No
+        selectedCollectionValue.Check_No,
+        req
       );
   }
 }

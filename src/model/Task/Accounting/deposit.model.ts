@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function getCashCollection(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCashCollection(SlipCode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const sql = `
     SELECT 
@@ -28,8 +29,8 @@ export async function getCashCollection(SlipCode: string) {
 
   return await prisma.$queryRawUnsafe(sql);
 }
-export async function getCheckCollection(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCheckCollection(SlipCode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const sql = `
       SELECT 
@@ -59,8 +60,8 @@ export async function getCheckCollection(SlipCode: string) {
 
   return await prisma.$queryRawUnsafe(sql);
 }
-export async function getBanksFromDeposit(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getBanksFromDeposit(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const sql = `
       SELECT 
@@ -135,8 +136,8 @@ export async function getBanksFromDeposit(search: string) {
 
   return await prisma.$queryRawUnsafe(sql);
 }
-export async function depositIDSlipCodeGenerator() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function depositIDSlipCodeGenerator(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -146,8 +147,8 @@ export async function depositIDSlipCodeGenerator() {
     WHERE
       type = 'deposit';`);
 }
-export async function findDepositBySlipCode(Slip_Code: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findDepositBySlipCode(Slip_Code: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.deposit.findMany({
     where: {
@@ -155,33 +156,34 @@ export async function findDepositBySlipCode(Slip_Code: string) {
     },
   });
 }
-export async function addDepositSlip(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addDepositSlip(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.deposit_slip.create({ data });
 }
-export async function addCashCheckInDeposit(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addCashCheckInDeposit(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.deposit.create({
     data: data,
   });
 }
-export async function addCashBreakDown(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addCashBreakDown(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.cash_breakdown.create({ data });
 }
-export async function addJournal(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addJournal(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.create({ data });
 }
 export async function updateCollectioSlipCode(
   SlipCode: string,
-  Temp_OR: string
+  Temp_OR: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.collection.updateMany({
     data: {
@@ -196,9 +198,10 @@ export async function updatePDCSlipCode(
   SlipCode: string,
   DateDepo: string,
   PNo: string,
-  Check_No: string
+  Check_No: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.pdc.updateMany({
     data: {
@@ -213,8 +216,8 @@ export async function updatePDCSlipCode(
     },
   });
 }
-export async function updateDepositIDSequence(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateDepositIDSequence(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       update      id_sequence a
@@ -222,8 +225,8 @@ export async function updateDepositIDSequence(data: any) {
       where a.type ='deposit'
     `);
 }
-export async function searchDeposit(searchDeposit: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchDeposit(searchDeposit: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -245,8 +248,8 @@ export async function searchDeposit(searchDeposit: string) {
     ORDER BY Date DESC
 `);
 }
-export async function getCashDeposit(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCashDeposit(SlipCode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -310,8 +313,8 @@ export async function getCashDeposit(SlipCode: string) {
   ORDER BY OR_Date DESC , Check_Date
   `);
 }
-export async function getCheckDeposit(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCheckDeposit(SlipCode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -368,8 +371,8 @@ export async function getCheckDeposit(SlipCode: string) {
     ORDER BY OR_Date DESC, Check_Date
   `);
 }
-export async function getCashBreakDown(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCashBreakDown(SlipCode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     select 
@@ -391,8 +394,8 @@ export async function getCashBreakDown(SlipCode: string) {
     FROM      cash_breakdown  where Slip_Code = '${SlipCode}'
   `);
 }
-export async function getBanksFromDepositByAccountNo(AccountNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getBanksFromDepositByAccountNo(AccountNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const sql = `
       SELECT 
@@ -463,36 +466,36 @@ export async function getBanksFromDepositByAccountNo(AccountNo: string) {
       `;
   return await prisma.$queryRawUnsafe(sql);
 }
-export async function deleteSlipCode(Slipcode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteSlipCode(Slipcode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   DELETE FROM       deposit_slip WHERE Slipcode = '${Slipcode}'
   `);
 }
-export async function deleteDeposit(Slipcode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteDeposit(Slipcode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     DELETE FROM       deposit WHERE Temp_SlipCode = '${Slipcode}'
   `);
 }
-export async function deleteCashBreakDown(Slipcode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteCashBreakDown(Slipcode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     DELETE FROM       cash_breakdown WHERE Slip_code = '${Slipcode}'
   `);
 }
-export async function deleteJournalFromDeposit(Slipcode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteJournalFromDeposit(Slipcode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     DELETE FROM       journal WHERE Source_Type='DC' and Source_No = '${Slipcode}'
   `);
 }
-export async function removeDepositFromCollection(Slipcode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function removeDepositFromCollection(Slipcode: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE      collection set SlipCode='' WHERE SlipCode='${Slipcode}'

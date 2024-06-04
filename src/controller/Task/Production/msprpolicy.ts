@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import promiseAll from "../../../lib/promise-all";
 import {
   createJournal,
@@ -28,7 +28,7 @@ const MSPRPolicy = express.Router();
 
 MSPRPolicy.get("/get-mspr-policy", (req, res) => {
   try {
-    promiseAll([getSubAccount(), getPolicyAccount("MSPR")]).then(
+    promiseAll([getSubAccount(req), getPolicyAccount("MSPR", req)]).then(
       ([sub_account, policy_account]: any) => {
         res.send({
           message: "Successfully get data",
@@ -56,17 +56,19 @@ MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
       success: false,
     });
   }
-  
+
   const { sub_account, client_id, PolicyAccount, PolicyNo } = req.body;
   try {
-    if (await findPolicy(PolicyNo)) {
+    if (await findPolicy(PolicyNo, req)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
       });
     }
     // get Commision rate
-    const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
+    const rate = (
+      (await getMSPRRate(PolicyAccount, "MSPR", req)) as Array<any>
+    )[0];
 
     if (rate == null || rate == undefined) {
       return res.send({
@@ -75,11 +77,11 @@ MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-    await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+    await insertMSPRPolicy({ ...req.body, cStrArea, strArea }, req);
     await saveUserLogs(req, PolicyNo, "add", "MSPR Policy");
     res.send({ message: "Create MSPR Policy Successfully", success: true });
   } catch (err: any) {
@@ -93,7 +95,10 @@ MSPRPolicy.get("/search-mspr-policy", async (req, res) => {
     res.send({
       message: "Successfully search data",
       success: true,
-      msprPolicy: await searchMsprPolicy(req.query.searchMsprPolicy as string),
+      msprPolicy: await searchMsprPolicy(
+        req.query.searchMsprPolicy as string,
+        req
+      ),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, msprPolicy: null });
@@ -119,7 +124,9 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     }
 
     //get Commision rate
-    const rate = ((await getMSPRRate(PolicyAccount, "MSPR")) as Array<any>)[0];
+    const rate = (
+      (await getMSPRRate(PolicyAccount, "MSPR", req)) as Array<any>
+    )[0];
 
     if (rate == null || rate == undefined) {
       return res.send({
@@ -128,22 +135,22 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicyFromMspr(PolicyNo);
+    await deletePolicyFromMspr(PolicyNo, req);
     // //delete v policy
-    await deleteMsprPolicy(PolicyNo);
+    await deleteMsprPolicy(PolicyNo, req);
     // //delete journal
-    await deleteJournalBySource(PolicyNo, "PL");
-    
-    req.body.DateIssued = new Date(req.body.DateIssued).toISOString()
+    await deleteJournalBySource(PolicyNo, "PL", req);
+
+    req.body.DateIssued = new Date(req.body.DateIssued).toISOString();
 
     // insert fire policy
-    await insertMSPRPolicy({ ...req.body, cStrArea, strArea });
+    await insertMSPRPolicy({ ...req.body, cStrArea, strArea }, req);
 
     res.send({ message: "Update MSPR Policy Successfully", success: true });
   } catch (err: any) {
@@ -170,9 +177,9 @@ MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicyFromMspr(PolicyNo);
+    await deletePolicyFromMspr(PolicyNo, req);
     // //delete v policy
-    await deleteMsprPolicy(PolicyNo);
+    await deleteMsprPolicy(PolicyNo, req);
 
     await saveUserLogs(req, PolicyNo, "delete", "MSPR Policy");
     res.send({ message: "Delete MSPR Policy Successfully", success: true });
@@ -182,121 +189,136 @@ MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
   }
 });
 
-async function insertMSPRPolicy({
-  sub_account,
-  client_id,
-  client_name,
-  agent_id,
-  agent_com,
-  PolicyAccount,
-  PolicyNo,
-  DateFrom,
-  DateTo,
-  DateIssued,
-  pAddress,
-  moneyRoutesFrom,
-  moneyRoutesTo,
-  safeDesc,
-  methodTrans,
-  guardsMinNum,
-  messengerMaxNum,
-  sec1,
-  sec2,
-  sec3,
-  prem1,
-  prem2,
-  prem3,
-  netPremium,
-  vat,
-  docStamp,
-  localGovTax,
-  totalDue,
-  strArea,
-  cStrArea,
-}: any) {
-  //create  Policy
-  await createPolicy({
-    IDNo: client_id,
-    Account: PolicyAccount,
-    SubAcct: sub_account,
-    PolicyType: "MSPR",
-    PolicyNo: PolicyNo,
-    DateIssued,
-    TotalPremium: parseFloat(parseFloat(netPremium).toFixed(2)),
-    Vat: vat,
-    DocStamp: docStamp,
-    FireTax: "0",
-    LGovTax: localGovTax,
-    Notarial: "0",
-    Misc: "0",
-    TotalDue: totalDue,
-    TotalPaid: "0",
-    Journal: false,
-    AgentID: agent_id,
-    AgentCom: agent_com,
-  });
-
-  await createMSPRPolicy({
+async function insertMSPRPolicy(
+  {
+    sub_account,
+    client_id,
+    client_name,
+    agent_id,
+    agent_com,
+    PolicyAccount,
     PolicyNo,
-    Account: PolicyAccount,
-    Location: pAddress,
-    PeriodFrom: DateFrom,
-    PeriodTo: DateTo,
-    OriginPoint: moneyRoutesFrom,
-    DestinationPoint: moneyRoutesTo,
-    Saferoom: safeDesc,
-    Method: methodTrans,
-    Guard: parseFloat(parseFloat(validateNumber(guardsMinNum)).toFixed(2)),
-    Messenger: parseFloat(
-      parseFloat(validateNumber(messengerMaxNum)).toFixed(2)
-    ),
-    SecI: validateNumber(sec1),
-    SecIPremium: validateNumber(prem1),
-    SecIB: validateNumber(sec2),
-    SecIPremiumB: prem2,
-    SecII: validateNumber(sec3),
-    SecIIPremium: validateNumber(prem3),
-  });
+    DateFrom,
+    DateTo,
+    DateIssued,
+    pAddress,
+    moneyRoutesFrom,
+    moneyRoutesTo,
+    safeDesc,
+    methodTrans,
+    guardsMinNum,
+    messengerMaxNum,
+    sec1,
+    sec2,
+    sec3,
+    prem1,
+    prem2,
+    prem3,
+    netPremium,
+    vat,
+    docStamp,
+    localGovTax,
+    totalDue,
+    strArea,
+    cStrArea,
+  }: any,
+  req: Request
+) {
+  //create  Policy
+  await createPolicy(
+    {
+      IDNo: client_id,
+      Account: PolicyAccount,
+      SubAcct: sub_account,
+      PolicyType: "MSPR",
+      PolicyNo: PolicyNo,
+      DateIssued,
+      TotalPremium: parseFloat(parseFloat(netPremium).toFixed(2)),
+      Vat: vat,
+      DocStamp: docStamp,
+      FireTax: "0",
+      LGovTax: localGovTax,
+      Notarial: "0",
+      Misc: "0",
+      TotalDue: totalDue,
+      TotalPaid: "0",
+      Journal: false,
+      AgentID: agent_id,
+      AgentCom: agent_com,
+    },
+    req
+  );
+
+  await createMSPRPolicy(
+    {
+      PolicyNo,
+      Account: PolicyAccount,
+      Location: pAddress,
+      PeriodFrom: DateFrom,
+      PeriodTo: DateTo,
+      OriginPoint: moneyRoutesFrom,
+      DestinationPoint: moneyRoutesTo,
+      Saferoom: safeDesc,
+      Method: methodTrans,
+      Guard: parseFloat(parseFloat(validateNumber(guardsMinNum)).toFixed(2)),
+      Messenger: parseFloat(
+        parseFloat(validateNumber(messengerMaxNum)).toFixed(2)
+      ),
+      SecI: validateNumber(sec1),
+      SecIPremium: validateNumber(prem1),
+      SecIB: validateNumber(sec2),
+      SecIPremiumB: prem2,
+      SecII: validateNumber(sec3),
+      SecIIPremium: validateNumber(prem3),
+    },
+    req
+  );
 
   //debit
-  await createJournal({
-    Branch_Code: sub_account,
-    Date_Entry: DateIssued,
-    Source_Type: "PL",
-    Source_No: PolicyNo,
-    Explanation: "MSPR Production",
-    GL_Acct: "1.03.01",
-    Sub_Acct: strArea,
-    ID_No: PolicyNo,
-    cGL_Acct: "Premium Receivable",
-    cSub_Acct: cStrArea,
-    cID_No: client_name,
-    Debit: parseFloat(totalDue).toFixed(2),
-    Credit: "0",
-    TC: "P/R",
-    Remarks: "",
-    Source_No_Ref_ID: "MSPR",
-  });
+  await createJournal(
+    {
+      Branch_Code: sub_account,
+      Date_Entry: DateIssued,
+      Source_Type: "PL",
+      Source_No: PolicyNo,
+      Explanation: "MSPR Production",
+      GL_Acct: "1.03.01",
+      Sub_Acct: strArea,
+      ID_No: PolicyNo,
+      cGL_Acct: "Premium Receivable",
+      cSub_Acct: cStrArea,
+      cID_No: client_name,
+      Debit: parseFloat(totalDue).toFixed(2),
+      Credit: "0",
+      TC: "P/R",
+      Remarks: "",
+      Source_No_Ref_ID: "MSPR",
+    },
+    req
+  );
 
   //credit
-  await createJournal({
-    Branch_Code: sub_account,
-    Date_Entry: DateIssued,
-    Source_Type: "PL",
-    Source_No: PolicyNo,
-    Explanation: "MSPR Production",
-    GL_Acct: "4.02.01",
-    Sub_Acct: strArea,
-    ID_No: PolicyNo,
-    cGL_Acct: "A/P",
-    cSub_Acct: cStrArea,
-    cID_No: client_name,
-    Debit: "0",
-    Credit: parseFloat(totalDue).toFixed(2),
-    TC: "A/P",
-    Remarks: "",
-    Source_No_Ref_ID: "MSPR",
-  });
+  await createJournal(
+    {
+      Branch_Code: sub_account,
+      Date_Entry: DateIssued,
+      Source_Type: "PL",
+      Source_No: PolicyNo,
+      Explanation: "MSPR Production",
+      GL_Acct: "4.02.01",
+      Sub_Acct: strArea,
+      ID_No: PolicyNo,
+      cGL_Acct: "A/P",
+      cSub_Acct: cStrArea,
+      cID_No: client_name,
+      Debit: "0",
+      Credit: parseFloat(totalDue).toFixed(2),
+      TC: "A/P",
+      Remarks: "",
+      Source_No_Ref_ID: "MSPR",
+    },
+    req
+  );
 }
 
 function validateNumber(input: string) {

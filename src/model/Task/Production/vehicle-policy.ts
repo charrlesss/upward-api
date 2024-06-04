@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function getTPL_IDS(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function getTPL_IDS(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
   SELECT 
       MIN(Source_No) AS Source_No,
@@ -22,15 +21,13 @@ export async function getTPL_IDS(search: string) {
   `);
 }
 
-export async function createJournal(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function createJournal(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.create({ data });
 }
 
-export async function deleteJournal(Source_No_Ref_ID: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function deleteJournal(Source_No_Ref_ID: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.deleteMany({
     where: {
       Source_No_Ref_ID,
@@ -38,9 +35,8 @@ export async function deleteJournal(Source_No_Ref_ID: string) {
   });
 }
 
-export async function findManyJournal(Source_No_Ref_ID: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function findManyJournal(Source_No_Ref_ID: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.findMany({
     where: {
       Source_No_Ref_ID,
@@ -51,10 +47,10 @@ export async function findManyJournal(Source_No_Ref_ID: string) {
 export async function updateJournal(
   Source_No: string,
   Cost: string,
-  AutoNo: bigint
+  AutoNo: bigint,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.update({
     data: {
       Credit: Cost,
@@ -66,18 +62,17 @@ export async function updateJournal(
   });
 }
 
-export async function findPolicy(PolicyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function findPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.policy.findUnique({ where: { PolicyNo } });
 }
 export async function getPolicy(
   account: string,
   form_type: string,
-  policy_no: string
+  policy_no: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   SELECT * FROM policy 
   WHERE 
@@ -87,9 +82,13 @@ export async function getPolicy(
   `;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getRate(account: string, line: string, type: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function getRate(
+  account: string,
+  line: string,
+  type: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   select Rate from Rates 
   where 
@@ -101,9 +100,8 @@ export async function getRate(account: string, line: string, type: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getClientById(entry_client_id: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function getClientById(entry_client_id: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   SELECT 
     b.*
@@ -118,10 +116,10 @@ export async function getClientById(entry_client_id: string) {
 
 export async function deletePolicyByVehicle(
   form_type: string,
-  policyNo: string
+  policyNo: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from policy 
   where 
@@ -135,10 +133,10 @@ export async function deletePolicyByVehicle(
 export async function deletePolicy(
   subAccount: string,
   form_type: string,
-  policyNo: string
+  policyNo: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from policy 
   where 
@@ -150,9 +148,12 @@ export async function deletePolicy(
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteVehiclePolicy(form_type: string, policyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function deleteVehiclePolicy(
+  form_type: string,
+  policyNo: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from vpolicy 
   where 
@@ -163,10 +164,10 @@ export async function deleteVehiclePolicy(form_type: string, policyNo: string) {
 
 export async function deleteJournalBySource(
   source_no: string,
-  source_type: string
+  source_type: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const query = `
   delete from journal 
   where 
@@ -176,109 +177,115 @@ export async function deleteJournalBySource(
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function createPolicy(data: {
-  IDNo: string;
-  Account: string;
-  SubAcct: string;
-  PolicyType: string;
-  PolicyNo: string;
-  DateIssued: Date;
-  TotalPremium: number;
-  Vat: string;
-  DocStamp: string;
-  FireTax: string;
-  LGovTax: string;
-  Notarial: string;
-  Misc: string;
-  TotalDue: string;
-  TotalPaid: string;
-  Journal: boolean;
-  AgentID: string;
-  AgentCom: string;
-}) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function createPolicy(
+  data: {
+    IDNo: string;
+    Account: string;
+    SubAcct: string;
+    PolicyType: string;
+    PolicyNo: string;
+    DateIssued: Date;
+    TotalPremium: number;
+    Vat: string;
+    DocStamp: string;
+    FireTax: string;
+    LGovTax: string;
+    Notarial: string;
+    Misc: string;
+    TotalDue: string;
+    TotalPaid: string;
+    Journal: boolean;
+    AgentID: string;
+    AgentCom: string;
+  },
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.policy.create({
     data,
   });
 }
 
-export async function createVehiclePolicy(data: {
-  PolicyNo: string;
-  Account: string;
-  PolicyType: string;
-  CoverNo: string;
-  ORNo: string;
-  DateFrom: string;
-  DateTo: string;
-  Model: string;
-  Make: string;
-  BodyType: string;
-  Color: string;
-  BLTFileNo: string;
-  PlateNo: string;
-  ChassisNo: string;
-  MotorNo: string;
-  AuthorizedCap: string;
-  UnladenWeight: string;
-  TPL: string;
-  TPLLimit: string;
-  PremiumPaid: string;
-  EstimatedValue: string;
-  Aircon: string;
-  Stereo: string;
-  Magwheels: string;
-  Others: string;
-  OthersAmount: string;
-  Deductible: string;
-  Towing: string;
-  RepairLimit: string;
-  BodilyInjury: string;
-  PropertyDamage: string;
-  PersonalAccident: string;
-  SecI: string;
-  SecIIPercent: string;
-  ODamage: string;
-  Theft: string;
-  Sec4A: string;
-  Sec4B: string;
-  Sec4C: string;
-  AOG: string;
-  MortgageeForm: boolean;
-  Mortgagee: string;
-  Denomination: string;
-  AOGPercent: string;
-  LocalGovTaxPercent: string;
-  TPLTypeSection_I_II: string;
-  Remarks: string;
-}) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function createVehiclePolicy(
+  data: {
+    PolicyNo: string;
+    Account: string;
+    PolicyType: string;
+    CoverNo: string;
+    ORNo: string;
+    DateFrom: string;
+    DateTo: string;
+    Model: string;
+    Make: string;
+    BodyType: string;
+    Color: string;
+    BLTFileNo: string;
+    PlateNo: string;
+    ChassisNo: string;
+    MotorNo: string;
+    AuthorizedCap: string;
+    UnladenWeight: string;
+    TPL: string;
+    TPLLimit: string;
+    PremiumPaid: string;
+    EstimatedValue: string;
+    Aircon: string;
+    Stereo: string;
+    Magwheels: string;
+    Others: string;
+    OthersAmount: string;
+    Deductible: string;
+    Towing: string;
+    RepairLimit: string;
+    BodilyInjury: string;
+    PropertyDamage: string;
+    PersonalAccident: string;
+    SecI: string;
+    SecIIPercent: string;
+    ODamage: string;
+    Theft: string;
+    Sec4A: string;
+    Sec4B: string;
+    Sec4C: string;
+    AOG: string;
+    MortgageeForm: boolean;
+    Mortgagee: string;
+    Denomination: string;
+    AOGPercent: string;
+    LocalGovTaxPercent: string;
+    TPLTypeSection_I_II: string;
+    Remarks: string;
+  },
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.vpolicy.create({
     data,
   });
 }
 
-export async function createJournalInVP(data: {
-  Branch_Code: string;
-  Date_Entry: string;
-  Source_Type: string;
-  Source_No: string;
-  Explanation: string;
-  GL_Acct: string;
-  Sub_Acct: string;
-  ID_No: string;
-  cGL_Acct: string;
-  cSub_Acct: string;
-  cID_No: string;
-  Debit: number;
-  Credit: number;
-  TC: string;
-  Remarks: string;
-  Source_No_Ref_ID: string;
-}) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function createJournalInVP(
+  data: {
+    Branch_Code: string;
+    Date_Entry: string;
+    Source_Type: string;
+    Source_No: string;
+    Explanation: string;
+    GL_Acct: string;
+    Sub_Acct: string;
+    ID_No: string;
+    cGL_Acct: string;
+    cSub_Acct: string;
+    cID_No: string;
+    Debit: number;
+    Credit: number;
+    TC: string;
+    Remarks: string;
+    Source_No_Ref_ID: string;
+  },
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.create({
     data,
   });
@@ -286,10 +293,10 @@ export async function createJournalInVP(data: {
 
 export async function updateJournalByPolicy(
   Source_No: string,
-  Explanation: string
+  Explanation: string,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.journal.updateMany({
     where: {
       Source_No,
@@ -303,9 +310,8 @@ export async function updateJournalByPolicy(
   });
 }
 
-export async function getTempPolicyID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+export async function getTempPolicyID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
   select
   concat(
@@ -326,10 +332,10 @@ export async function getTempPolicyID() {
 export async function searchDataVPolicy(
   search: string,
   policyType: string,
-  isTemp: boolean
+  isTemp: boolean,
+  req: Request
 ) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
-
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
       SELECT 
       a.*,

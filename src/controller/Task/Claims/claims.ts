@@ -48,7 +48,7 @@ Claim.post("/claims/save", async (req, res) => {
       return res.send({ message: "Invalid User Code", success: false });
     }
 
-    await deleteClaims(req.body.claims_id);
+    await deleteClaims(req.body.claims_id,req);
   }
 
   const files = req.body.claimsSubmited;
@@ -125,7 +125,7 @@ Claim.post("/claims/save", async (req, res) => {
         others: JSON.stringify(others),
         insuranceFile: JSON.stringify(insuranceFile),
         ...policyState,
-      });
+      },req);
     }
   );
 
@@ -137,7 +137,7 @@ Claim.post("/claims/save", async (req, res) => {
     department: data.department?.toString(),
     remarks: data.remarks,
     createdAt: new Date().toISOString(),
-  });
+  },req);
 
   function UploadFile(filesArr: Array<any>, uploadDir: string) {
     const obj: any = [];
@@ -187,7 +187,7 @@ Claim.post("/claims/save", async (req, res) => {
       last_count: data.claims_id.split("-")[1].split("C")[1],
       year: date.getFullYear().toString().slice(-2),
       month: (date.getMonth() + 1).toString().padStart(2, "0"),
-    });
+    },req);
   }
   res.send({
     message: isUpdateMode
@@ -208,7 +208,7 @@ Claim.get("/claims/get-insurance-list", async (req, res) => {
     res.send({
       message: "Successfully get insurance list",
       success: true,
-      insurance: await getInsuranceList(),
+      insurance: await getInsuranceList(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -221,7 +221,7 @@ Claim.get("/claims/get-policy", async (req, res) => {
     res.send({
       message: "Successfully get insurance list",
       success: true,
-      claimPolicy: await claimsPolicy(req.query.searchPolicy as string),
+      claimPolicy: await claimsPolicy(req.query.searchPolicy as string,req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -233,7 +233,7 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
     res.send({
       message: "Successfully get claims id",
       success: true,
-      claim_id: await GenerateClaimsID(),
+      claim_id: await GenerateClaimsID(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -245,7 +245,7 @@ Claim.get("/claims/search-claims", async (req, res) => {
     res.send({
       message: "Successfully search claim",
       success: true,
-      claims: await searchClaims(req.query.searchClaims as string),
+      claims: await searchClaims(req.query.searchClaims as string,req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -257,7 +257,7 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
     setTimeout(async () => {
       const selectedRowData = req.body.selectedRowData;
       const claims_id = selectedRowData[0].claims_id;
-      const data: any = await selectedData(claims_id);
+      const data: any = await selectedData(claims_id,req);
       const formattedSelectedData: Array<any> = [];
       data.forEach((list: any) => {
         formattedSelectedData.push({
@@ -356,7 +356,7 @@ Claim.post("/claims/report-claim", async (req, res) => {
         return qry;
       }
     }
-    const report = await claimReport(whereStatement, req.body.status);
+    const report = await claimReport(whereStatement, req.body.status,req);
     res.send({
       message: "Successfully generate report",
       success: true,

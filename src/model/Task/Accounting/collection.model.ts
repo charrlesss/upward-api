@@ -1,9 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function getClientCheckedList(search: string, PNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getClientCheckedList(
+  search: string,
+  PNo: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
    SELECT 
@@ -31,8 +35,8 @@ export async function getClientCheckedList(search: string, PNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getTransactionBanksDetails() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getTransactionBanksDetails(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `SELECT 
             *
@@ -45,8 +49,11 @@ export async function getTransactionBanksDetails() {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getTransactionBanksDetailsDebit(code:string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getTransactionBanksDetailsDebit(
+  code: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `SELECT 
             *
@@ -59,8 +66,8 @@ export async function getTransactionBanksDetailsDebit(code:string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function postTransactionBanksDetails(code:string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function postTransactionBanksDetails(code: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `SELECT 
             *
@@ -73,8 +80,8 @@ export async function postTransactionBanksDetails(code:string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getTransactionDescription() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getTransactionDescription(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
         SELECT 
@@ -92,20 +99,20 @@ export async function getTransactionDescription() {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function createCollection(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createCollection(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.collection.create({ data });
 }
 
-export async function upteCollection(data: any ,Temp_OR:string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function upteCollection(data: any, Temp_OR: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
-  return await prisma.collection.update({ data , where:{Temp_OR}});
+  return await prisma.collection.update({ data, where: { Temp_OR } });
 }
 
-export async function updatePDCCheck(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePDCCheck(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE  pdc a
@@ -114,8 +121,11 @@ export async function updatePDCCheck(data: any) {
 `);
 }
 
-export async function deleteFromJournalToCollection(ORNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteFromJournalToCollection(
+  ORNo: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       DELETE from   journal a
@@ -123,14 +133,14 @@ export async function deleteFromJournalToCollection(ORNo: string) {
   `);
 }
 
-export async function createJournal(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createJournal(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.create({ data });
 }
 
-export async function collectionIDGenerator() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function collectionIDGenerator(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -141,8 +151,8 @@ export async function collectionIDGenerator() {
       type = 'collection';`);
 }
 
-export async function updateCollectionIDSequence(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateCollectionIDSequence(data: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       update  id_sequence a
@@ -150,16 +160,19 @@ export async function updateCollectionIDSequence(data: any) {
       where a.type ='collection'
     `);
 }
-export async function findORnumber(ORNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findORnumber(ORNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.collection.findMany({
     where: { Official_Receipt: ORNo },
   });
 }
 
-export async function getCollections(searchCollectionInput: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCollections(
+  searchCollectionInput: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -177,8 +190,8 @@ export async function getCollections(searchCollectionInput: string) {
     LIMIT 100
   `);
 }
-export async function getSearchCollection(ORNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getSearchCollection(ORNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -196,22 +209,22 @@ export async function getSearchCollection(ORNo: string) {
   `);
 }
 
-export async function deleteCollection(Official_Receipt: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteCollection(Official_Receipt: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     DELETE FROM   collection a WHERE a.Official_Receipt ='${Official_Receipt}'
   `);
 }
 
-export async function updateCollection(data: any, Temp_OR: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateCollection(data: any, Temp_OR: any, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.collection.update({ data: data, where: { Temp_OR } });
 }
 
-export async function TransactionAndChartAccount(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function TransactionAndChartAccount(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT 

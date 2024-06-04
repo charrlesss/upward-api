@@ -33,15 +33,15 @@ PDC.post("/add-pdc", async (req, res) => {
       success: false,
     });
   }
-  
+
   try {
-    if ((await findPdc(req.body.Ref_No)).length > 0) {
+    if ((await findPdc(req.body.Ref_No, req)).length > 0) {
       return res.send({ message: "REF No. Is Already Exist!", success: false });
     }
-    await deletePdcByRefNo(req.body.Ref_No);
+    await deletePdcByRefNo(req.body.Ref_No, req);
     const checks = JSON.parse(req.body.checks);
     let num = 0;
-    const id = await IDGenerator("chk", "pdc-chk");
+    const id = await IDGenerator("chk", "pdc-chk", req);
     const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
     const year = id.split("-")[1].slice(2, id.split("-")[1].length);
     const count = id.split("-")[2];
@@ -51,64 +51,73 @@ PDC.post("/add-pdc", async (req, res) => {
       newId = "chk-" + num.toString().padStart(count.length, "0");
       num++;
       if (check.DateDeposit === "") {
-        await createPDC({
-          PDC_ID: newId,
-          Ref_No: req.body.Ref_No,
-          PNo: req.body.PNo,
-          IDNo: req.body.IDNo,
-          Date: new Date(req.body.Date),
-          Name: req.body.Name,
-          Remarks: req.body.Remarks,
-          Bank: check.BankCode,
-          Branch: check.Branch,
-          Check_Date: new Date(check.Check_Date),
-          Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt,
-          Check_Remarks: check.Check_Remarks,
-          ORNum: check.OR_No,
-          PDC_Status: "Received",
-        });
+        await createPDC(
+          {
+            PDC_ID: newId,
+            Ref_No: req.body.Ref_No,
+            PNo: req.body.PNo,
+            IDNo: req.body.IDNo,
+            Date: new Date(req.body.Date),
+            Name: req.body.Name,
+            Remarks: req.body.Remarks,
+            Bank: check.BankCode,
+            Branch: check.Branch,
+            Check_Date: new Date(check.Check_Date),
+            Check_No: check.Check_No,
+            Check_Amnt: check.Check_Amnt,
+            Check_Remarks: check.Check_Remarks,
+            ORNum: check.OR_No,
+            PDC_Status: "Received",
+          },
+          req
+        );
       } else {
-        await createPDC({
-          PDC_ID: newId,
-          Ref_No: req.body.Ref_No,
-          PNo: req.body.PNo,
-          IDNo: req.body.IDNo,
-          Date: new Date(req.body.Date),
-          Name: req.body.Name,
-          Remarks: req.body.Remarks,
-          Bank: check.BankCode,
-          Branch: check.Branch,
-          Check_Date: new Date(check.Check_Date),
-          Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt,
-          Check_Remarks: check.Check_Remarks,
-          SlipCode: check.Deposit_Slip,
-          DateDepo: check.DateDeposit === "" ? "" : check.DateDeposit,
-          ORNum: check.OR_No,
-          PDC_Status: "Received",
-        });
+        await createPDC(
+          {
+            PDC_ID: newId,
+            Ref_No: req.body.Ref_No,
+            PNo: req.body.PNo,
+            IDNo: req.body.IDNo,
+            Date: new Date(req.body.Date),
+            Name: req.body.Name,
+            Remarks: req.body.Remarks,
+            Bank: check.BankCode,
+            Branch: check.Branch,
+            Check_Date: new Date(check.Check_Date),
+            Check_No: check.Check_No,
+            Check_Amnt: check.Check_Amnt,
+            Check_Remarks: check.Check_Remarks,
+            SlipCode: check.Deposit_Slip,
+            DateDepo: check.DateDeposit === "" ? "" : check.DateDeposit,
+            ORNum: check.OR_No,
+            PDC_Status: "Received",
+          },
+          req
+        );
       }
     });
-    await UpdateId("pdc-chk", newId.split("-")[1], month, year);
+    await UpdateId("pdc-chk", newId.split("-")[1], month, year, req);
     await UpdateId(
       "pdc",
       req.body.Ref_No.split(".")[1],
       "",
-      req.body.Ref_No.split(".")[0]
+      req.body.Ref_No.split(".")[0],
+      req
     );
     const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
-
     if (fs.existsSync(uploadDir)) {
       fs.rmSync(uploadDir, { recursive: true });
     }
     const files = UploadFile(req.body.fileToSave, uploadDir, res);
-    await pdcUploads({
-      pdc_upload_id: uuidV4(),
-      ref_no: req.body.Ref_No,
-      upload: JSON.stringify(files),
-    });
-    const newPdcId = await pdcIDGenerator();
+    await pdcUploads(
+      {
+        pdc_upload_id: uuidV4(),
+        ref_no: req.body.Ref_No,
+        upload: JSON.stringify(files),
+      },
+      req
+    );
+    const newPdcId = await pdcIDGenerator(req);
     await saveUserLogs(req, req.body.Ref_No, "add", "PDC");
     res.send({
       message: "Create New PDC Successfully.",
@@ -120,7 +129,6 @@ PDC.post("/add-pdc", async (req, res) => {
   }
 });
 PDC.post("/update-pdc", async (req, res) => {
-
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -136,68 +144,73 @@ PDC.post("/update-pdc", async (req, res) => {
     if (!(await saveUserLogsCode(req, "edit", req.body.Ref_No, "PDC"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    if ((await findPdc(req.body.Ref_No)).length <= 0) {
+    if ((await findPdc(req.body.Ref_No, req)).length <= 0) {
       return res.send({
         message: "REF No. you try to update is not exist!",
         success: false,
       });
     }
 
-    await deletePdcByRefNo(req.body.Ref_No);
+    await deletePdcByRefNo(req.body.Ref_No, req);
     const checks = JSON.parse(req.body.checks);
     let num = 0;
-    const id = await IDGenerator("pdc", "pdc");
+    const id = await IDGenerator("pdc", "pdc",req);
     const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
     const year = id.split("-")[1].slice(2, id.split("-")[1].length);
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
     checks.forEach(async (check: any) => {
-
       newId = num.toString().padStart(count.length, "0");
       num++;
 
       if (check.DateDeposit === "") {
-        await createPDC({
-          PDC_ID: newId,
-          Ref_No: req.body.Ref_No,
-          PNo: req.body.PNo,
-          IDNo: req.body.IDNo,
-          Date: new Date(req.body.Date),
-          Name: req.body.Name,
-          Remarks: req.body.Remarks,
-          Bank: check.BankCode,
-          Branch: check.Branch,
-          Check_Date: new Date(check.Check_Date),
-          Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
-          Check_Remarks: check.Check_Remarks,
-          ORNum: check.OR_No,
-          PDC_Status: "Received",
-        });
+        await createPDC(
+          {
+            PDC_ID: newId,
+            Ref_No: req.body.Ref_No,
+            PNo: req.body.PNo,
+            IDNo: req.body.IDNo,
+            Date: new Date(req.body.Date),
+            Name: req.body.Name,
+            Remarks: req.body.Remarks,
+            Bank: check.BankCode,
+            Branch: check.Branch,
+            Check_Date: new Date(check.Check_Date),
+            Check_No: check.Check_No,
+            Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
+            Check_Remarks: check.Check_Remarks,
+            ORNum: check.OR_No,
+            PDC_Status: "Received",
+          },
+          req
+        );
       } else {
-        await createPDC({
-          PDC_ID: newId,
-          Ref_No: req.body.Ref_No,
-          PNo: req.body.PNo,
-          IDNo: req.body.IDNo,
-          Date: new Date(req.body.Date),
-          Name: req.body.Name,
-          Remarks: req.body.Remarks,
-          Bank: check.BankCode,
-          Branch: check.Branch,
-          Check_Date: new Date(check.Check_Date),
-          Check_No: check.Check_No,
-          Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
-          Check_Remarks: check.Check_Remarks,
-          SlipCode: req.body.Deposit_Slip,
-          DateDepo:
-            req.body.DateDeposit && req.body.DateDeposit !== ""
-              ? new Date(req.body.DateDeposit)
-              : undefined,
-          ORNum: check.OR_No,
-          PDC_Status: "Received",
-        });
+        await createPDC(
+          {
+            PDC_ID: newId,
+            Ref_No: req.body.Ref_No,
+            PNo: req.body.PNo,
+            IDNo: req.body.IDNo,
+            Date: new Date(req.body.Date),
+            Name: req.body.Name,
+            Remarks: req.body.Remarks,
+            Bank: check.BankCode,
+            Branch: check.Branch,
+            Check_Date: new Date(check.Check_Date),
+            Check_No: check.Check_No,
+            Check_Amnt: check.Check_Amnt.replaceAll(",", ""),
+            Check_Remarks: check.Check_Remarks,
+            SlipCode: req.body.Deposit_Slip,
+            DateDepo:
+              req.body.DateDeposit && req.body.DateDeposit !== ""
+                ? new Date(req.body.DateDeposit)
+                : undefined,
+            ORNum: check.OR_No,
+            PDC_Status: "Received",
+          },
+          req
+        );
       }
     });
 
@@ -206,12 +219,15 @@ PDC.post("/update-pdc", async (req, res) => {
       fs.rmSync(uploadDir, { recursive: true });
     }
     const files = UploadFile(req.body.fileToSave, uploadDir, res);
-    await pdcUploadsUpdate({
-      ref_no: req.body.Ref_No,
-      upload: JSON.stringify(files),
-    });
+    await pdcUploadsUpdate(
+      {
+        ref_no: req.body.Ref_No,
+        upload: JSON.stringify(files),
+      },
+      req
+    );
 
-    await UpdateId("pdc", newId, month, year);
+    await UpdateId("pdc", newId, month, year,req);
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
     res.send({ message: error.message, success: false });
@@ -221,7 +237,8 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
   try {
     const { searchPdcPolicyIds } = req.query;
     const clientsId = await getPdcPolicyIdAndCLientId(
-      searchPdcPolicyIds as string
+      searchPdcPolicyIds as string,
+      req
     );
     res.send({
       clientsId,
@@ -235,8 +252,8 @@ PDC.get("/search-pdc-banks", async (req, res) => {
   try {
     const { searchPdcBanks } = req.query;
     res.send({
-      pdcBanks: await getPdcBanks(searchPdcBanks as string),
-      pdcID: await pdcIDGenerator(),
+      pdcBanks: await getPdcBanks(searchPdcBanks as string, req),
+      pdcID: await pdcIDGenerator(req),
       success: true,
     });
   } catch (error: any) {
@@ -246,7 +263,7 @@ PDC.get("/search-pdc-banks", async (req, res) => {
 PDC.get("/pdc-new-ref-number", async (req, res) => {
   try {
     res.send({
-      RefNo: await pdcIDGenerator(),
+      RefNo: await pdcIDGenerator(req),
       success: true,
     });
   } catch (error: any) {
@@ -256,7 +273,7 @@ PDC.get("/pdc-new-ref-number", async (req, res) => {
 PDC.get("/search-pdc", async (req, res) => {
   try {
     const { searchPDCInput } = req.query;
-    const searchPDCData = await searchPDC(searchPDCInput as string);
+    const searchPDCData = await searchPDC(searchPDCInput as string, req);
     res.send({
       message: "Search PDC Successfully",
       success: true,
@@ -268,12 +285,12 @@ PDC.get("/search-pdc", async (req, res) => {
 });
 PDC.post("/get-search-pdc-check", async (req, res) => {
   try {
-    const searchPDCData = await getSearchPDCheck(req.body.ref_no);
+    const searchPDCData = await getSearchPDCheck(req.body.ref_no, req);
     res.send({
       message: "Search PDC Check Successfully",
       success: true,
       getSearchPDCCheck: searchPDCData,
-      upload: await getPdcUpload(req.body.ref_no),
+      upload: await getPdcUpload(req.body.ref_no, req),
     });
   } catch (error: any) {
     res.send({ message: error.message, success: false, getSearchPDCCheck: [] });

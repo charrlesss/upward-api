@@ -18,7 +18,7 @@ ChartAccount.get("/get-chart-accounts", async (req: Request, res: Response) => {
     res.send({
       message: "Get Chart Account Successfully!",
       success: true,
-      chartAccount: await getChartAccount(chartAccountSearch as string),
+      chartAccount: await getChartAccount(chartAccountSearch as string, req),
     });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -40,13 +40,13 @@ ChartAccount.post("/add-chart-account", async (req: Request, res: Response) => {
     delete req.body.mode;
     delete req.body.search;
 
-    if (await findChartAccount(req.body.Acct_Code)) {
+    if (await findChartAccount(req.body.Acct_Code, req)) {
       return res.send({
         message: "Chart Account is Already Exist!",
         success: false,
       });
     }
-    await addChartAccount(req.body);
+    await addChartAccount(req.body, req);
     await saveUserLogs(req, req.body.Acct_Code, "add", "Chart Account");
     res.send({
       message: "Create Chart Account Successfully!",
@@ -72,17 +72,24 @@ ChartAccount.post(
       });
     }
     try {
-      if (!(await saveUserLogsCode(req, "edit", req.body.Acct_Code, "Chart Account"))) {
+      if (
+        !(await saveUserLogsCode(
+          req,
+          "edit",
+          req.body.Acct_Code,
+          "Chart Account"
+        ))
+      ) {
         return res.send({ message: "Invalid User Code", success: false });
       }
       delete req.body.mode;
       delete req.body.search;
       delete req.body.userCodeConfirmation;
-      
+
       req.body.Inactive = Boolean(req.body.Inactive);
       req.body.IDNo = Boolean(req.body.IDNo);
       req.body.SubAccnt = Boolean(req.body.SubAccnt);
-      await updateChartAccount(req.body);
+      await updateChartAccount(req.body, req);
       res.send({
         message: "Update Chart Account Successfully!",
         success: true,
@@ -108,10 +115,17 @@ ChartAccount.post(
       });
     }
     try {
-      if (!(await saveUserLogsCode(req, "delete", req.body.Acct_Code, "Chart Account"))) {
+      if (
+        !(await saveUserLogsCode(
+          req,
+          "delete",
+          req.body.Acct_Code,
+          "Chart Account"
+        ))
+      ) {
         return res.send({ message: "Invalid User Code", success: false });
       }
-      await deleteChartAccount(req.body);
+      await deleteChartAccount(req.body, req);
       res.send({
         message: "Delete Chart Account Successfully!",
         success: true,
@@ -131,7 +145,7 @@ ChartAccount.get(
       res.send({
         message: "Get Chart Account Successfully!",
         success: true,
-        chartAccount: await getChartAccount(chartAccountSearch as string),
+        chartAccount: await getChartAccount(chartAccountSearch as string, req),
       });
     } catch (err: any) {
       res.send({ message: err.message, success: false });

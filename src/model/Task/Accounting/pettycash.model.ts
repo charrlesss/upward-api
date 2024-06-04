@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function generatePettyCashID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function generatePettyCashID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -13,8 +14,8 @@ export async function generatePettyCashID() {
         a.type = 'petty-cash'`);
 }
 
-export async function getPettyLog() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getPettyLog(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `SELECT 
   a.Purpose, b.Acct_Code, b.Acct_Title, b.Short
@@ -25,8 +26,8 @@ FROM
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePettyCash(PC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePettyCash(PC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
         DELETE FROM
@@ -34,35 +35,35 @@ export async function deletePettyCash(PC_No: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteJournalFromPettyCash(PC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteJournalFromPettyCash(PC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `DELETE FROM  journal a where a.Source_no = '${PC_No}' AND a.Source_Type = 'PC'`;
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function addJournalFromPettyCash(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addJournalFromPettyCash(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.create({ data });
 }
 
-export async function addPettyCash(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addPettyCash(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.petty_cash.create({ data });
 }
 
-export async function findPettyCash(PC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findPettyCash(PC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `Select * from  petty_cash where PC_No = '${PC_No}'`
   );
 }
 
-export async function updatePettyCashID(last_count: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePettyCashID(last_count: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE  id_sequence a 
@@ -74,8 +75,8 @@ export async function updatePettyCashID(last_count: string) {
           a.type = 'petty-cash'
     `);
 }
-export async function searchPettyCash(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchPettyCash(search: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -96,8 +97,8 @@ export async function searchPettyCash(search: string) {
     `);
 }
 
-export async function loadSelectedPettyCash(PC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function loadSelectedPettyCash(PC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 

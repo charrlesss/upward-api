@@ -1,31 +1,35 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-export async function getRateType(Line: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getRateType(Line: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     select Type from rates a where  a.Line ='${Line}' group by TYPE
   `);
 }
 
-export async function createFirePolicy({
-  PolicyNo,
-  Account,
-  BillNo,
-  DateFrom,
-  DateTo,
-  Location,
-  PropertyInsured,
-  Constraction,
-  Occupancy,
-  Boundaries,
-  Mortgage,
-  Warranties,
-  InsuredValue,
-  Percentage,
-}: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function createFirePolicy(
+  {
+    PolicyNo,
+    Account,
+    BillNo,
+    DateFrom,
+    DateTo,
+    Location,
+    PropertyInsured,
+    Constraction,
+    Occupancy,
+    Boundaries,
+    Mortgage,
+    Warranties,
+    InsuredValue,
+    Percentage,
+  }: any,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.fpolicy.create({
     data: {
@@ -47,8 +51,8 @@ export async function createFirePolicy({
   });
 }
 
-export async function searchFirePolicy(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchFirePolicy(search: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   select a.*,b.*, 
@@ -71,8 +75,8 @@ export async function searchFirePolicy(search: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteFirePolicy(policyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteFirePolicy(policyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from fpolicy 
@@ -82,8 +86,8 @@ export async function deleteFirePolicy(policyNo: string) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deletePolicyFromFire(policyNo: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deletePolicyFromFire(policyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   delete from policy 

@@ -28,7 +28,7 @@ VehiclePolicy.get(
       res.send({
         message: "Successfully get data",
         success: true,
-        tempId: await getTempPolicyID(),
+        tempId: await getTempPolicyID(req),
       });
     } catch (error: any) {
       res.send({ message: error.message, success: false, tempId: [] });
@@ -43,7 +43,7 @@ VehiclePolicy.get(
         message: "Successfully search data",
         success: true,
         vehiclePolicy: {
-          clients: await getClients(req.query.clientSearch as string, true),
+          clients: await getClients(req.query.clientSearch as string, true,req),
         },
       });
     } catch (error: any) {
@@ -59,7 +59,7 @@ VehiclePolicy.get(
         message: "Successfully search data",
         success: true,
         vehiclePolicy: {
-          agents: await getAgents(req.query.agentSearch as string, true),
+          agents: await getAgents(req.query.agentSearch as string, true,req),
         },
       });
     } catch (error: any) {
@@ -74,101 +74,107 @@ VehiclePolicy.get(
       res.send({
         message: "Successfully search data",
         success: true,
-        tpl_ids: await getTPL_IDS(req.query.tplIDSearch as string),
+        tpl_ids: await getTPL_IDS(req.query.tplIDSearch as string, req),
       });
     } catch (error: any) {
       res.send({ message: error.message, success: false, tpl_ids: [] });
     }
   }
 );
-async function insertNewVPolicy({
-  form_action,
-  form_type,
-  sub_account,
-  client_id,
-  client_name,
-  client_address,
-  agent_id,
-  agent_name,
-  agent_com,
-  PolicyAccount,
-  PolicyNo,
-  CCN,
-  ORN,
-  DateFrom,
-  DateTo,
-  DateIssued,
-  Model,
-  Make,
-  TB,
-  Color,
-  BLTFileNo,
-  PlateNo,
-  ChassisNo,
-  MotorNo,
-  AuthorizedCapacity,
-  UnladenWeigth,
-  TplType,
-  PremiumPaid,
-  EVSV,
-  Aircon,
-  Stereo,
-  Magwheels,
-  OthersRate,
-  OthersDesc,
-  CompreType,
-  Deductible,
-  Towing,
-  ARL,
-  BodyInjury,
-  PropertyDamage,
-  PersinalAccident,
-  Denomination,
-  Mortgagee,
-  MortgageeForm,
-  SectionI_II,
-  SectionIII,
-  OwnDamage,
-  Theft,
-  SectionIVA,
-  SectionIVB,
-  PremiumOther,
-  AOG,
-  AOGPercent,
-  TotalPremium,
-  Vat,
-  DocStamp,
-  LocalGovTax,
-  StradCom,
-  TotalDue,
-  Type,
-  LocalGovTaxPercent,
-  rateCost,
-  Source_No_Ref_ID,
-  strArea,
-  cStrArea,
-  remarks,
-}: any) {
-  await createPolicy({
-    IDNo: client_id,
-    Account: PolicyAccount,
-    SubAcct: sub_account,
-    PolicyType: form_type,
-    PolicyNo: PolicyNo,
+async function insertNewVPolicy(
+  {
+    form_action,
+    form_type,
+    sub_account,
+    client_id,
+    client_name,
+    client_address,
+    agent_id,
+    agent_name,
+    agent_com,
+    PolicyAccount,
+    PolicyNo,
+    CCN,
+    ORN,
+    DateFrom,
+    DateTo,
     DateIssued,
-    TotalPremium: parseFloat(parseFloat(TotalPremium).toFixed(2)),
+    Model,
+    Make,
+    TB,
+    Color,
+    BLTFileNo,
+    PlateNo,
+    ChassisNo,
+    MotorNo,
+    AuthorizedCapacity,
+    UnladenWeigth,
+    TplType,
+    PremiumPaid,
+    EVSV,
+    Aircon,
+    Stereo,
+    Magwheels,
+    OthersRate,
+    OthersDesc,
+    CompreType,
+    Deductible,
+    Towing,
+    ARL,
+    BodyInjury,
+    PropertyDamage,
+    PersinalAccident,
+    Denomination,
+    Mortgagee,
+    MortgageeForm,
+    SectionI_II,
+    SectionIII,
+    OwnDamage,
+    Theft,
+    SectionIVA,
+    SectionIVB,
+    PremiumOther,
+    AOG,
+    AOGPercent,
+    TotalPremium,
     Vat,
     DocStamp,
-    FireTax: "0",
-    LGovTax: LocalGovTax,
-    Notarial: "0",
-    Misc: StradCom,
+    LocalGovTax,
+    StradCom,
     TotalDue,
-    TotalPaid: "0",
-    Journal: false,
-    AgentID: agent_id,
-    AgentCom: agent_com,
-  });
+    Type,
+    LocalGovTaxPercent,
+    rateCost,
+    Source_No_Ref_ID,
+    strArea,
+    cStrArea,
+    remarks,
+  }: any,
+  req:Request
+) {
+  await createPolicy(
+    {
+      IDNo: client_id,
+      Account: PolicyAccount,
+      SubAcct: sub_account,
+      PolicyType: form_type,
+      PolicyNo: PolicyNo,
+      DateIssued,
+      TotalPremium: parseFloat(parseFloat(TotalPremium).toFixed(2)),
+      Vat,
+      DocStamp,
+      FireTax: "0",
+      LGovTax: LocalGovTax,
+      Notarial: "0",
+      Misc: StradCom,
+      TotalDue,
+      TotalPaid: "0",
+      Journal: false,
+      AgentID: agent_id,
+      AgentCom: agent_com,
+    },
+    req
+  );
   // insert vehicle policy
   await createVehiclePolicy({
     PolicyNo,
@@ -218,7 +224,7 @@ async function insertNewVPolicy({
     LocalGovTaxPercent: parseFloat(LocalGovTaxPercent).toFixed(2),
     TPLTypeSection_I_II: TplType,
     Remarks: remarks,
-  });
+  }, req);
 
   if (PolicyNo.includes("TP-")) {
     await createJournalInVP({
@@ -238,7 +244,7 @@ async function insertNewVPolicy({
       TC: "P/R",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
   } else {
     await createJournalInVP({
       Branch_Code: sub_account,
@@ -257,7 +263,7 @@ async function insertNewVPolicy({
       TC: "P/R",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
   }
 
   if (PolicyNo.includes("TP-")) {
@@ -278,7 +284,7 @@ async function insertNewVPolicy({
       TC: "A/P",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
   } else {
     await createJournalInVP({
       Branch_Code: sub_account,
@@ -297,11 +303,11 @@ async function insertNewVPolicy({
       TC: "A/P",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
   }
 
   if (form_action === "REG" && form_type === "TPL") {
-    await updateJournalByPolicy(PolicyNo, "CTPL Registration");
+    await updateJournalByPolicy(PolicyNo, "CTPL Registration", req);
     await createJournalInVP({
       Branch_Code: sub_account,
       Date_Entry: DateIssued,
@@ -319,7 +325,7 @@ async function insertNewVPolicy({
       TC: "P/R",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
     await createJournalInVP({
       Branch_Code: sub_account,
       Date_Entry: DateIssued,
@@ -337,7 +343,7 @@ async function insertNewVPolicy({
       TC: "CTI",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
     await createJournalInVP({
       Branch_Code: sub_account,
       Date_Entry: DateIssued,
@@ -355,7 +361,7 @@ async function insertNewVPolicy({
       TC: "CIN",
       Remarks: "",
       Source_No_Ref_ID,
-    });
+    }, req);
   }
 }
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
@@ -375,7 +381,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   }
 
   try {
-    if (await findPolicy(PolicyNo)) {
+    if (await findPolicy(PolicyNo, req)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
@@ -384,7 +390,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
 
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
+      (await getRate(PolicyAccount, "Vehicle", Denomination, req)) as Array<any>
     )[0];
     if (rate == null) {
       return res.send({
@@ -393,12 +399,12 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
-    await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+    await insertNewVPolicy({ ...req.body, cStrArea, strArea }, req);
 
     await saveUserLogs(req, PolicyNo, "add", "Vehicle Policy");
     res.send({ message: "Create Vehicle Policy Successfully", success: true });
@@ -432,7 +438,7 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
     }
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Vehicle", Denomination)) as Array<any>
+      (await getRate(PolicyAccount, "Vehicle", Denomination, req)) as Array<any>
     )[0];
     if (rate == null) {
       return res.send({
@@ -440,18 +446,18 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
         success: false,
       });
     }
-    const subAccount = ((await getClientById(client_id)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
     //delete policy
-    await deletePolicyByVehicle(form_type, PolicyNo);
+    await deletePolicyByVehicle(form_type, PolicyNo, req);
     //delete v policy
-    await deleteVehiclePolicy(form_type, PolicyNo);
+    await deleteVehiclePolicy(form_type, PolicyNo, req);
     //delete journal
-    await deleteJournalBySource(PolicyNo, "PL");
+    await deleteJournalBySource(PolicyNo, "PL", req);
     // insert policy
-    await insertNewVPolicy({ ...req.body, cStrArea, strArea });
+    await insertNewVPolicy({ ...req.body, cStrArea, strArea }, req);
     res.send({ message: "Update Vehicle Policy Successfully", success: true });
   } catch (err: any) {
     res.send({ message: err.message, success: false });
@@ -462,7 +468,7 @@ VehiclePolicy.get("/tpl-search-vehicle-policy", async (req, res) => {
   const getSearch = await searchDataVPolicy(
     search as string,
     form_type as string,
-    (form_action as string) === "TEMP"
+    (form_action as string) === "TEMP", req
   );
   res.send({
     message: "Search Successfully",
@@ -489,9 +495,9 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicyByVehicle(form_type, PolicyNo);
+    await deletePolicyByVehicle(form_type, PolicyNo, req);
     // //delete v policy
-    await deleteVehiclePolicy(form_type, PolicyNo);
+    await deleteVehiclePolicy(form_type, PolicyNo, req);
 
     await saveUserLogs(req, PolicyNo, "delete", "Vehicle Policy");
     res.send({
@@ -505,112 +511,5 @@ VehiclePolicy.post("/tpl-delete-vehicle-policy", async (req, res) => {
     });
   }
 });
-export function sampleVPolicy() {
-  const data = [];
-  let generatedCodes = new Set();
-
-  function generateUniqueString() {
-    while (true) {
-      // Generate random numbers
-      const randomNumber1 = Math.floor(Math.random() * 10000)
-        .toString()
-        .padStart(4, "0");
-      const randomNumber2 = Math.floor(Math.random() * 10000)
-        .toString()
-        .padStart(4, "0");
-      const randomNumber3 = Math.floor(Math.random() * 10000000)
-        .toString()
-        .padStart(7, "0");
-
-      // Construct the unique string
-      const uniqueString = `PC-GA${randomNumber1}A${randomNumber2}-${randomNumber3}`;
-
-      // Check if the code is already generated
-      if (!generatedCodes.has(uniqueString)) {
-        generatedCodes.add(uniqueString);
-        return uniqueString;
-      }
-    }
-  }
-
-  for (let index = 0; index < 500; index++) {
-    data.push({
-      form_action: "REG",
-      form_type: "COM",
-      sub_account: "HO",
-      client_id: "C-0424-002",
-      client_name: "ALFRED ALMOETE ALMODIEL",
-      client_address:
-        "Ground Floor, Azure Business Center, 1197-A Epifanio de los Santos Ave, Quezon City, 1105 Metro Manila",
-      agent_id: "A-0424-002",
-      agent_name: "ARTEMIO JR. LIMOS JOSE",
-      agent_com: "0.00",
-      PolicyAccount: "MILESTONE GUARANTEE",
-      PolicyNo: generateUniqueString(),
-      CCN: "",
-      ORN: "",
-      rateCost: "",
-      DateFrom: "2024-05-26T06:47:27.483Z",
-      DateTo: "2025-05-26T06:47:27.483Z",
-      DateIssued: "2024-05-26T06:47:27.483Z",
-      Model: "2023",
-      Make: "ISUZU",
-      TB: "MUX P-VAN",
-      Color: "",
-      BLTFileNo: "",
-      PlateNo: "NGB4197",
-      ChassisNo: "NKR66E-7848797",
-      MotorNo: "4HF1-7858445",
-      AuthorizedCapacity: "",
-      UnladenWeigth: "",
-      TplType: "",
-      PremiumPaid: "0.00",
-      EVSV: "900000.00",
-      Aircon: "0.00",
-      Stereo: "0.00",
-      Magwheels: "0.00",
-      OthersRate: "0.00",
-      OthersDesc: "",
-      CompreType: "",
-      Deductible: "4500.00",
-      Towing: "500.00",
-      ARL: "5000.00",
-      BodyInjury: "200,000.00",
-      PropertyDamage: "200,000.00",
-      PersinalAccident: "100,000.00",
-      Denomination: "COM-Private Car",
-      Mortgagee: "EASTWEST BANK",
-      MortgageeForm: "true",
-      remarks: "C/O CHARLES",
-      SectionI_II: "0.00",
-      SectionIII: "2.50",
-      OwnDamage: "22500.00",
-      Theft: "0.00",
-      SectionIVA: "270.00",
-      SectionIVB: "1290.00",
-      PremiumOther: "375.00",
-      AOG: "4500.00",
-      AOGPercent: "0.50",
-      TotalPremium: "28935.00",
-      Vat: "3472.20",
-      DocStamp: "3616.88",
-      LocalGovTaxPercent: "0.75",
-      LocalGovTax: "217.01",
-      StradCom: "0.00",
-      TotalDue: "36241.09",
-      Type: "charles1",
-      Source_No_Ref_ID: "",
-      vehicle: "private",
-      mode: "add",
-      cStrArea: "Head Office",
-      strArea: "HO",
-    });
-  }
-
-  data.forEach(async (itm: any) => {
-    console.log(itm);
-    await insertNewVPolicy(itm);
-  });
-}
 
 export default VehiclePolicy;

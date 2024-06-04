@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { __DB_URL } from "../../../controller";
+import { Request } from "express";
+import { PrismaList } from "../../connection";
+const { CustomPrismaClient } = PrismaList();
 
-
-export async function GenerateReturnCheckID() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function GenerateReturnCheckID(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -13,8 +13,8 @@ export async function GenerateReturnCheckID() {
     WHERE
       a.type = 'return-check'`);
 }
-export async function getCheckList(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCheckList(search: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -56,8 +56,8 @@ ORDER BY a.Check_Date
 limit 100
   `);
 }
-export async function getCreditOnSelectedCheck(BankAccount: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getCreditOnSelectedCheck(BankAccount: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -70,8 +70,8 @@ WHERE
     a.Account_No = '${BankAccount}';
   `);
 }
-export async function getDebitOnSelectedCheck(Official_Receipt: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getDebitOnSelectedCheck(Official_Receipt: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -92,30 +92,30 @@ export async function getDebitOnSelectedCheck(Official_Receipt: string) {
       AND a.CRCode <> ''
   `);
 }
-export async function getBranchName() {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getBranchName(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(
     `SELECT a.ShortName FROM  sub_account a where a.Acronym = 'HO'`
   );
 }
 
-export async function deleteReturnCheck(RC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteReturnCheck(RC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     delete from   return_checks where RC_NO='${RC_No}'
   `);
 }
 
-export async function addNewReturnCheck(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addNewReturnCheck(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.return_checks.create({ data });
 }
 
-export async function updatePDCFromReturnCheck(Check_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updatePDCFromReturnCheck(Check_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE  pdc a SET a.SlipCode ='', a.ORNum='' WHERE  a.Check_No ='${Check_No}' 
@@ -125,8 +125,8 @@ export async function updatePDCFromReturnCheck(Check_No: string) {
 export async function updateJournalFromReturnCheck(
   Check_No: string,
   SlipCode: string
-) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     UPDATE  journal a 
@@ -135,20 +135,20 @@ export async function updateJournalFromReturnCheck(
   `);
 }
 
-export async function deleteJournalFromReturnCheck(SlipCode: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function deleteJournalFromReturnCheck(SlipCode: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   DELETE FROM   journal a WHERE a.Source_No = '${SlipCode}' AND a.Source_Type = 'RC'`);
 }
-export async function addJournalFromReturnCheck(data: any) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function addJournalFromReturnCheck(data: any,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.journal.create({ data });
 }
 
-export async function updateRCID(last_count: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function updateRCID(last_count: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   UPDATE  id_sequence a 
@@ -160,8 +160,8 @@ export async function updateRCID(last_count: string) {
         a.type = 'return-check'
   `);
 }
-export async function searchReturnChecks(search: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function searchReturnChecks(search: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -180,8 +180,8 @@ export async function searchReturnChecks(search: string) {
   `);
 }
 
-export async function getReturnCheckSearchFromJournal(RC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getReturnCheckSearchFromJournal(RC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -216,8 +216,8 @@ export async function getReturnCheckSearchFromJournal(RC_No: string) {
       `);
 }
 
-export async function getReturnCheckSearch(RC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function getReturnCheckSearch(RC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -246,8 +246,8 @@ export async function getReturnCheckSearch(RC_No: string) {
       `);
 }
 
-export async function findReturnCheck(RC_No: string) {
-  const prisma = new PrismaClient({ datasources: { db: { url: __DB_URL } } });
+export async function findReturnCheck(RC_No: string,req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
     select * from   return_checks where RC_NO='${RC_No}'

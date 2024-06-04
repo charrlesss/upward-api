@@ -22,7 +22,7 @@ Warehouse.get(
       res.send({
         message: "successfully",
         success: true,
-        data: await getWarehouseSearch(search as string),
+        data: await getWarehouseSearch(search as string, req),
       });
     } catch (err: any) {
       console.log(err.message);
@@ -39,7 +39,8 @@ Warehouse.post(
         success: true,
         data: await warehouseSelectedSearch(
           req.body.Policy,
-          req.body.pdcStatus
+          req.body.pdcStatus,
+          req
         ),
       });
     } catch (err: any) {
@@ -57,7 +58,8 @@ Warehouse.get(
         message: "successfully",
         success: true,
         data: await getApprovedPulloutWarehouse(
-          searchApprovedPullout as string
+          searchApprovedPullout as string,
+          req
         ),
       });
     } catch (err: any) {
@@ -74,7 +76,8 @@ Warehouse.get(
 
     try {
       const data = await getApprovedPulloutWarehouseCheckList(
-        searchApprovedPulloutCheckList as string
+        searchApprovedPulloutCheckList as string,
+        req
       );
       res.send({
         message: "successfully",
@@ -92,7 +95,10 @@ Warehouse.post(
   async (req, res) => {
     const { RCPNo } = req.body;
     try {
-      const data = await getApprovedPulloutWarehouseCheckListSelected(RCPNo);
+      const data = await getApprovedPulloutWarehouseCheckListSelected(
+        RCPNo,
+        req
+      );
       res.send({
         message: "successfully",
         success: true,
@@ -125,7 +131,7 @@ Warehouse.post("/warehouse/save", async (req, res) => {
     const selected = JSON.parse(req.body.selected);
     if (req.body.pdcStatus === "2") {
       selected.forEach(async (item: any) => {
-        const pulloutRequest = await pullout(item.PNo, item.Check_No);
+        const pulloutRequest = await pullout(item.PNo, item.Check_No, req);
         if (pulloutRequest.length <= 0) {
           return res.send({
             message: `PN No. : ${item.PNo}\nCheck No : ${item.Check_No} dont have pullout approval!`,
@@ -135,7 +141,12 @@ Warehouse.post("/warehouse/save", async (req, res) => {
       });
     }
     selected.forEach(async (check: any) => {
-      await updatePDCChecks(req.body.pdcStatus, req.body.remarks, check.PDC_ID);
+      await updatePDCChecks(
+        req.body.pdcStatus,
+        req.body.remarks,
+        check.PDC_ID,
+        req
+      );
     });
 
     await saveUserLogs(req, "", "add", "Warehouse");

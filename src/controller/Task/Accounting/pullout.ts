@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import {
   pulloutRequestAutoID,
   pulloutRequestPNoWithName,
@@ -33,7 +33,7 @@ PulloutRequest.get("/pullout/reqeust/get-id", async (req, res) => {
     res.send({
       message: "Successfully",
       success: true,
-      id: await pulloutRequestAutoID(),
+      id: await pulloutRequestAutoID(req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -46,7 +46,7 @@ PulloutRequest.get("/pullout/reqeust/get-pno-name", async (req, res) => {
     res.send({
       message: "Successfully",
       success: true,
-      clientCheckName: await pulloutRequestPNoWithName(serach as string),
+      clientCheckName: await pulloutRequestPNoWithName(serach as string, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -61,13 +61,13 @@ PulloutRequest.post("/pullout/reqeust/selected-pnno", async (req, res) => {
       return res.send({
         message: "Successfully",
         success: true,
-        selected: await getSelectedEditRequestCheck(RCPNo),
+        selected: await getSelectedEditRequestCheck(RCPNo, req),
       });
     }
     res.send({
       message: "Successfully",
       success: true,
-      selected: await getSelectedRequestCheck(PNo),
+      selected: await getSelectedRequestCheck(PNo, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -106,9 +106,9 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       Requested_By: user?.Username,
       Branch: "HO",
       Requested_Date: new Date(),
-    });
-    await createPulloutRequestDetailsFunc(selected, RCPNo);
-    await updateAnyId("pullout");
+    }, req);
+    await createPulloutRequestDetailsFunc(selected, RCPNo,req);
+    await updateAnyId("pullout", req);
     await sendRequestEmail({
       ...req.body,
       text,
@@ -127,7 +127,7 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       For_User: "['LVA_ancar@yahoo.com','upwardclaims@yahoo.com']",
       Approved_Code: approvalCode.toString(),
       Disapproved_Code: "",
-    });
+    }, req);
     await saveUserLogs(req, RCPNo, "add","Pullout");
     res.send({
       message: "Save Successfully",
@@ -170,8 +170,8 @@ PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
       subtitle,
     });
 
-    await updatePulloutRequest({ Status: "CANCEL" }, RCPNo);
-    await updatePulloutRequestDetails(RCPNo);
+    await updatePulloutRequest({ Status: "CANCEL" }, RCPNo, req);
+    await updatePulloutRequestDetails(RCPNo, req);
     await saveUserLogs(req, RCPNo, "cancel request","Pullout");
     res.send({
       message: `Cancel Request ${RCPNo} Successfully`,
@@ -189,7 +189,7 @@ PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
     res.send({
       message: "Save Successfully",
       success: true,
-      requestList: await searchPulloutRequestOnEdit(search as string),
+      requestList: await searchPulloutRequestOnEdit(search as string, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -219,7 +219,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
         success: false,
       });
     }
-    const check_request = (await existApprovalCode(RCPNo, code)) as Array<any>;
+    const check_request = (await existApprovalCode(RCPNo, code, req)) as Array<any>;
 
     if (check_request.length <= 0)
       return res.send({
@@ -238,8 +238,8 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
       approvedBy: user?.Username,
       isApproved,
     });
-    await approvedPullout(RCPNo, user?.Username as string, isApproved);
-    await updateApprovalCode(RCPNo, code, user?.Username as string);
+    await approvedPullout(RCPNo, user?.Username as string, isApproved, req);
+    await updateApprovalCode(RCPNo, code, user?.Username as string, req);
     await saveUserLogs(req, RCPNo, `${isApproved ? "approved" :"disapproved"} request`,"Pullout");
     res.send({
       message: `RCP No. ${RCPNo} Approved Successfuly`,
@@ -255,7 +255,7 @@ PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
     return res.send({
       message: "Successfully",
       success: true,
-      selected: await getSelectedEditRequestCheck(req.body.RCPNo),
+      selected: await getSelectedEditRequestCheck(req.body.RCPNo, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -264,7 +264,8 @@ PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
 });
 async function createPulloutRequestDetailsFunc(
   selected: string,
-  RCPNo: string
+  RCPNo: string,
+  req:Request
 ) {
   JSON.parse(selected).forEach(async (item: any) => {
     const PRD_ID = await generateUniqueUUID(
@@ -278,7 +279,7 @@ async function createPulloutRequestDetailsFunc(
         RCPNo: RCPNo,
         CheckNo: item.Check_No,
         PRD_ID,
-      });
+      }, req);
     }
   });
 }
