@@ -1,4 +1,4 @@
-import { addMonths, format } from "date-fns";
+import { addMonths, format, subDays, lastDayOfMonth } from "date-fns";
 import { clients_view } from "./views";
 
 export function FinancialStatement(
@@ -746,4 +746,566 @@ export function TemplateRenewalNotice(PolicyType: string, PolicyNo: string) {
   }
   select_query = `${select_query} WHERE Policy.PolicyNo ='${PolicyNo}'`;
   return select_query;
+}
+export function GeneralLedgerReport(
+  Report: string,
+  DateEntry: any,
+  SubAcct: string,
+  TransSumm: number,
+  PrePost: number
+) {
+  let PrevQry = "";
+  let PrevWhr = "";
+  let CurrQry = "";
+  let CurrWhr = "";
+  let FinalQry = "";
+  let DateFrom = new Date(DateEntry);
+  let DateTo = new Date(DateEntry);
+  let PPClosing = "";
+
+  DateFrom = new Date(DateFrom.getFullYear(), DateFrom.getMonth(), 1);
+  DateTo = subDays(addMonths(DateFrom, 1), 1); // Add 1 month then subtract 1 day
+
+  const formattedDateFrom = format(DateFrom, "yyyy-MM-dd");
+  const formattedDateTo = format(DateTo, "yyyy-MM-dd");
+
+  if (PrePost !== 0) {
+    PPClosing = " Explanation <> 'Closing of Nominal Accounts' AND ";
+  }
+
+  if (Report === "Monthly") {
+    if (SubAcct === "ALL") {
+      PrevWhr = `Source_Type IN ('AB', 'BF')
+      AND Date_Entry >= DATE_ADD(DATE_SUB('${formattedDateFrom}', INTERVAL 1 DAY), INTERVAL -1 MONTH)
+      AND Date_Entry <= DATE_SUB('${formattedDateTo}', INTERVAL 1 DAY)`;
+
+      CurrWhr =
+        PPClosing +
+        `Source_Type NOT IN ('BF', 'AB', 'BFD', 'BFS') 
+      AND Date_Entry >= '${formattedDateFrom}'
+      AND Date_Entry <= '${formattedDateTo}'`;
+    } else {
+      PrevWhr = `Source_Type IN ('AB', 'BFS') AND Sub_Acct='${SubAcct}'
+      AND Date_Entry >= DATE_ADD(DATE_SUB('${formattedDateFrom}', INTERVAL 1 DAY), INTERVAL -1 MONTH)
+      AND Date_Entry <= DATE_SUB('${formattedDateTo}', INTERVAL 1 DAY)`;
+
+      CurrWhr =
+        PPClosing +
+        `Source_Type NOT IN ('BF', 'AB', 'BFD', 'BFS') 
+      AND Date_Entry >= '${formattedDateFrom}'
+      AND Date_Entry <= '${formattedDateTo}' 
+      AND Sub_Acct='${SubAcct}'`;
+    }
+  } else {
+    // Daily
+    if (SubAcct === "ALL") {
+      if (format(DateEntry, "MM/dd/yyyy") === format(DateEntry, "MM/01/yyyy")) {
+        PrevWhr = `((Source_Type = 'BF' OR Source_Type = 'AB') 
+        AND Date_Entry = DATE_SUB('${format(
+          DateEntry,
+          "yyyy-MM-dd"
+        )}', INTERVAL 1 DAY))`;
+      } else {
+        PrevWhr =
+          PPClosing +
+          `((Source_Type <> 'BFD' AND Source_Type <> 'BFS')
+        AND ((IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+        >= '${formattedDateFrom}' 
+        AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+        < '${format(DateEntry, "yyyy-MM-dd")}'))`;
+      }
+
+      CurrWhr =
+        PPClosing +
+        `((Source_Type <> 'BF' AND Source_Type <> 'AB' AND Source_Type <> 'BFD' AND Source_Type <> 'BFS') 
+      AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+      = '${format(DateEntry, "yyyy-MM-dd")}')`;
+    } else {
+      if (format(DateEntry, "MM/dd/yyyy") === format(DateEntry, "MM/01/yyyy")) {
+        CurrWhr = `((Source_Type = 'BFS')  
+        AND Date_Entry = DATE_SUB('${format(
+          DateEntry,
+          "yyyy-MM-dd"
+        )}', INTERVAL 1 DAY) 
+        AND Sub_Acct='${SubAcct}')`;
+      } else {
+        PrevWhr =
+          PPClosing +
+          `((Source_Type <> 'BFD' AND Source_Type <> 'BF')  
+        AND Sub_Acct='${SubAcct}' 
+        AND ((IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+        >= '${formattedDateFrom}' 
+        AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+        < '${format(DateEntry, "yyyy-MM-dd")}'))`;
+
+        CurrWhr =
+          PPClosing +
+          `((Source_Type <> 'BF' AND Source_Type <> 'AB' AND Source_Type <> 'BFD' AND Source_Type <> 'BFS') 
+        AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry)) 
+        = '${format(DateEntry, "yyyy-MM-dd")}' 
+        AND Sub_Acct='${SubAcct}')`;
+      }
+    }
+  }
+
+  // The following part is where you construct the final queries
+  // Balance Forwarded
+  PrevQry = ` 
+    SELECT GL_Acct, Source_Type, Number, Book_Code, CONCAT(Books_Desc, ' - ', '${format(
+      subDays(DateTo, 1),
+      "MMMM dd, yyyy"
+    )}') AS Book, 
+    SUM(IFNULL(Debit, 0)) AS Debit, SUM(IFNULL(Credit, 0)) AS Credit
+    FROM Journal 
+    LEFT JOIN Books ON Journal.Source_Type = Books.Code
+    WHERE ${PrevWhr}
+    GROUP BY GL_Acct, Source_Type, Number, Book_Code, Books_Desc
+    ORDER BY GL_Acct, Number`;
+
+  // Current Transaction
+  CurrQry = ` 
+    SELECT GL_Acct, Source_Type, Number, Book_Code, CONCAT(Books_Desc, ' - ', '${format(
+      DateEntry,
+      Report === "Monthly" ? "MMMM yyyy" : "MMMM dd, yyyy"
+    )}') AS Book, 
+    SUM(IFNULL(Debit, 0)) AS Debit, 
+    SUM(IFNULL(Credit, 0)) AS Credit
+    FROM Journal 
+    LEFT JOIN Books ON Journal.Source_Type = Books.Code
+    WHERE ${CurrWhr}
+    GROUP BY GL_Acct, Source_Type, Number, Book_Code, Books_Desc
+    ORDER BY GL_Acct, Number`;
+
+  if (TransSumm === 0) {
+    FinalQry = ` 
+      SELECT GL_Acct, 'BF' AS Source_Type, 2 AS Number, 'BF' AS Book_Code, MIN(Book) AS Book, 
+      SUM(Debit) AS Debit, SUM(Credit) AS Credit
+      FROM (${PrevQry}) temp_Prev 
+      GROUP BY GL_Acct
+      UNION ALL
+      SELECT * FROM (${CurrQry}) temp_Curr`;
+  } else {
+    FinalQry = `SELECT * FROM (${CurrQry}) temp_Curr`;
+  }
+
+  const SubTotalQry = `SELECT GL_Acct, SUM(Debit)-SUM(Credit) AS SubTotal  FROM (${FinalQry}) Final GROUP BY GL_Acct`;
+
+  // Balance Query
+  return `SELECT
+    Final.GL_Acct,
+    Acct_Title AS Title,
+    Book_Code AS BookCode,
+    Book,
+    Debit,
+    Credit,
+    SubTotal
+  FROM
+    (${FinalQry}) Final 
+  LEFT JOIN Chart_Account ON Final.GL_Acct = Chart_Account.Acct_Code 
+  LEFT JOIN (${SubTotalQry}) SubTotal ON Final.GL_Acct = SubTotal.GL_Acct
+  ORDER BY GL_Acct, Number`;
+}
+export function GeneralLedgerSumm(
+  DateEntry: any,
+  Report: string,
+  TransSumm: number = 0,
+  PrePost: number
+) {
+  let DateFrom = new Date(DateEntry);
+  let DateTo = new Date(DateEntry);
+  DateFrom = new Date(DateFrom.getFullYear(), DateFrom.getMonth(), 1);
+  DateTo = subDays(addMonths(DateFrom, 1), 1);
+
+  const formattedDateFrom = format(DateFrom, "yyyy-MM-dd");
+  const formattedDateTo = format(DateTo, "yyyy-MM-dd");
+  const formattedPrevDate = format(subDays(DateTo, 1), "MMMM dd, yyyy");
+  const formattedCurrDate = format(
+    DateEntry,
+    Report === "Monthly" ? "MMMM yyyy" : "MMMM dd, yyyy"
+  );
+
+  const PPClosing =
+    PrePost === 0 ? "" : 'Explanation <> "Closing of Nominal Accounts" AND ';
+
+  let PrevWhr = "";
+  let CurrWhr = "";
+
+  if (Report === "Monthly") {
+    PrevWhr = `(Source_Type IN ('AB', 'BFS')) 
+                AND Date_Entry >= DATE_SUB('${formattedDateFrom}', INTERVAL 1 DAY)
+                AND Date_Entry <= DATE_SUB('${formattedDateTo}', INTERVAL 1 DAY)`;
+    CurrWhr = `${PPClosing} (Source_Type NOT IN ('BF', 'AB', 'BFD', 'BFS')) 
+                AND Date_Entry >= '${formattedDateFrom}' 
+                AND Date_Entry <= '${formattedDateTo}'`;
+  } else {
+    // Daily
+    if (format(DateEntry, "MM/dd/yyyy") === format(DateEntry, "MM/01/yyyy")) {
+      PrevWhr = `Source_Type = 'BFS' 
+                AND Date_Entry = DATE_SUB('${format(
+                  DateEntry,
+                  "yyyy-MM-dd"
+                )}', INTERVAL 1 DAY)`;
+    } else {
+      PrevWhr = `${PPClosing} (Source_Type NOT IN ('BFD', 'BF')) 
+                AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), 
+                DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry) >= '${formattedDateFrom}' 
+                AND IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), 
+                DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry) < '${format(
+                  DateEntry,
+                  "yyyy-MM-dd"
+                )}')`;
+    }
+    CurrWhr = `${PPClosing} (Source_Type NOT IN ('BF', 'AB', 'BFD', 'BFS')) 
+                AND (IF(Source_Type IN ('BFD', 'AB', 'BF', 'BFS'), 
+                DATE_ADD(Date_Entry, INTERVAL 1 DAY), Date_Entry) = '${format(
+                  DateEntry,
+                  "yyyy-MM-dd"
+                )}')`;
+  }
+
+  const PrevQry = ` 
+                  SELECT GL_Acct, Sub_Acct, Source_Type, Number, Book_Code, CONCAT(Books_Desc, ' - ', '${formattedPrevDate}') AS Book, 
+                  SUM(IFNULL(Debit, 0)) AS Debit, SUM(IFNULL(Credit, 0)) AS Credit
+                  FROM Journal 
+                  LEFT JOIN Books ON Journal.Source_Type = Books.Code
+                  WHERE ${PrevWhr}
+                  GROUP BY GL_Acct, Sub_Acct, Source_Type, Number, Book_Code, Books_Desc`;
+
+  const CurrQry = `
+                  SELECT GL_Acct, Sub_Acct, Source_Type, Number, Book_Code, CONCAT(Books_Desc, ' - ', '${formattedCurrDate}') AS Book, 
+                  SUM(IFNULL(Debit, 0)) AS Debit, SUM(IFNULL(Credit, 0)) AS Credit
+                  FROM Journal 
+                  LEFT JOIN Books ON Journal.Source_Type = Books.Code
+                  WHERE ${CurrWhr}
+                  GROUP BY GL_Acct, Sub_Acct, Source_Type, Number, Book_Code, Books_Desc`;
+
+  let FinalQry = "";
+  if (TransSumm === 0) {
+    FinalQry = ` 
+                SELECT GL_Acct, Sub_Acct, 'BF' AS Source_Type, 2 AS Number, 'BF' AS Book_Code, MIN(Book) AS Book, 
+                SUM(Debit) AS Debit, SUM(Credit) AS Credit
+                FROM (${PrevQry}) temp_Prev 
+                GROUP BY GL_Acct, Sub_Acct
+                UNION ALL
+                SELECT * FROM (${CurrQry}) temp_Curr`;
+  } else {
+    FinalQry = ` SELECT * FROM  (${CurrQry}) temp_Curr`;
+  }
+
+  const SubTotalQry = `SELECT 
+                        GL_Acct, 
+                        Sub_Acct, 
+                        SUM(Debit)-SUM(Credit) AS SubTotal 
+                       FROM (${FinalQry}) temp_Final 
+                       GROUP BY GL_Acct, Sub_Acct`;
+
+  const BalanceQry = `SELECT
+                        temp_Final.GL_Acct,
+                        (select Acronym from sub_account a where a.Acronym  = temp_Final.Sub_Acct or a.Sub_Acct  = temp_Final.Sub_Acct group by a.Acronym) AS SACode,
+                        (select ShortName from sub_account a where a.Acronym  = temp_Final.Sub_Acct or a.Sub_Acct  = temp_Final.Sub_Acct group by a.ShortName) AS SubAcct,
+                        Acct_Title,
+                        Book_Code AS BookCode,
+                        Book,
+                        Debit,
+                        Credit,
+                        SubTotal
+                      FROM
+                        (${FinalQry}) temp_Final 
+                      LEFT JOIN Chart_Account ON temp_Final.GL_Acct = Chart_Account.Acct_Code 
+                      LEFT JOIN (${SubTotalQry}) temp_SubTotal ON (temp_Final.GL_Acct = temp_SubTotal.GL_Acct AND temp_Final.Sub_Acct = temp_SubTotal.Sub_Acct) 
+                      LEFT JOIN sub_account SubAccount ON temp_Final.Sub_Acct = SubAccount.Sub_Acct 
+                      ORDER BY temp_Final.GL_Acct, temp_Final.Sub_Acct, Number`;
+
+  return BalanceQry;
+}
+export function AbstractCollections(
+  reportType: string, // or 'Monthly'
+  subAcct: string, // or specific sub-account
+  date: Date, // example date
+  order: string // or 'Des
+) {
+  let sWhere1 = "";
+  let sWhere2 = "";
+
+  const formattedDateCollection = format(date, "MM/dd/yyyy");
+  const firstDayOfMonthCollection = format(
+    new Date(date.getFullYear(), date.getMonth(), 1),
+    "MM/dd/yyyy"
+  );
+  const lastDayCollection = format(lastDayOfMonth(date), "MM/dd/yyyy");
+
+  const formattedDateJournal = format(date, "yyyy-MM-dd");
+  const firstDayOfMonthJournal = format(
+    new Date(date.getFullYear(), date.getMonth(), 1),
+    "yyyy-MM-dd"
+  );
+  const lastDayJournal = format(lastDayOfMonth(date), "yyyy-MM-dd");
+
+  if (reportType === "Daily") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE Collection.Date_OR = '${formattedDateCollection}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'OR' AND Journal.Date_Entry = '${formattedDateJournal}'`;
+    } else {
+      sWhere1 = `WHERE Collection.Date_OR = '${formattedDateCollection}' AND LTRIM(RTRIM(Collection.Status)) = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'OR' AND Journal.Date_Entry = '${formattedDateJournal}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  } else if (reportType === "Monthly") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE Collection.Date_OR >= '${firstDayOfMonthCollection}' AND Collection.Date_OR <= '${lastDayCollection}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'OR' AND Journal.Date_Entry >= '${firstDayOfMonthJournal}' AND Journal.Date_Entry <= '${lastDayJournal}'`;
+    } else {
+      sWhere1 = `WHERE Collection.Date_OR >= '${firstDayOfMonthCollection}' AND Collection.Date_OR <= '${lastDayCollection}' AND Collection.Status = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'OR' AND Journal.Date_Entry >= '${firstDayOfMonthJournal}' AND Journal.Date_Entry <= '${lastDayJournal}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  }
+
+  const queryCollection = `
+    SELECT Collection.Date, Collection.ORNo, Collection.IDNo, UPPER(Name) AS cName, Collection.Bank, 
+           Check_No AS cCheck_No, Collection.DRCode, Collection.Debit, Collection.DRTitle, Collection.CRCode, 
+           Collection.Credit, Collection.CRTitle, Collection.Purpose, Collection.CRRemarks, Collection.Official_Receipt, 
+           Collection.Temp_OR, Collection.Date_OR, 'Monthly' AS Rpt, Collection.Status 
+    FROM Collection 
+    ${sWhere1}
+    ORDER BY Collection.Temp_OR ${order === "Ascending" ? "ASC" : "DESC"}
+  `;
+
+  const queryJournal = `
+    SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
+           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+    FROM Journal 
+    LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
+    ${sWhere2}
+    GROUP BY Journal.GL_Acct, Chart_Account.Acct_Title 
+    HAVING Journal.GL_Acct <> ''
+  `;
+
+  return {
+    queryCollection,
+    queryJournal,
+  };
+}
+export function DepositedCollections(
+  reportType: string,
+  subAcct: string,
+  date: Date,
+  order: string
+) {
+  let sWhere1 = "";
+  let sWhere2 = "";
+
+  const formattedDate = format(date, "yyyy-MM-dd");
+  const firstDayOfMonth = format(
+    new Date(date.getFullYear(), date.getMonth(), 1),
+    "yyyy-MM-dd"
+  );
+  const lastDay = format(lastDayOfMonth(date), "yyyy-MM-dd");
+
+  if (reportType === "Daily") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE CAST(Deposit.Temp_SlipDate AS DATE) = '${formattedDate}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'DC' AND Journal.Date_Entry = '${formattedDate}'`;
+    } else {
+      sWhere1 = `WHERE CAST(Deposit.Temp_SlipDate AS DATE) = '${formattedDate}' AND LTRIM(RTRIM(Deposit.Type)) = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'DC' AND Journal.Date_Entry = '${formattedDate}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  } else if (reportType === "Monthly") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE CAST(Deposit.Temp_SlipDate AS DATE) >= '${firstDayOfMonth}' AND CAST(Deposit.Temp_SlipDate AS DATE) <= '${lastDay}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'DC' AND Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}'`;
+    } else {
+      sWhere1 = `WHERE CAST(Deposit.Temp_SlipDate AS DATE) >= '${firstDayOfMonth}' AND CAST(Deposit.Temp_SlipDate AS DATE) <= '${lastDay}' AND LTRIM(RTRIM(Deposit.Type)) = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'DC' AND Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  }
+
+  const queryDeposit = `
+    SELECT Deposit.Temp_SlipCntr, Deposit.Temp_SlipDate, Deposit.Temp_SlipCode, Deposit.Date_Deposit, 
+           Deposit.Slip_Code, Deposit.Account_ID, Deposit.Account_Name, Deposit.IDNo, 
+           Deposit.Bank, Check_No AS cCheck_No, Deposit.Debit, Deposit.Credit, Deposit.Ref_No, 
+           Deposit.Type, Deposit.Check_Date, 'Monthly' AS Rpt 
+    FROM Deposit 
+    ${sWhere1}
+    ORDER BY Deposit.Temp_SlipCntr, Ref_No ${
+      order === "Ascending" ? "ASC" : "DESC"
+    }
+  `;
+
+  const queryJournal = `
+    SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
+           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+    FROM Journal 
+    LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
+    ${sWhere2}
+    GROUP BY Journal.GL_Acct, Chart_Account.Acct_Title 
+    HAVING Journal.GL_Acct <> ''
+  `;
+
+  return {
+    queryDeposit,
+    queryJournal,
+  };
+}
+export function ReturnedChecksCollection(
+  reportType: string,
+  subAcct: string,
+  date: Date,
+  order: string
+) {
+  let sWhere1 = "";
+  let sWhere2 = "";
+
+  const formattedDate = format(date, "yyyy-MM-dd");
+  const firstDayOfMonth = format(
+    new Date(date.getFullYear(), date.getMonth(), 1),
+    "yyyy-MM-dd"
+  );
+  const lastDay = format(lastDayOfMonth(date), "yyyy-MM-dd");
+
+  if (reportType === "Daily") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE Journal.Date_Entry = '${formattedDate}' AND Journal.Source_Type = 'RC'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'RC' AND Journal.Date_Entry = '${formattedDate}'`;
+    } else {
+      sWhere1 = `WHERE Journal.Date_Entry = '${formattedDate}' AND Journal.Source_Type = 'RC' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'RC' AND Journal.Date_Entry = '${formattedDate}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  } else if (reportType === "Monthly") {
+    if (subAcct === "ALL") {
+      sWhere1 = `WHERE Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}' AND Journal.Source_Type = 'RC'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'RC' AND Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}'`;
+    } else {
+      sWhere1 = `WHERE Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}' AND Journal.Source_Type = 'RC' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+      sWhere2 = `WHERE Journal.Source_Type = 'RC' AND Journal.Date_Entry >= '${firstDayOfMonth}' AND Journal.Date_Entry <= '${lastDay}' AND LTRIM(RTRIM(Journal.Branch_Code)) = '${subAcct.trim()}'`;
+    }
+  }
+
+  const queryReturned = `
+    SELECT Journal.Date_Entry, Journal.Source_No, Journal.Explanation, Journal.GL_Acct, Journal.cGL_Acct, 
+           Journal.ID_No, Journal.cID_No, Journal.Check_No, Journal.Check_Bank, Journal.Check_Return, 
+           Journal.Check_Deposit, Journal.Check_Reason, Journal.Debit, Journal.Credit, 'Monthly' AS Rpt 
+    FROM Journal 
+    ${sWhere1}
+    ORDER BY Journal.Source_No ${order === "Ascending" ? "ASC" : "DESC"}
+  `;
+
+  const queryJournal = `
+    SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
+           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+    FROM Journal 
+    LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
+    ${sWhere2}
+    GROUP BY Journal.GL_Acct, Chart_Account.Acct_Title 
+    HAVING Journal.GL_Acct <> ''
+  `;
+
+  return {
+    queryReturned,
+    queryJournal,
+  };
+}
+export function PostDatedCheckRegistered(
+  sortField: string,
+  sortOrder: string,
+  type: string,
+  pdcField: string,
+  pdcBranch: string,
+  dateFrom: Date,
+  dateTo: Date
+) {
+  let sSort = "";
+  let sWhere = "";
+  const formattedDateFrom = format(
+    new Date(dateFrom.getFullYear(), dateFrom.getMonth(), 1),
+    "yyyy-MM-dd"
+  );
+  const formattedDateTo = format(lastDayOfMonth(dateTo), "yyyy-MM-dd");
+
+  if (sortField === "Name") {
+    sSort = `ORDER BY Name ${sortOrder === "Ascending" ? "ASC" : "DESC"}`;
+  } else if (sortField === "Check Date") {
+    sSort = `ORDER BY Check_Date ${sortOrder === "Ascending" ? "ASC" : "DESC"}`;
+  } else if (sortField === "Date Received") {
+    sSort = `ORDER BY Date ${sortOrder === "Ascending" ? "ASC" : "DESC"}`;
+  }
+
+  if (type === "Rent") {
+    sWhere = "AND PN_No LIKE '%rent%' ";
+  } else if (type === "Loan") {
+    sWhere = "AND PN_No NOT LIKE '%rent%' ";
+  }
+
+  let query = "";
+
+  if (pdcField === "Check Date") {
+    query = `
+      SELECT PDC.* 
+      FROM PDC 
+      WHERE (PDC.Check_Date >= '${formattedDateFrom}' AND PDC.Check_Date <= '${formattedDateTo}')
+        AND ((PDC.PDC_Remarks <> 'Fully Paid' AND PDC.PDC_Remarks <> 'Foreclosed') 
+          OR PDC.PDC_Remarks = 'Replaced' 
+          OR PDC.PDC_Remarks IS NULL 
+          OR PDC.PDC_Remarks = '') 
+        AND PDC.PDC_Status <> 'Pulled Out' 
+        ${sWhere} 
+        ${sSort}`;
+  } else if (pdcField === "Date Received") {
+    query = `
+      SELECT PDC.* 
+      FROM PDC 
+      WHERE (PDC.Date >= '${formattedDateFrom}' AND PDC.Date <= '${formattedDateTo}')
+        AND ((PDC.PDC_Remarks <> 'Fully Paid' AND PDC.PDC_Remarks <> 'Foreclosed') 
+          OR PDC.PDC_Remarks = 'Replaced' 
+          OR PDC.PDC_Remarks IS NULL 
+          OR PDC.PDC_Remarks = '') 
+        AND PDC.PDC_Status <> 'Pulled Out' 
+        ${sWhere} 
+        ${sSort}`;
+  }
+
+  return query;
+}
+
+export function PettyCashFundDisbursement(
+  subAcct: string,
+  from: Date,
+  to: Date
+) {
+  let dtPettyCashQuery = "";
+  let dtSummaryQuery = "";
+
+  if (subAcct === "ALL") {
+    dtPettyCashQuery = `
+      SELECT petty_cash.*, DATE_FORMAT(PC_Date, '%m/%d/%y') AS RefNo
+      FROM petty_cash
+      WHERE petty_cash.PC_No >= '${from}' AND petty_cash.PC_No <= '${to}'`;
+
+    dtSummaryQuery = `
+      SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, SUM(IFNULL(Journal.Debit, 0)) AS mDebit, SUM(IFNULL(Journal.Credit, 0)) AS mCredit
+      FROM Journal
+      LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code
+      WHERE Journal.Source_Type = 'PC' AND Journal.Source_No >= '${from}' AND Journal.Source_No <= '${to}'
+      GROUP BY Journal.GL_Acct, Chart_Account.Acct_Title
+      HAVING Journal.GL_Acct <> ''`;
+  } else {
+    dtPettyCashQuery = `
+      SELECT petty_cash.*, DATE_FORMAT(PC_Date, '%m/%d/%y') AS RefNo
+      FROM petty_cash
+      WHERE petty_cash.PC_No >= '${from}' AND petty_cash.PC_No <= '${to}' AND petty_cash.SubAcct = '${subAcct}'`;
+
+    dtSummaryQuery = `
+      SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, SUM(IFNULL(Journal.Debit, 0)) AS mDebit, SUM(IFNULL(Journal.Credit, 0)) AS mCredit
+      FROM (
+        SELECT PC_No
+        FROM petty_cash
+        WHERE petty_cash.PC_No >= '${from}' AND petty_cash.PC_No <= '${to}' AND petty_cash.SubAcct = '${subAcct}'
+        GROUP BY PC_No
+      ) AS PC
+      INNER JOIN Journal ON Journal.Source_No = PC.PC_No
+      LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code
+      WHERE Journal.Source_Type = 'PC' AND Journal.Source_No >= '${from}' AND Journal.Source_No <= '${to}'
+      GROUP BY Journal.GL_Acct, Chart_Account.Acct_Title
+      HAVING Journal.GL_Acct <> ''`;
+  }
+
+  return { dtPettyCashQuery, dtSummaryQuery };
 }

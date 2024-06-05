@@ -4,7 +4,11 @@ import { addCTPL } from "../../model/Reference/ctpl.model";
 import generateUniqueUUID from "../../lib/generateUniqueUUID";
 import { v4 as uuid } from "uuid";
 const testReport = express.Router();
-const prisma = new PrismaClient({datasources:{db:{url:"mysql://root:charles@localhost:3306/upward_insurance_umis"}}});
+const prisma = new PrismaClient({
+  datasources: {
+    db: { url: "mysql://root:charles@localhost:3306/upward_insurance_umis" },
+  },
+});
 let countResponse = 0;
 let prev = "";
 testReport.post("/add-petty-log", async (req, res) => {
@@ -76,8 +80,6 @@ testReport.post("/add-client", async (req, res) => {
     message: "test Report",
   });
 });
-
-
 
 testReport.post("/add-agent", async (req, res) => {
   const data = JSON.parse(req.body.dataString)[0];
@@ -164,10 +166,13 @@ testReport.post("/ctpl-registration", async (req, res) => {
   const ctplID = await generateUniqueUUID("ctplregistration", "ctplId");
   console.log(data);
 
-  await addCTPL({
-    ...data,
-    ctplId: ctplID,
-  });
+  await addCTPL(
+    {
+      ...data,
+      ctplId: ctplID,
+    },
+    req
+  );
 
   res.send({ message: "qweqwe" });
 });
@@ -297,19 +302,14 @@ testReport.post("/add-chart-account", async (req, res) => {
 
 testReport.post("/add-rates", async (req, res) => {
   const data = JSON.parse(req.body.dataString);
-  const {
-    Account,
-    Line,
-    Type,
-    Rate
-  } = data[0]
+  const { Account, Line, Type, Rate } = data[0];
 
   await prisma.rates.create({
     data: {
       Account,
       Line,
       Type,
-      Rate
+      Rate,
     },
   });
 
@@ -318,7 +318,6 @@ testReport.post("/add-rates", async (req, res) => {
     vehiclePolicy: [],
   });
 });
-
 
 testReport.post("/add-transaction-code", async (req, res) => {
   try {
