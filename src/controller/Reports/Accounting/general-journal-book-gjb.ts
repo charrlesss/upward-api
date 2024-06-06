@@ -1,18 +1,20 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { PettyCashFundDisbursement } from "../../../model/db/stored-procedured";
+import { CashDisbursementBook_CDB_GJB } from "../../../model/db/stored-procedured";
 
-const PettyCashFundDisbursements = express.Router();
+const GeneralJournalBookGJB = express.Router();
 const prisma = new PrismaClient();
 
-PettyCashFundDisbursements.post(
-  "/petty-cash-fund-disbursement",
+GeneralJournalBookGJB.post(
+  "/general-journal-book-gjb",
   async (req, res) => {
     try {
-      const qry = PettyCashFundDisbursement(
+      const qry = CashDisbursementBook_CDB_GJB(
+        "General Journal Book - GJB",
         "ALL",
-        '2406-001',
-        '2406-003'
+        new Date(),
+        "Monthly",
+        "ASC"
       );
       res.send({
         message: "Successfully Get Report",
@@ -30,4 +32,4 @@ PettyCashFundDisbursements.post(
   }
 );
 
-export default PettyCashFundDisbursements;
+export default GeneralJournalBookGJB;

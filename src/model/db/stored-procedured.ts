@@ -1,5 +1,12 @@
-import { addMonths, format, subDays, lastDayOfMonth } from "date-fns";
-import { clients_view } from "./views";
+import {
+  addMonths,
+  format,
+  startOfMonth,
+  endOfMonth,
+  subDays,
+  lastDayOfMonth,
+} from "date-fns";
+import { clients_view, qryJournal } from "./views";
 
 export function FinancialStatement(
   date: any,
@@ -896,9 +903,9 @@ export function GeneralLedgerReport(
     Acct_Title AS Title,
     Book_Code AS BookCode,
     Book,
-    Debit,
-    Credit,
-    SubTotal
+    format(Debit,2) as Debit,
+    format(Credit,2) as Credit,
+    format(abs(SubTotal),2) as SubTotal
   FROM
     (${FinalQry}) Final 
   LEFT JOIN Chart_Account ON Final.GL_Acct = Chart_Account.Acct_Code 
@@ -1264,14 +1271,14 @@ export function PostDatedCheckRegistered(
 
   return query;
 }
-
 export function PettyCashFundDisbursement(
   subAcct: string,
-  from: Date,
-  to: Date
+  from: string,
+  to: string
 ) {
   let dtPettyCashQuery = "";
   let dtSummaryQuery = "";
+  ``;
 
   if (subAcct === "ALL") {
     dtPettyCashQuery = `
@@ -1308,4 +1315,385 @@ export function PettyCashFundDisbursement(
   }
 
   return { dtPettyCashQuery, dtSummaryQuery };
+}
+export function CashDisbursementBook_CDB_GJB(
+  reportType: string,
+  subAccount: string,
+  reportDate: Date,
+  dateFilterType: string,
+  sortOrder: string
+) {
+  let sourceType = "";
+  let strSQL = "";
+  let strSubSQL = "";
+
+  switch (reportType) {
+    case "Cash Disbursement Book - CDB":
+      sourceType = "CV";
+      break;
+    case "General Journal Book - GJB":
+      sourceType = "GL";
+      break;
+    default:
+      throw new Error("Unknown report type");
+  }
+
+  const formattedDate = format(reportDate, "yyyy-MM-dd");
+  const formattedMonthStart = format(startOfMonth(reportDate), "yyyy-MM-dd");
+  const formattedMonthEnd = format(endOfMonth(reportDate), "yyyy-MM-dd");
+  const qryJournals = qryJournal();
+  if (dateFilterType === "Daily") {
+    if (subAccount === "ALL") {
+      strSQL = `
+        SELECT qryJournal.* 
+        FROM (${qryJournals}) qryJournal
+        WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry = '${formattedDate}'
+        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+      `;
+      strSubSQL = `
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        FROM Journal 
+        LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
+        WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry = '${formattedDate}'
+        GROUP BY Journal.GL_Acct, ChartAccount.Acct_Title 
+        HAVING Journal.GL_Acct <> ''
+        ORDER BY Journal.GL_Acct
+      `;
+    } else {
+      strSQL = `
+        SELECT qryJournal.* 
+        FROM (${qryJournals}) qryJournal
+        WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry = '${formattedDate}' AND TRIM(qryJournal.Area) = '${subAccount}'
+        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+      `;
+      strSubSQL = `
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        FROM Journal 
+        LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
+        WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry = '${formattedDate}' AND TRIM(Journal.Area) = '${subAccount}'
+        GROUP BY Journal.GL_Acct, ChartAccount.Acct_Title 
+        HAVING Journal.GL_Acct <> ''
+        ORDER BY Journal.GL_Acct
+      `;
+    }
+  } else {
+    if (subAccount === "ALL") {
+      strSQL = `
+        SELECT qryJournal.* 
+        FROM (${qryJournals}) qryJournal
+        WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}'
+        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+      `;
+      strSubSQL = `
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        FROM Journal 
+        LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
+        WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}'
+        GROUP BY Journal.GL_Acct, ChartAccount.Acct_Title 
+        HAVING Journal.GL_Acct <> ''
+        ORDER BY Journal.GL_Acct
+      `;
+    } else {
+      strSQL = `
+        SELECT qryJournal.* 
+        FROM (${qryJournals}) qryJournal
+        WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}' AND TRIM(qryJournal.Area) = '${subAccount}'
+        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+      `;
+      strSubSQL = `
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        FROM Journal 
+        LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
+        WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}' AND TRIM(Journal.Area) = '${subAccount}'
+        GROUP BY Journal.GL_Acct, ChartAccount.Acct_Title 
+        HAVING Journal.GL_Acct <> ''
+        ORDER BY Journal.GL_Acct
+      `;
+    }
+  }
+  return { strSQL, strSubSQL };
+}
+export function ProductionBook(
+  sortType: string,
+  sortOrder: string,
+  reportType: string,
+  reportDate: Date,
+  subAccount: string
+) {
+  let sSort = "";
+  let sWhere = "";
+
+  // Construct sSort based on sortType and sortOrder
+  if (sortType === "Date Issued") {
+    sSort = ` ORDER BY a.DateIssued, a.PolicyNo ${sortOrder}`;
+  } else if (sortType === "Policy No") {
+    sSort = ` ORDER BY a.PolicyNo ${sortOrder}`;
+  }
+
+  // Format dates
+  const formattedDate = format(reportDate, "yyyy-MM-dd");
+  const formattedMonthStart = format(startOfMonth(reportDate), "yyyy-MM-dd");
+  const formattedMonthEnd = format(endOfMonth(reportDate), "yyyy-MM-dd");
+
+  // Construct sWhere based on reportType and reportDate
+  if (reportType === "Daily") {
+    sWhere = `AND a.DateIssued >= '${formattedDate}' AND a.DateIssued <= '${formattedDate}' `;
+  } else if (reportType === "Monthly") {
+    sWhere = `AND a.DateIssued >= '${formattedMonthStart}' AND a.DateIssued <= '${formattedMonthEnd}' `;
+  }
+
+  // Add subAccount to sWhere if applicable
+  if (subAccount !== "ALL" && subAccount !== "Reports") {
+    sWhere += `AND a.SubAcct = '${subAccount}' `;
+  }
+
+  // SQL queries
+  const strSQL = `
+      SELECT a.DateIssued, a.PolicyNo, b.Explanation, b.GL_Acct, b.cGL_Acct, 
+             CONCAT(Sub_Acct, ' ', cSub_Acct) AS SubAcct, b.cID_No, b.Debit, b.Credit, b.TC 
+      FROM Policy a
+      INNER JOIN Journal b ON b.ID_No = a.PolicyNo
+      WHERE Source_Type IN ('PL') AND b.cID_No <> 'S P O I L T' 
+      ${sWhere} ${sSort}`;
+
+  const strSubSQL = `
+      SELECT b.cGL_Acct, SUM(b.Debit) AS Debit, SUM(b.Credit) AS Credit 
+      FROM Policy a
+      INNER JOIN Journal b ON b.ID_No = a.PolicyNo
+      WHERE Source_Type IN ('PL') AND b.cID_No <> 'S P O I L T' 
+      ${sWhere} 
+      GROUP BY b.cGL_Acct`;
+
+  return { strSQL, strSubSQL };
+}
+export function VATBook(
+  sortType: string,
+  sortOrder: string,
+  reportType: string,
+  reportDate: Date,
+  subAccount: string
+) {
+  let sSort = "";
+  let sWhere = "";
+
+  // Construct sSort based on sortType and sortOrder
+  if (sortType === "Date") {
+    sSort = ` ORDER BY a.Date_Entry, (a.Source_Type + ' ' + a.Source_No) ${sortOrder}`;
+  } else if (sortType === "Payee") {
+    sSort = ` ORDER BY (a.Source_Type + ' ' + a.Source_No) ${sortOrder}`;
+  }
+
+  // Format dates
+  const formattedDate = format(reportDate, "yyyy-MM-dd");
+  const formattedMonthStart = format(startOfMonth(reportDate), "yyyy-MM-dd");
+  const formattedMonthEnd = format(endOfMonth(reportDate), "yyyy-MM-dd");
+
+  // Construct sWhere based on reportType and reportDate
+  if (reportType === "Daily") {
+    sWhere = `AND a.Date_Entry >= '${formattedDate}' AND a.Date_Entry <= '${formattedDate}' `;
+  } else if (reportType === "Monthly") {
+    sWhere = `AND a.Date_Entry >= '${formattedMonthStart}' AND a.Date_Entry <= '${formattedMonthEnd}' `;
+  }
+
+  // Add subAccount to sWhere if applicable
+  if (subAccount !== "ALL" && subAccount !== "Reports") {
+    sWhere += `AND a.Sub_Acct = '${subAccount}' `;
+  }
+
+  // SQL queries
+  const strSQL = `
+      SELECT a.Date_Entry, (a.Source_Type + ' ' + a.Source_No) AS SourceNo, a.GL_Acct, a.cGL_Acct, a.Sub_Acct, 
+             IFNULL(a.cID_No, '') AS ID, a.Debit, a.Credit, IFNULL(a.TC, '') AS TC
+      FROM Journal a 
+      WHERE a.Source_Type NOT IN ('BFD', 'BF', 'BFS') 
+      ${sWhere} AND (a.Source_Type + ' ' + a.Source_No) IN (
+          SELECT (Source_Type + ' ' + Source_No) 
+          FROM Journal  
+          WHERE GL_Acct IN ('1.06.02', '4.05.09')
+      ) ${sSort}`;
+
+  const strSubSQL = `
+      SELECT a.cGL_Acct, SUM(a.Debit) AS Debit, SUM(a.Credit) AS Credit
+      FROM Journal a 
+      WHERE a.Source_Type NOT IN ('BFD', 'BF', 'BFS') 
+      ${sWhere} AND (a.Source_Type + ' ' + a.Source_No) IN (
+          SELECT (Source_Type + ' ' + Source_No) 
+          FROM Journal  
+          WHERE GL_Acct IN ('1.06.02', '4.05.09')
+      )
+      GROUP BY a.cGL_Acct`;
+
+  return { strSQL, strSubSQL };
+}
+export function AgingAccountsReport(date: Date, type: string) {
+  const formattedDate = format(new Date(date), "yyyy-MM-dd");
+  let query = "";
+
+  const ID_Entry = `
+    SELECT 
+      "Client" as IDType,
+      aa.entry_client_id AS IDNo,
+      aa.sub_account,
+      if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+      aa.entry_client_id as client_id  
+    FROM
+      entry_client aa
+    union all
+    SELECT 
+      "Agent" as IDType,
+      aa.entry_agent_id AS IDNo,
+      aa.sub_account,
+      CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+      aa.entry_agent_id as client_id  
+    FROM
+      entry_agent aa
+    union all
+    SELECT 
+      "Employee" as IDType,
+      aa.entry_employee_id AS IDNo,
+      aa.sub_account,
+      CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+      aa.entry_employee_id as client_id
+    FROM
+      entry_employee aa
+    union all
+    SELECT 
+      "Supplier" as IDType,
+      aa.entry_supplier_id AS IDNo,
+      aa.sub_account,
+      if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+      aa.entry_supplier_id as client_id
+    FROM
+      entry_supplier aa
+    union all
+    SELECT 
+      "Fixed Assets" as IDType,
+      aa.entry_fixed_assets_id AS IDNo,
+      aa.sub_account,
+      aa.fullname AS Shortname,
+      aa.entry_fixed_assets_id as client_id
+    FROM
+      entry_fixed_assets aa
+    union all
+    SELECT 
+    "Others" as IDType,
+      aa.entry_others_id AS IDNo,
+      aa.sub_account,
+      aa.description AS Shortname,
+      aa.entry_others_id as client_id
+    FROM
+      entry_others aa
+  `;
+  if (type === "Regular") {
+    query = `
+            SELECT
+                ID_Entry.IDNo,
+                ID_Entry.Shortname,
+                Policy.PolicyNo,
+                CASE 
+                    WHEN MPolicy.SubjectInsured IS NOT NULL THEN MPolicy.SubjectInsured
+                    WHEN FPolicy.PropertyInsured IS NOT NULL THEN FPolicy.PropertyInsured
+                    WHEN BPolicy.Obligee IS NOT NULL THEN BPolicy.Obligee
+                    WHEN MSPRPolicy.Location IS NOT NULL THEN MSPRPolicy.Location
+                    WHEN PAPolicy.Location IS NOT NULL THEN PAPolicy.Location
+                    WHEN CGLPolicy.Location IS NOT NULL THEN CGLPolicy.Location
+                    ELSE VPolicy.Make + ' ' + VPolicy.BodyType
+                END AS UnitInssured,
+                Policy.DateIssued,
+                CASE 
+                    WHEN MPolicy.InsuredValue IS NOT NULL THEN MPolicy.InsuredValue
+                    WHEN FPolicy.InsuredValue IS NOT NULL THEN FPolicy.InsuredValue
+                    WHEN BPolicy.BondValue IS NOT NULL THEN BPolicy.BondValue
+                    WHEN MSPRPolicy.SecII IS NOT NULL THEN MSPRPolicy.SecII
+                    WHEN CGLPolicy.LimitA IS NOT NULL THEN CGLPolicy.LimitA
+                    WHEN VPolicy.EstimatedValue IS NOT NULL THEN VPolicy.EstimatedValue
+                END AS EstimatedValue,
+                Policy.TotalDue,
+                IFNULL((CASE WHEN Policy.TotalDue - Payment.Balance < 0 THEN 0 ELSE Policy.TotalDue - Payment.Balance END), 0) AS TotalPaid,
+                IFNULL(Payment.Balance, Policy.TotalDue) AS Balance,
+                Policy.Discount,
+                Policy.AgentCom,
+                IFNULL(VPolicy.Mortgagee, FPolicy.Mortgage) AS Remarks
+            FROM
+                Policy 
+                RIGHT OUTER JOIN (
+                    SELECT ID_No, (IFNULL(SUM(Debit), 0) - IFNULL(SUM(Credit), 0)) AS Balance
+                    FROM Journal
+                    WHERE GL_Acct = '1.03.01' AND ((Source_Type) <> 'BFD' AND (Source_Type) <> 'BF' AND (Source_Type) <> 'BFS') AND Date_Entry <= '${formattedDate}'
+                    GROUP BY ID_No
+                ) Payment ON Policy.PolicyNo = Payment.ID_No
+                LEFT OUTER JOIN FPolicy  ON Policy.PolicyNo = FPolicy.PolicyNo
+                LEFT OUTER JOIN VPolicy  ON Policy.PolicyNo = VPolicy.PolicyNo
+                LEFT OUTER JOIN MPolicy  ON Policy.PolicyNo = MPolicy.PolicyNo
+                LEFT OUTER JOIN BPolicy  ON Policy.PolicyNo = BPolicy.PolicyNo
+                LEFT OUTER JOIN MSPRPolicy  ON Policy.PolicyNo = MSPRPolicy.PolicyNo
+                LEFT OUTER JOIN PAPolicy  ON Policy.PolicyNo = PAPolicy.PolicyNo
+                LEFT OUTER JOIN CGLPolicy  ON Policy.PolicyNo = CGLPolicy.PolicyNo
+                LEFT OUTER JOIN (${ID_Entry}) ID_Entry  ON Policy.IDNo = ID_Entry.IDNo
+            WHERE
+                (Policy.PolicyNo IS NOT NULL) AND
+                (CAST(Policy.DateIssued AS DATE) <= CAST('${formattedDate}' AS DATE)) AND
+                (IFNULL(Payment.Balance, Policy.TotalDue) <> 0) AND
+                ID_Entry.Shortname <> 'S P O I L T' AND (Policy.PolicyNo NOT LIKE '%TP-%')
+            ORDER BY
+                Policy.DateIssued,
+                Policy.PolicyNo;
+        `;
+  } else if (type === "Temporary") {
+    query = `
+            SELECT
+                ID_Entry.IDNo,
+                ID_Entry.Shortname,
+                Policy.PolicyNo,
+                CASE 
+                    WHEN MPolicy.SubjectInsured IS NOT NULL THEN MPolicy.SubjectInsured
+                    WHEN FPolicy.PropertyInsured IS NOT NULL THEN FPolicy.PropertyInsured
+                    WHEN BPolicy.Obligee IS NOT NULL THEN BPolicy.Obligee
+                    WHEN MSPRPolicy.Location IS NOT NULL THEN MSPRPolicy.Location
+                    WHEN PAPolicy.Location IS NOT NULL THEN PAPolicy.Location
+                    WHEN CGLPolicy.Location IS NOT NULL THEN CGLPolicy.Location
+                    ELSE VPolicy.Make + ' ' + VPolicy.BodyType
+                END AS UnitInssured,
+                Policy.DateIssued,
+                CASE 
+                    WHEN MPolicy.InsuredValue IS NOT NULL THEN MPolicy.InsuredValue
+                    WHEN FPolicy.InsuredValue IS NOT NULL THEN FPolicy.InsuredValue
+                    WHEN BPolicy.BondValue IS NOT NULL THEN BPolicy.BondValue
+                    WHEN MSPRPolicy.SecII IS NOT NULL THEN MSPRPolicy.SecII
+                    WHEN CGLPolicy.LimitA IS NOT NULL THEN CGLPolicy.LimitA
+                    WHEN VPolicy.EstimatedValue IS NOT NULL THEN VPolicy.EstimatedValue
+                END AS EstimatedValue,
+                Policy.TotalDue,
+                IFNULL((CASE WHEN Policy.TotalDue - Payment.Balance < 0 THEN 0 ELSE Policy.TotalDue - Payment.Balance END), 0) AS TotalPaid,
+                IFNULL(Payment.Balance, Policy.TotalDue) AS Balance,
+                Policy.Discount,
+                Policy.AgentCom,
+                IFNULL(VPolicy.Mortgagee, FPolicy.Mortgage) AS Remarks
+            FROM
+                Policy 
+                RIGHT OUTER JOIN (
+                    SELECT ID_No, (IFNULL(SUM(Debit), 0) - IFNULL(SUM(Credit), 0)) AS Balance
+                    FROM Journal
+                    WHERE GL_Acct = '1.03.03' AND ((Source_Type) <> 'BFD' AND (Source_Type) <> 'BF' AND (Source_Type) <> 'BFS') AND Date_Entry <= '${formattedDate}'
+                    GROUP BY ID_No
+                ) Payment ON Policy.PolicyNo = Payment.ID_No
+                LEFT OUTER JOIN FPolicy  ON Policy.PolicyNo = FPolicy.PolicyNo
+                LEFT OUTER JOIN VPolicy  ON Policy.PolicyNo = VPolicy.PolicyNo
+                LEFT OUTER JOIN MPolicy  ON Policy.PolicyNo = MPolicy.PolicyNo
+                LEFT OUTER JOIN BPolicy  ON Policy.PolicyNo = BPolicy.PolicyNo
+                LEFT OUTER JOIN MSPRPolicy  ON Policy.PolicyNo = MSPRPolicy.PolicyNo
+                LEFT OUTER JOIN PAPolicy  ON Policy.PolicyNo = PAPolicy.PolicyNo
+                LEFT OUTER JOIN CGLPolicy  ON Policy.PolicyNo = CGLPolicy.PolicyNo
+                LEFT OUTER JOIN (${ID_Entry}) ID_Entry  ON Policy.IDNo = ID_Entry.IDNo
+            WHERE
+                (Policy.PolicyNo IS NOT NULL) AND
+                (CAST(Policy.DateIssued AS DATE) <= CAST('${formattedDate}' AS DATE)) AND
+                (IFNULL(Payment.Balance, Policy.TotalDue) <> 0) AND
+                ID_Entry.Shortname <> 'S P O I L T' AND (Policy.PolicyNo LIKE '%TP-%')
+            ORDER BY
+                Policy.DateIssued,
+                Policy.PolicyNo;
+        `;
+  }
+  return query;
 }

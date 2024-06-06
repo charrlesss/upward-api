@@ -1,7 +1,7 @@
 export function clients_view() {
   return `
   select * from (SELECT 
-    CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+    if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) AS ShortName,
     aa.entry_client_id AS IDNo,
     aa.firstname,
     aa.middlename,
@@ -91,7 +91,7 @@ UNION ALL SELECT
 FROM
     entry_others aa
  UNION ALL SELECT 
-     CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+ if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) AS ShortName,
     aa.entry_supplier_id AS IDNo,
     aa.firstname,
     aa.middlename,
