@@ -100,7 +100,6 @@ Authentication.post("/login", async (req: Request, res: Response) => {
     );
 
     const department = findUser.Department;
-
     res.cookie("up-ac-login", userAccess, { httpOnly: true });
     res.cookie("up-dpm-login", department, { httpOnly: true });
     res.cookie("up-at-login", accessToken, { httpOnly: true });
@@ -146,11 +145,9 @@ Authentication.get("/token", async (req, res) => {
   const accessToken = req.cookies["up-at-login"];
   const refreshToken = req.cookies["up-rt-login"];
   const userAccessToken = req.cookies["up-ac-login"];
-
   if (refreshToken === "" || refreshToken == null) {
     return res.send(null);
   }
-
   try {
     const user: any = await VerifyToken(
       refreshToken as string,
@@ -183,6 +180,7 @@ Authentication.get("/token", async (req, res) => {
   //     res.send({ accessToken, refreshToken, userAccess });
   //   }
   // );
+
 });
 
 export async function VerifyToken(token: string, secret: string) {

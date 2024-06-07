@@ -281,7 +281,7 @@ async function addDeposit(req: any) {
         {
           Date_Deposit: Cnt > 1 ? null : req.body.depositdate,
           Slip_Code: Cnt > 1 ? null : req.body.depositSlip,
-          Account_ID: req.body.Account_No,
+          Account_ID: req.body.Account_ID,
           Account_Name: req.body.Account_Name,
           Debit: Amount[i].toLocaleString("en-US", {
             minimumFractionDigits: 2,
@@ -291,7 +291,7 @@ async function addDeposit(req: any) {
           Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
           Temp_SlipDate: req.body.depositdate,
           Type: "HO",
-          IDNo: req.body.ShortName,
+          IDNo: req.body.Identity,
         },
         req
       );

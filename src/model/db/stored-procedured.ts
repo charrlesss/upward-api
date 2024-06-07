@@ -1078,7 +1078,7 @@ export function AbstractCollections(
 
   const queryJournal = `
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
-           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+            format(SUM(IFNULL(Debit, 0)) ,2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
     FROM Journal 
     LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
     ${sWhere2}

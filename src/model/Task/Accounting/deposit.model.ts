@@ -74,7 +74,8 @@ export async function getBanksFromDeposit(search: string, req: Request) {
       b.Short,
       c.Shortname as ShortName,
       d.ShortName as Sub_ShortName,
-      d.Acronym as Sub_Acct
+      d.Acronym as Sub_Acct,
+      a.Identity
     FROM
             bankaccounts a
           LEFT JOIN
