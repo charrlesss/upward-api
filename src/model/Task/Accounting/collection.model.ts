@@ -237,3 +237,10 @@ WHERE
   a.Description = '${search}'    `;
   return await prisma.$queryRawUnsafe(query);
 }
+
+export async function getDrCodeAndTitle(code: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  return await prisma.$queryRawUnsafe(`
+    SELECT b.Acct_Code, b.Acct_Title FROM upward_insurance_umis.transaction_code  a left join upward_insurance_umis.chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
+  `);
+}

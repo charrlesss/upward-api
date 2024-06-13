@@ -17,43 +17,43 @@ export async function getCheckList(search: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-  SELECT 
-  a.Temp_SlipCodE AS DepoSlip, 
-  date_format(a.Temp_SlipDate, '%m/%d/%Y') AS DepoDate,
-  a.Check_No,
-  a.Check_Date,
-  a.Credit  as Amount,
-  a.Bank,
-  a.BankAccount,
-  a.Ref_No,
-  b.Official_Receipt, b.Date_OR,
-  LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
-FROM
-  (SELECT 
-      Temp_SlipCode,
-          Temp_SlipDate,
-          Check_No,
-          Check_Date,
-          Credit,
-          Bank,
-          BankAccount,
-          Ref_No
+    SELECT 
+      a.Temp_SlipCodE AS DepoSlip, 
+      date_format(a.Temp_SlipDate, '%m/%d/%Y') AS DepoDate,
+      a.Check_No,
+      a.Check_Date,
+      a.Credit  as Amount,
+      a.Bank,
+      a.BankAccount,
+      a.Ref_No,
+      b.Official_Receipt, b.Date_OR,
+      LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM
-        deposit a
-  LEFT JOIN   deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
-      LEFT JOIN
-  (SELECT 
-      Official_Receipt, Date_OR
-  FROM
-        collection
-  GROUP BY Official_Receipt , Date_OR) b ON a.Ref_No = b.Official_Receipt
-GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit , a.Check_Date , a.Check_No , a.Bank , a.BankAccount , b.Date_OR , b.Official_Receipt
-HAVING (((b.Date_OR) IS NOT NULL)
-  AND ((a.Check_No) <> ''))
-  AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
-  AND a.Check_No not in (select Check_No from   return_checks)
-ORDER BY a.Check_Date
-limit 100
+    (SELECT 
+        Temp_SlipCode,
+            Temp_SlipDate,
+            Check_No,
+            Check_Date,
+            Credit,
+            Bank,
+            BankAccount,
+            Ref_No
+    FROM
+          deposit a
+    LEFT JOIN   deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
+        LEFT JOIN
+    (SELECT 
+        Official_Receipt, Date_OR
+    FROM
+          collection
+    GROUP BY Official_Receipt , Date_OR) b ON a.Ref_No = b.Official_Receipt
+  GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit , a.Check_Date , a.Check_No , a.Bank , a.BankAccount , b.Date_OR , b.Official_Receipt
+  HAVING (((b.Date_OR) IS NOT NULL)
+    AND ((a.Check_No) <> ''))
+    AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
+    AND a.Check_No not in (select Check_No from   return_checks)
+  ORDER BY a.Check_Date
+  limit 100
   `);
 }
 export async function getCreditOnSelectedCheck(BankAccount: string,req: Request) {
@@ -99,7 +99,6 @@ export async function getBranchName(req: Request) {
     `SELECT a.ShortName FROM  sub_account a where a.Acronym = 'HO'`
   );
 }
-
 export async function deleteReturnCheck(RC_No: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -107,13 +106,11 @@ export async function deleteReturnCheck(RC_No: string,req: Request) {
     delete from   return_checks where RC_NO='${RC_No}'
   `);
 }
-
 export async function addNewReturnCheck(data: any,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.return_checks.create({ data });
 }
-
 export async function updatePDCFromReturnCheck(Check_No: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -121,7 +118,6 @@ export async function updatePDCFromReturnCheck(Check_No: string,req: Request) {
     UPDATE  pdc a SET a.SlipCode ='', a.ORNum='' WHERE  a.Check_No ='${Check_No}' 
   `);
 }
-
 export async function updateJournalFromReturnCheck(
   Check_No: string,
   SlipCode: string
@@ -134,7 +130,6 @@ export async function updateJournalFromReturnCheck(
     WHERE  a.Check_No ='${Check_No}' AND a.Source_No = '${SlipCode}' AND a.Source_Type ='OR'
   `);
 }
-
 export async function deleteJournalFromReturnCheck(SlipCode: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -146,7 +141,6 @@ export async function addJournalFromReturnCheck(data: any,req: Request) {
 
   return await prisma.journal.create({ data });
 }
-
 export async function updateRCID(last_count: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -179,7 +173,6 @@ export async function searchReturnChecks(search: string,req: Request) {
     LIMIT 500;
   `);
 }
-
 export async function getReturnCheckSearchFromJournal(RC_No: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -215,7 +208,6 @@ export async function getReturnCheckSearchFromJournal(RC_No: string,req: Request
     order by a.Check_No, Code desc
       `);
 }
-
 export async function getReturnCheckSearch(RC_No: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -245,7 +237,6 @@ export async function getReturnCheckSearch(RC_No: string,req: Request) {
     a.RC_No = '${RC_No}'
       `);
 }
-
 export async function findReturnCheck(RC_No: string,req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 

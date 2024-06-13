@@ -23,7 +23,6 @@ export async function getCashCollection(SlipCode: string, req: Request) {
     WHERE
         Payment = 'Cash'
             AND (a.SlipCode = '' OR a.SlipCode = '${SlipCode}')
-            AND a.ORNo IS not NULL AND a.ORNo <> ''
     ORDER BY a.Date_OR DESC , a.Check_Date 
     `;
 
@@ -54,7 +53,6 @@ export async function getCheckCollection(SlipCode: string, req: Request) {
       WHERE
         a.Payment = 'Check'
             AND (a.SlipCode IS NULL OR a.SlipCode = '${SlipCode}')
-            AND a.ORNo IS not NULL AND a.ORNo <> ''
       ORDER BY a.Date_OR DESC , a.Check_Date
     `;
 

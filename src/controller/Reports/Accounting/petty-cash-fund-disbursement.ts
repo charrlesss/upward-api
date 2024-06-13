@@ -12,12 +12,18 @@ PettyCashFundDisbursements.post(
       const qry = PettyCashFundDisbursement(
         "ALL",
         '2406-001',
-        '2406-003'
+        '2406-009'
       );
+
+      const dataCash = await prisma.$queryRawUnsafe(qry.dtPettyCashQuery)
+      const dataSumm = await prisma.$queryRawUnsafe(qry.dtSummaryQuery)
+
+
+
       res.send({
         message: "Successfully Get Report",
         success: true,
-        qry,
+        report:dataCash,
       });
     } catch (err: any) {
       console.log(err.message);

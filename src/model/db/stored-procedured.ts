@@ -1074,7 +1074,7 @@ export function AbstractCollections(
     FROM Collection 
     ${sWhere1}
     ORDER BY Collection.Temp_OR ${order === "Ascending" ? "ASC" : "DESC"}
-  `;
+  `; 
 
   const queryJournal = `
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
@@ -1126,11 +1126,14 @@ export function DepositedCollections(
   }
 
   const queryDeposit = `
-    SELECT Deposit.Temp_SlipCntr, Deposit.Temp_SlipDate, Deposit.Temp_SlipCode, Deposit.Date_Deposit, 
-           Deposit.Slip_Code, Deposit.Account_ID, Deposit.Account_Name, Deposit.IDNo, 
+     SELECT Deposit.Temp_SlipCntr, DATE_FORMAT(Deposit.Temp_SlipDate, '%m/%d/%Y') as Temp_SlipDate , Deposit.Temp_SlipCode, Deposit.Date_Deposit, 
+           Deposit.Slip_Code, Deposit.Account_ID, Deposit.IDNo, 
            Deposit.Bank, Check_No AS cCheck_No, Deposit.Debit, Deposit.Credit, Deposit.Ref_No, 
-           Deposit.Type, Deposit.Check_Date, 'Monthly' AS Rpt 
+           Deposit.Type, Deposit.Check_Date, 'Monthly' AS Rpt ,
+           chart_account.Short as Account_Name,
+            ifnull(concat(Deposit.Account_ID,' ',chart_account.Short),'') as acct_name
     FROM Deposit 
+    left join chart_account on Acct_Code = Deposit. Account_ID
     ${sWhere1}
     ORDER BY Deposit.Temp_SlipCntr, Ref_No ${
       order === "Ascending" ? "ASC" : "DESC"
@@ -1187,7 +1190,7 @@ export function ReturnedChecksCollection(
   }
 
   const queryReturned = `
-    SELECT Journal.Date_Entry, Journal.Source_No, Journal.Explanation, Journal.GL_Acct, Journal.cGL_Acct, 
+    SELECT DATE_FORMAT(Journal.Date_Entry,'%m/%d/%Y') as Date_Entry, Journal.Source_No, Journal.Explanation, Journal.GL_Acct, Journal.cGL_Acct, 
            Journal.ID_No, Journal.cID_No, Journal.Check_No, Journal.Check_Bank, Journal.Check_Return, 
            Journal.Check_Deposit, Journal.Check_Reason, Journal.Debit, Journal.Credit, 'Monthly' AS Rpt 
     FROM Journal 
@@ -1196,6 +1199,7 @@ export function ReturnedChecksCollection(
   `;
 
   const queryJournal = `
+  
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
            SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
     FROM Journal 
@@ -1282,7 +1286,17 @@ export function PettyCashFundDisbursement(
 
   if (subAcct === "ALL") {
     dtPettyCashQuery = `
-      SELECT petty_cash.*, DATE_FORMAT(PC_Date, '%m/%d/%y') AS RefNo
+      SELECT 
+          concat(DATE_FORMAT(PC_Date, '%m/%d/%y'),'  ',PC_No) as DT,
+          Payee,
+          Explanation as particulars,
+          DRPurpose as transaction,
+          concat( IDNo,'\n',
+          ShortName) as identity,
+          DRShort,
+          Debit,
+          CRShort,
+          Credit
       FROM petty_cash
       WHERE petty_cash.PC_No >= '${from}' AND petty_cash.PC_No <= '${to}'`;
 
@@ -1295,7 +1309,17 @@ export function PettyCashFundDisbursement(
       HAVING Journal.GL_Acct <> ''`;
   } else {
     dtPettyCashQuery = `
-      SELECT petty_cash.*, DATE_FORMAT(PC_Date, '%m/%d/%y') AS RefNo
+      SELECT
+          concat(DATE_FORMAT(PC_Date, '%m/%d/%y'),'  ',PC_No) as DT,
+          Payee,
+          Explanation as particulars,
+          DRPurpose as transaction,
+          concat( IDNo,'\n',
+          ShortName) as identity,
+          DRShort,
+          Debit,
+          CRShort,
+          Credit
       FROM petty_cash
       WHERE petty_cash.PC_No >= '${from}' AND petty_cash.PC_No <= '${to}' AND petty_cash.SubAcct = '${subAcct}'`;
 

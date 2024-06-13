@@ -122,7 +122,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         req
       );
       await updatePDCFromReturnCheck(items.Check_No, req);
-      await updateJournalFromReturnCheck(items.Check_No, items.DepoSlip, req);
+      await updateJournalFromReturnCheck(items.Check_No, items.DepoSlip, req); 
     });
 
     await deleteJournalFromReturnCheck(req.body.RefNo, req);
@@ -141,8 +141,12 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
           cSub_Acct: items.SubAcctName,
           ID_No: items.IDNo,
           cID_No: items.Identity,
-          Debit: parseFloat(items.Debit.replace(/,/g, "")).toFixed(2),
-          Credit: parseFloat(items.Credit.replace(/,/g, "")).toFixed(2),
+          Debit: parseFloat(items.Debit?.toString().replace(/,/g, "")).toFixed(
+            2
+          ),
+          Credit: parseFloat(
+            items.Credit?.toString().replace(/,/g, "")
+          ).toFixed(2),
           Check_Date: items.Check_Date,
           Check_No: items.Check_No,
           Check_Bank: items.Bank,
@@ -192,7 +196,6 @@ ReturnCheck.get("/search-return-checks", async (req, res) => {
     res.send({ message: error.message, success: false, returnCheckSearch: [] });
   }
 });
-
 ReturnCheck.post(
   "/get-search-selected-checks-information",
   async (req, res) => {

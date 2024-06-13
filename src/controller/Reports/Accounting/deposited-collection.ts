@@ -16,34 +16,33 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
 
     const dataDeposit: any = await prisma.$queryRawUnsafe(queryDeposit);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
+    
     dataDeposit.push({
-      Date: "",
-      ORNo: "",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
       IDNo: "",
-      cName: "",
       Bank: "",
       cCheck_No: "----- Nothing Follows -----",
-      DRCode: "",
       Debit: "",
-      DRTitle: "",
-      CRCode: "",
       Credit: "",
-      CRTitle: "",
-      Purpose: "",
-      CRRemarks: "",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "",
       follows: true,
     });
 
     const Debit = dataDeposit
       .reduce((a: number, item: any) => {
         let num = 0;
-        if (!isNaN(parseFloat(item.Debit.replace(/,/g, "")))) {
-          num = parseFloat(item.Debit.replace(/,/g, ""));
+        if (!isNaN(parseFloat(item.Debit?.replace(/,/g, "")))) {
+          num = parseFloat(item.Debit?.replace(/,/g, ""));
         }
         return a + num;
       }, 0)
@@ -55,8 +54,8 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
     const Credit = dataDeposit
       .reduce((a: number, item: any) => {
         let num = 0;
-        if (!isNaN(parseFloat(item.Credit.replace(/,/g, "")))) {
-          num = parseFloat(item.Credit.replace(/,/g, ""));
+        if (!isNaN(parseFloat(item.Credit?.replace(/,/g, "")))) {
+          num = parseFloat(item.Credit?.replace(/,/g, ""));
         }
         return a + num;
       }, 0)
@@ -66,98 +65,88 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       });
 
     dataDeposit.push({
-      Date: "",
-      ORNo: "",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
       IDNo: "",
-      cName: "",
-      Bank: "TOTAL :",
-      cCheck_No: "",
-      DRCode: "",
+      Bank: "",
+      cCheck_No: "TOTAL :",
       Debit,
-      DRTitle: "",
-      CRCode: "",
       Credit,
-      CRTitle: "",
-      Purpose: "",
-      CRRemarks: "",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "",
       total: true,
     });
 
     dataDeposit.push({
-      Date: "",
-      ORNo: "",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
       IDNo: "",
-      cName: "SUMMARY:",
       Bank: "",
       cCheck_No: "",
-      DRCode: "",
       Debit: "",
-      DRTitle: "",
-      CRCode: "",
       Credit: "",
-      CRTitle: "",
-      Purpose: "",
-      CRRemarks: "",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "SUMMARY:",
       summary: true,
     });
 
     dataDeposit.push({
-      Date: "",
-      ORNo: "ACCOUNT TITLE",
-      IDNo: "",
-      cName: "",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
+      IDNo: "ACCOUNT TITLE",
       Bank: "",
       cCheck_No: "",
-      DRCode: "",
-      Debit: "",
-      DRTitle: "",
-      CRCode: "",
-      Credit: "",
-      CRTitle: "",
-      Purpose: "DEBIT",
-      CRRemarks: "CREDIT",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Debit: "DEBIT",
+      Credit: "CREDIT",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "",
       summ: true,
       header: true,
     });
 
     dataJournal.forEach((itm: any) => {
       dataDeposit.push({
-        Date: "",
-        ORNo: "",
+        Temp_SlipCntr: "",
+        Temp_SlipDate: "",
+        Temp_SlipCode: "",
+        Date_Deposit: "",
+        Slip_Code: "",
+        Account_ID: "",
         IDNo: "",
-        cName: "",
         Bank: "",
         cCheck_No: "",
-        DRCode: "",
         Debit: itm.mDebit,
-        DRTitle: "",
-        CRCode: "",
         Credit: itm.mCredit,
-        CRTitle: "",
-        Purpose: "",
-        CRRemarks: "",
-        Official_Receipt: "",
-        Temp_OR: "",
-        Date_OR: "",
+        Ref_No: "",
+        Type: "",
+        Check_Date: "",
         Rpt: "",
-        Status: "",
-        GL_Acct: itm.GL_Acct,
-        Title: itm.Title,
+        Account_Name: "",
+        acct_name: `${itm.GL_Acct} ${itm.Title}`,
         summ: true,
       });
     });
@@ -165,8 +154,8 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
     const mDebit = dataJournal
       .reduce((a: number, item: any) => {
         let num = 0;
-        if (!isNaN(parseFloat(item.mDebit.replace(/,/g, "")))) {
-          num = parseFloat(item.mDebit.replace(/,/g, ""));
+        if (!isNaN(parseFloat(item.mDebit.toString().replace(/,/g, "")))) {
+          num = parseFloat(item.mDebit.toString().replace(/,/g, ""));
         }
         return a + num;
       }, 0)
@@ -178,8 +167,8 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
     const mCredit = dataJournal
       .reduce((a: number, item: any) => {
         let num = 0;
-        if (!isNaN(parseFloat(item.mCredit.replace(/,/g, "")))) {
-          num = parseFloat(item.mCredit.replace(/,/g, ""));
+        if (!isNaN(parseFloat(item.mCredit.toString().replace(/,/g, "")))) {
+          num = parseFloat(item.mCredit.toString().replace(/,/g, ""));
         }
         return a + num;
       }, 0)
@@ -189,50 +178,59 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       });
 
     dataDeposit.push({
-      Date: "",
-      ORNo: "TOTAL:",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
       IDNo: "",
-      cName: "",
-      Bank: "",
+      Bank: "TOTAL:",
       cCheck_No: "",
-      DRCode: "",
       Debit: mDebit,
-      DRTitle: "",
-      CRCode: "",
       Credit: mCredit,
-      CRTitle: "",
-      Purpose: "",
-      CRRemarks: "",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "",
       summ: true,
       footer: true,
     });
     dataDeposit.push({
-      Date: "Prepared:",
-      ORNo: "Checked:",
-      IDNo: "Approved:",
-      cName: "",
-      Bank: "",
-      cCheck_No: "",
-      DRCode: "",
-      Debit: "",
-      DRTitle: "",
-      CRCode: "",
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
+      IDNo: "Prepared:",
+      Bank: "Checked:",
+      cCheck_No: "Approved:",
+      Debit: '',
       Credit: "",
-      CRTitle: "",
-      Purpose: "",
-      CRRemarks: "",
-      Official_Receipt: "",
-      Temp_OR: "",
-      Date_OR: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
       Rpt: "",
-      Status: "",
+      Account_Name: "",
+      acct_name: "",
       summ: true,
       signature: true,
+    });
+
+    let seen1 = new Set();
+    let seen2 = new Set();
+
+    dataDeposit.forEach((item: any) => {
+      if (seen1.has(item.Temp_SlipCntr)) {
+        item.Temp_SlipCntr = "";
+        item.Temp_SlipDate = "";
+      } else {
+        seen1.add(item.Temp_SlipCntr);
+        seen2.add(item.Temp_SlipDate);
+      }
     });
 
     const report = dataDeposit;
@@ -253,3 +251,5 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
 });
 
 export default DepositedCollection;
+
+

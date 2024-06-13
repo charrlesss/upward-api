@@ -9,6 +9,7 @@ import {
   findORnumber,
   getClientCheckedList,
   getCollections,
+  getDrCodeAndTitle,
   getSearchCollection,
   getTransactionBanksDetails,
   getTransactionBanksDetailsDebit,
@@ -187,6 +188,24 @@ Collection.post("/update-collection", async (req, res) => {
   }
 });
 
+Collection.post("/get-drcode-drtitle-from-collection", async (req, res) => {
+  try {
+    console.log(req.body);
+    const data = await getDrCodeAndTitle(req.body.code, req);
+    res.send({
+      message: "get DR Code and DR Title Collection Successfully!",
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: error.message,
+      success: false,
+    });
+  }
+});
+
 async function AddCollection(req: any) {
   const debit = JSON.parse(req.body.debit);
   const credit = JSON.parse(req.body.credit);
@@ -216,33 +235,23 @@ async function AddCollection(req: any) {
     let CRInvoiceNo = "";
 
     if (i <= debit.length - 1) {
-      const [transaction] = (await getTransactionBanksDetailsDebit(
-        debit[i].TC,
-        req
-      )) as Array<any>;
       Payment = debit[i].Payment;
       Debit = debit[i].Amount;
       CheckNo = debit[i].Check_No;
       CheckDate = debit[i].Check_Date;
       Bank = debit[i].Bank_Branch;
-      DRCode = transaction.Acct_Code;
-      DRTitle = transaction.Acct_Title;
+      DRCode = debit[i].Acct_Code;
+      DRTitle = debit[i].Acct_Title;
       SlipCode = debit[i].Deposit_Slip;
       DRCtr = debit[i].Cntr;
       DRRemarks = debit[i].Remarks;
     }
     if (i <= credit.length - 1) {
-      const { Acct_Code, Acct_Title } = (
-        (await TransactionAndChartAccount(
-          credit[i].transaction,
-          req
-        )) as Array<any>
-      )[0];
       Purpose = credit[i].transaction;
       Credit = credit[i].amount;
       CRRemarks = credit[i].Remarks;
-      CRCode = Acct_Code;
-      CRTitle = Acct_Title;
+      CRCode = credit[i].Code;
+      CRTitle = credit[i].Title;
       CRLoanID = credit[i].Account_No;
       CRLoanName = credit[i].Name;
       CRVatType = credit[i].VATType;
