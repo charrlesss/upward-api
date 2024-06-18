@@ -7,7 +7,6 @@ import {
   lastDayOfMonth,
 } from "date-fns";
 import { clients_view, qryJournal } from "./views";
-
 export function FinancialStatement(
   date: any,
   sub_acct: string,
@@ -1365,17 +1364,217 @@ export function CashDisbursementBook_CDB_GJB(
   const formattedDate = format(reportDate, "yyyy-MM-dd");
   const formattedMonthStart = format(startOfMonth(reportDate), "yyyy-MM-dd");
   const formattedMonthEnd = format(endOfMonth(reportDate), "yyyy-MM-dd");
-  const qryJournals = qryJournal();
+  const qryJournals = `
+  SELECT
+    date_format(a.Date_Entry,'%Y-%m-%d') as Date_Entry,
+    concat(a.Source_Type,' - ',a.Source_No) as nST,
+    a.Source_Type,
+    a.Source_No,
+    a.Explanation,
+    b.Acct_Code,
+    b.Acct_Title,
+    concat(c.Acronym,' - ',c.ShortName) as subAcct,
+    d.IDNo,
+    d.Shortname as Name,
+    a.Debit,
+    a.Credit,
+    a.TC
+    FROM 
+      upward_insurance_umis.cash_disbursement a 
+        left join upward_insurance_umis.chart_account b on a.GL_Acct = b.Acct_Code
+        left join sub_account c  on a.Sub_Acct = c.Sub_Acct
+        left join ( SELECT 
+        *
+    FROM
+        (
+          SELECT 
+          *
+      FROM
+          (SELECT 
+            "Client" as IDType,
+            aa.entry_client_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_client_id as client_id  
+            FROM
+              entry_client aa
+            union all
+            SELECT 
+            "Agent" as IDType,
+            aa.entry_agent_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_agent_id as client_id  
+            FROM
+              entry_agent aa
+            union all
+            SELECT 
+            "Employee" as IDType,
+            aa.entry_employee_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_employee_id as client_id
+            FROM
+              entry_employee aa
+            union all
+            SELECT 
+            "Supplier" as IDType,
+            aa.entry_supplier_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_supplier_id as client_id
+            FROM
+              entry_supplier aa
+            union all
+            SELECT 
+            "Fixed Assets" as IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+            aa.sub_account,
+            aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id as client_id
+            FROM
+              entry_fixed_assets aa
+            union all
+            SELECT 
+            "Others" as IDType,
+            aa.entry_others_id AS IDNo,
+            aa.sub_account,
+            aa.description AS Shortname,
+            aa.entry_others_id as client_id
+            FROM
+              entry_others aa) a
+      WHERE
+          a.IDNo NOT IN 
+          (SELECT IDNo FROM   policy GROUP BY IDNo) 
+      UNION ALL SELECT 
+              'Policy' AS IDType,
+              a.PolicyNo AS IDNo,
+              b.sub_account,
+              b.Shortname,
+              a.IDNo AS client_id
+      FROM
+            policy a
+      LEFT JOIN (SELECT 
+            "Client" as IDType,
+            aa.entry_client_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_client_id as client_id  
+            FROM
+              entry_client aa
+            union all
+            SELECT 
+            "Agent" as IDType,
+            aa.entry_agent_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_agent_id as client_id  
+            FROM
+              entry_agent aa
+            union all
+            SELECT 
+            "Employee" as IDType,
+            aa.entry_employee_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_employee_id as client_id
+            FROM
+              entry_employee aa
+            union all
+            SELECT 
+            "Supplier" as IDType,
+            aa.entry_supplier_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_supplier_id as client_id
+            FROM
+              entry_supplier aa
+            union all
+            SELECT 
+            "Fixed Assets" as IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+            aa.sub_account,
+            aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id as client_id
+            FROM
+              entry_fixed_assets aa
+            union all
+            SELECT 
+            "Others" as IDType,
+            aa.entry_others_id AS IDNo,
+            aa.sub_account,
+            aa.description AS Shortname,
+            aa.entry_others_id as client_id
+            FROM
+              entry_others aa) b ON a.IDNo = b.IDNo
+      WHERE
+          a.PolicyNo NOT IN 
+          (SELECT a.IDNo FROM (SELECT 
+            "Client" as IDType,
+            aa.entry_client_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_client_id as client_id  
+            FROM
+              entry_client aa
+            union all
+            SELECT 
+            "Agent" as IDType,
+            aa.entry_agent_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_agent_id as client_id  
+            FROM
+              entry_agent aa
+            union all
+            SELECT 
+            "Employee" as IDType,
+            aa.entry_employee_id AS IDNo,
+            aa.sub_account,
+            CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+            aa.entry_employee_id as client_id
+            FROM
+              entry_employee aa
+            union all
+            SELECT 
+            "Supplier" as IDType,
+            aa.entry_supplier_id AS IDNo,
+            aa.sub_account,
+            if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+            aa.entry_supplier_id as client_id
+            FROM
+              entry_supplier aa
+            union all
+            SELECT 
+            "Fixed Assets" as IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+            aa.sub_account,
+            aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id as client_id
+            FROM
+              entry_fixed_assets aa
+            union all
+            SELECT 
+            "Others" as IDType,
+            aa.entry_others_id AS IDNo,
+            aa.sub_account,
+            aa.description AS Shortname,
+            aa.entry_others_id as client_id
+            FROM
+              entry_others aa) a)
+      ) a) d on a.ID_No = d.IDNo
+        order by   a.Source_No ,RIGHT(b.Acct_Code, 2) asc 
+  `;
   if (dateFilterType === "Daily") {
     if (subAccount === "ALL") {
       strSQL = `
         SELECT qryJournal.* 
         FROM (${qryJournals}) qryJournal
         WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry = '${formattedDate}'
-        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+       
       `;
       strSubSQL = `
-        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, format(SUM(IFNULL(Debit, 0)),2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
         FROM Journal 
         LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
         WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry = '${formattedDate}'
@@ -1388,10 +1587,10 @@ export function CashDisbursementBook_CDB_GJB(
         SELECT qryJournal.* 
         FROM (${qryJournals}) qryJournal
         WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry = '${formattedDate}' AND TRIM(qryJournal.Area) = '${subAccount}'
-        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+       
       `;
       strSubSQL = `
-        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
         FROM Journal 
         LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
         WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry = '${formattedDate}' AND TRIM(Journal.Area) = '${subAccount}'
@@ -1406,10 +1605,10 @@ export function CashDisbursementBook_CDB_GJB(
         SELECT qryJournal.* 
         FROM (${qryJournals}) qryJournal
         WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}'
-        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
+       
       `;
       strSubSQL = `
-        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, format(SUM(IFNULL(Debit, 0)),2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
         FROM Journal 
         LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
         WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}'
@@ -1422,10 +1621,9 @@ export function CashDisbursementBook_CDB_GJB(
         SELECT qryJournal.* 
         FROM (${qryJournals}) qryJournal
         WHERE qryJournal.Source_Type = '${sourceType}' AND qryJournal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}' AND TRIM(qryJournal.Area) = '${subAccount}'
-        ORDER BY qryJournal.Date_Entry, qryJournal.Source_No, qryJournal.mDebit ${sortOrder}
       `;
       strSubSQL = `
-        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+        SELECT Journal.GL_Acct, ChartAccount.Acct_Title AS Title, format(SUM(IFNULL(Debit, 0)),2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
         FROM Journal 
         LEFT JOIN Chart_Account ChartAccount ON Journal.GL_Acct = ChartAccount.Acct_Code 
         WHERE Journal.Source_Type = '${sourceType}' AND Journal.Date_Entry BETWEEN '${formattedMonthStart}' AND '${formattedMonthEnd}' AND TRIM(Journal.Area) = '${subAccount}'
@@ -1435,6 +1633,18 @@ export function CashDisbursementBook_CDB_GJB(
       `;
     }
   }
+
+  strSQL = `
+    select 
+        *,
+      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_No END AS nSource_No,
+      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_Type END AS nSource_Type,
+      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Date_Entry END AS nDate_Entry,
+      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Explanation END AS nExplanation,
+      CASE WHEN @prev_source_no = a.Source_No THEN 0 ELSE 1 END AS nHeader,
+      @prev_source_no := a.Source_No AS prev_source_no
+    from (${strSQL}) a
+  `
   return { strSQL, strSubSQL };
 }
 export function ProductionBook(

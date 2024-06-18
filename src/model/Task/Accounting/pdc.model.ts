@@ -67,7 +67,9 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
       a.sub_account,
       a.Shortname as Name,
       a.client_id,
-      a.ShortName as sub_shortname
+      a.ShortName as sub_shortname,
+      b.ShortName,
+      b.Acronym
     FROM
         (
           SELECT 
@@ -90,11 +92,14 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
           a.PolicyNo NOT IN 
           (SELECT a.IDNo FROM (${selectClient}) a)
       ) a
+      left join sub_account b on a.sub_account = b.Sub_Acct
     WHERE
       a.IDNo LIKE '%${search}%'
       OR a.Shortname LIKE '%${search}%'
     ORDER BY a.Shortname
     LIMIT 50`;
+
+    console.log(qry)
 
   return await prisma.$queryRawUnsafe(qry);
 }
