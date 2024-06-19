@@ -7,7 +7,8 @@ export async function generatePettyCashID(req: Request) {
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
-        concat(DATE_FORMAT(NOW(), '%y%m'),'-', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as petty_cash_id   
+       concat(DATE_FORMAT(NOW(), '%y%m'),'-',if(concat(a.year,a.month) <> DATE_FORMAT(NOW(), '%y%m'),'001',
+      concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1))) as petty_cash_id  
       FROM
           id_sequence a
       WHERE

@@ -93,7 +93,7 @@ Deposit.post("/add-deposit", async (req, res) => {
       });
     }
     addDeposit(req);
-    let parts = req.body.depositSlip.split(".");
+    let parts = req.body.depositSlip.split("-");
     let firstPart = parts[0].slice(0, 2);
     let secondPart = parts[0].slice(2);
     updateDepositIDSequence(
@@ -220,7 +220,6 @@ Deposit.post("/update-deposit", async (req, res) => {
     await deleteCashBreakDown(req.body.depositSlip, req);
     await deleteJournalFromDeposit(req.body.depositSlip, req);
     await addDeposit(req);
-    // await saveUserLogs(req, req.body.depositSlip, "edit", "Deposit");
     res.send({
       message: "Successfully Update Deposit.",
       success: true,

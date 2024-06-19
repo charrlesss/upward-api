@@ -107,7 +107,7 @@ Collection.post("/add-collection", async (req, res) => {
     AddCollection(req);
     await updateCollectionIDSequence(
       {
-        last_count: req.body.ORNo.split(".")[1],
+        last_count: req.body.ORNo,
         year: req.body.ORNo.split(".")[0].slice(0, 2),
         month: req.body.ORNo.split(".")[0].slice(-2),
       },

@@ -99,9 +99,9 @@ PDC.post("/add-pdc", async (req, res) => {
     await UpdateId("pdc-chk", newId.split("-")[1], month, year, req);
     await UpdateId(
       "pdc",
-      req.body.Ref_No.split(".")[1],
-      "",
-      req.body.Ref_No.split(".")[0],
+      req.body.Ref_No.split("-")[1],
+      req.body.Ref_No.split("-")[0].substring(2),
+      req.body.Ref_No.split("-")[0].substring(0, 2),
       req
     );
     const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
@@ -125,6 +125,7 @@ PDC.post("/add-pdc", async (req, res) => {
       PdcId: newPdcId,
     });
   } catch (error: any) {
+    console.log(error.message);
     res.send({ message: error.message, success: false, PdcId: null });
   }
 });
@@ -154,7 +155,7 @@ PDC.post("/update-pdc", async (req, res) => {
     await deletePdcByRefNo(req.body.Ref_No, req);
     const checks = JSON.parse(req.body.checks);
     let num = 0;
-    const id = await IDGenerator("pdc", "pdc",req);
+    const id = await IDGenerator("pdc", "pdc", req);
     const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
     const year = id.split("-")[1].slice(2, id.split("-")[1].length);
     const count = id.split("-")[2];
@@ -227,7 +228,7 @@ PDC.post("/update-pdc", async (req, res) => {
       req
     );
 
-    await UpdateId("pdc", newId, month, year,req);
+    await UpdateId("pdc", newId, month, year, req);
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
     res.send({ message: error.message, success: false });

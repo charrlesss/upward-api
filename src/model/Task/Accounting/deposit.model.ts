@@ -140,11 +140,11 @@ export async function depositIDSlipCodeGenerator(req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-      concat(a.year,a.month,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as collectionID
+      concat(DATE_FORMAT(NOW(), '%y%m'),'-',if(concat(a.year,a.month) <> DATE_FORMAT(NOW(), '%y%m'),'001',concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1))) as collectionID   
     FROM
             id_sequence a
     WHERE
-      type = 'deposit';`);
+      type = 'deposit'`);
 }
 export async function findDepositBySlipCode(Slip_Code: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
@@ -219,8 +219,11 @@ export async function updateDepositIDSequence(data: any, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-      update      id_sequence a
-      set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
+      update  id_sequence a
+      set 
+        a.last_count = '${data.last_count}',
+        a.year = DATE_FORMAT(NOW(), '%y'),
+        a.month = DATE_FORMAT(NOW(), '%m')
       where a.type ='deposit'
     `);
 }

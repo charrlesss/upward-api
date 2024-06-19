@@ -144,7 +144,9 @@ export async function collectionIDGenerator(req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-      concat(a.year,a.month,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as collectionID
+      if(concat(a.year,a.month) <> DATE_FORMAT(NOW(), '%y%m'),'000001',
+      concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1)) as collectionID 
+
     FROM
         id_sequence a
     WHERE
@@ -156,7 +158,10 @@ export async function updateCollectionIDSequence(data: any, req: Request) {
 
   return await prisma.$queryRawUnsafe(`
       update  id_sequence a
-      set a.last_count = '${data.last_count}', a.year= '${data.year}', a.month= '${data.month}'
+      set 
+        a.last_count = '${data.last_count}',
+        a.year = DATE_FORMAT(NOW(), '%y'),
+        a.month = DATE_FORMAT(NOW(), '%m')
       where a.type ='collection'
     `);
 }

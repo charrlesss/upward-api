@@ -99,7 +99,7 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
     ORDER BY a.Shortname
     LIMIT 50`;
 
-    console.log(qry)
+  console.log(qry);
 
   return await prisma.$queryRawUnsafe(qry);
 }
@@ -216,7 +216,7 @@ export async function pdcIDGenerator(req: Request) {
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
-    concat(a.year,'.', LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as pdcID
+    concat(DATE_FORMAT(NOW(), '%y%m'),'-',if(concat(a.year,a.month) <> DATE_FORMAT(NOW(), '%y%m'),'0001',concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1))) as pdcID   
   FROM
       id_sequence a
   WHERE

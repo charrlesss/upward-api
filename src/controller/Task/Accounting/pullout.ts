@@ -86,10 +86,10 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
         success: false,
       });
     }
-    
+
     const subtitle = `
     <h3>Check storage pullout</h3>
-    <h3>Cancel Request</h3>
+    <h3>Pullout Request</h3>
     `;
     const approvalCode = generateRandomNumber(6);
     const { RCPNo, PNNo, reason, selected } = req.body;
@@ -98,16 +98,19 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
     const Requested_By = user?.Username;
     const Requested_Date = new Date();
     text = getSelectedCheck(selected);
-    await createPulloutRequest({
-      RCPNo: RCPNo,
-      PNNo: PNNo,
-      Reason: reason,
-      Status: "PENDING",
-      Requested_By: user?.Username,
-      Branch: "HO",
-      Requested_Date: new Date(),
-    }, req);
-    await createPulloutRequestDetailsFunc(selected, RCPNo,req);
+    await createPulloutRequest(
+      {
+        RCPNo: RCPNo,
+        PNNo: PNNo,
+        Reason: reason,
+        Status: "PENDING",
+        Requested_By: user?.Username,
+        Branch: "HO",
+        Requested_Date: new Date(),
+      },
+      req
+    );
+    await createPulloutRequestDetailsFunc(selected, RCPNo, req);
     await updateAnyId("pullout", req);
     await sendRequestEmail({
       ...req.body,
@@ -121,14 +124,17 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       "pullout_auth_codes",
       "pullout_auth_codes_id"
     );
-    await insertApprovalCode({
-      pullout_auth_codes_id,
-      RCPN: RCPNo,
-      For_User: "['LVA_ancar@yahoo.com','upwardclaims@yahoo.com']",
-      Approved_Code: approvalCode.toString(),
-      Disapproved_Code: "",
-    }, req);
-    await saveUserLogs(req, RCPNo, "add","Pullout");
+    await insertApprovalCode(
+      {
+        pullout_auth_codes_id,
+        RCPN: RCPNo,
+        For_User: "['LVA_ancar@yahoo.com','upwardclaims@yahoo.com']",
+        Approved_Code: approvalCode.toString(),
+        Disapproved_Code: "",
+      },
+      req
+    );
+    await saveUserLogs(req, RCPNo, "add", "Pullout");
     res.send({
       message: "Save Successfully",
       success: true,
@@ -172,7 +178,7 @@ PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
 
     await updatePulloutRequest({ Status: "CANCEL" }, RCPNo, req);
     await updatePulloutRequestDetails(RCPNo, req);
-    await saveUserLogs(req, RCPNo, "cancel request","Pullout");
+    await saveUserLogs(req, RCPNo, "cancel request", "Pullout");
     res.send({
       message: `Cancel Request ${RCPNo} Successfully`,
       success: true,
@@ -183,7 +189,6 @@ PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
   }
 });
 PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
-  
   try {
     const { onEditSearch: search } = req.query;
     res.send({
@@ -208,7 +213,6 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     });
   }
 
-
   try {
     const { RCPNo, PNNo, client, reason, code, selected, approvedMode } =
       req.body;
@@ -219,7 +223,11 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
         success: false,
       });
     }
-    const check_request = (await existApprovalCode(RCPNo, code, req)) as Array<any>;
+    const check_request = (await existApprovalCode(
+      RCPNo,
+      code,
+      req
+    )) as Array<any>;
 
     if (check_request.length <= 0)
       return res.send({
@@ -240,7 +248,12 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     });
     await approvedPullout(RCPNo, user?.Username as string, isApproved, req);
     await updateApprovalCode(RCPNo, code, user?.Username as string, req);
-    await saveUserLogs(req, RCPNo, `${isApproved ? "approved" :"disapproved"} request`,"Pullout");
+    await saveUserLogs(
+      req,
+      RCPNo,
+      `${isApproved ? "approved" : "disapproved"} request`,
+      "Pullout"
+    );
     res.send({
       message: `RCP No. ${RCPNo} Approved Successfuly`,
       success: true,
@@ -265,7 +278,7 @@ PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
 async function createPulloutRequestDetailsFunc(
   selected: string,
   RCPNo: string,
-  req:Request
+  req: Request
 ) {
   JSON.parse(selected).forEach(async (item: any) => {
     const PRD_ID = await generateUniqueUUID(
@@ -275,11 +288,14 @@ async function createPulloutRequestDetailsFunc(
     if (
       !["APPROVED", "PENDING", "CANCEL", "DISAPPROVED"].includes(item.Status)
     ) {
-      await createPulloutRequestDetails({
-        RCPNo: RCPNo,
-        CheckNo: item.Check_No,
-        PRD_ID,
-      }, req);
+      await createPulloutRequestDetails(
+        {
+          RCPNo: RCPNo,
+          CheckNo: item.Check_No,
+          PRD_ID,
+        },
+        req
+      );
     }
   });
 }
