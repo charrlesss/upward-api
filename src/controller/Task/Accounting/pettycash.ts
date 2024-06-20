@@ -138,7 +138,7 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
     await addJournalFromPettyCash(
       {
         Branch_Code: "HO",
-        Date_Entry: payee,
+        Date_Entry: datePetty,
         Source_Type: "PC",
         Source_No: refNo,
         Explanation: explanation,

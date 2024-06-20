@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { PrismaList } from "../../connection";
+import { Prisma } from "@prisma/client";
 const { CustomPrismaClient } = PrismaList();
 
 export async function getTPL_IDS(search: string, req: Request) {
@@ -16,6 +17,26 @@ export async function getTPL_IDS(search: string, req: Request) {
           AND Credit > 0
           AND Remarks IS NULL 
           AND Source_No like '%${search}%'
+  GROUP BY Source_No_Ref_ID
+  ORDER BY Source_No ASC
+  `);
+}
+
+export async function getRateFromTPLUpdate(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  return await prisma.$queryRawUnsafe(`
+  SELECT 
+      MIN(Source_No) AS Source_No,
+      MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
+      Source_No_Ref_ID
+  FROM
+      journal
+  WHERE
+          Explanation = 'CTPL Registration'
+          AND Credit > 0
+          AND Remarks IS NULL 
+          AND Source_No = '${Source_No}'
   GROUP BY Source_No_Ref_ID
   ORDER BY Source_No ASC
   `);
@@ -173,6 +194,21 @@ export async function deleteJournalBySource(
   where 
   Source_No = '${source_no}' 
   and Source_Type = '${source_type}'
+  `;
+  return await prisma.$queryRawUnsafe(query);
+}
+
+export async function deleteTPLFromJournalBySource(
+  source_no: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  const query = `
+  delete from journal 
+  where 
+  Source_No = '${source_no}' 
+  and Source_Type = 'GL'
+  and Explanation <> 'CTPL Registration'
   `;
   return await prisma.$queryRawUnsafe(query);
 }
@@ -357,10 +393,29 @@ export async function searchDataVPolicy(
            ? "left(a.PolicyNo,3) = 'TP-'and"
            : "left(a.PolicyNo,3) != 'TP-' and"
        }
-       (a.PolicyNo like '%${search}%' or
-       c.firstname like '%${search}%' or 
-       c.lastname like '%${search}%')
+       (
+          a.PolicyNo like '%${search}%' or
+          c.firstname like '%${search}%' or 
+          c.lastname like '%${search}%'
+       )
     ORDER BY a.DateIssued desc
     LIMIT 100 
   `);
+}
+
+export async function getCostByTPL(Source_No: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  return await prisma.$queryRawUnsafe(`
+       SELECT 
+				  (Source_No) AS Source_No,
+				  (CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
+				  Source_No_Ref_ID
+			  FROM
+				  journal
+			  WHERE
+					  Explanation = 'CTPL Registration'
+					  AND Credit > 0
+            AND Source_No = '${Source_No}'
+      `);
 }

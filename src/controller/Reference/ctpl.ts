@@ -107,7 +107,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
         {
           Source_No: _sourceNo,
           Branch_Code: "HO",
-          Date_Entry: new Date().toLocaleDateString(),
+          Date_Entry: `${new Date()}`,
           Source_Type: "GL",
           Explanation: "CTPL Registration",
           GL_Acct: "1.04.01",
@@ -124,7 +124,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
         {
           Source_No: _sourceNo,
           Branch_Code: "HO",
-          Date_Entry: new Date().toLocaleDateString(),
+          Date_Entry: `${new Date()}`,
           Source_Type: "GL",
           Explanation: "CTPL Registration",
           GL_Acct: "1.04.01",

@@ -330,7 +330,7 @@ async function AddCollection(req: any) {
     await createJournal(
       {
         Branch_Code: "HO",
-        Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
+        Date_Entry: req.body.Date,
         Source_Type: "OR",
         Source_No: req.body.ORNo.toUpperCase(),
         Explanation: `${Payment} Collection at Head Office`,
@@ -365,7 +365,7 @@ async function AddCollection(req: any) {
     await createJournal(
       {
         Branch_Code: "HO",
-        Date_Entry: format(new Date(req.body.Date), "yyyy-MM-dd"),
+        Date_Entry: req.body.Date,
         Source_Type: "OR",
         Source_No: req.body.ORNo.toUpperCase(),
         GL_Acct: CRCode,
