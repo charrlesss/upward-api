@@ -11,9 +11,9 @@ CashDisbursementBookCDB.post(
     try {
       const qry = CashDisbursementBook_CDB_GJB(
         "Cash Disbursement Book - CDB",
-        "ALL",
-        new Date(),
-        "Monthly",
+        req.body.sub_acct.toUpperCase(),
+        new Date(req.body.date),
+        req.body.dateFormat,
         "ASC"
       );
       function customReplacer(key: string, value: any) {
@@ -25,6 +25,7 @@ CashDisbursementBookCDB.post(
 
       const jsonString = JSON.stringify(data, customReplacer);
       const report = JSON.parse(jsonString);
+      const summary: Array<any> = [];
 
       const Debit = report
         .reduce((a: number, item: any) => {
@@ -52,7 +53,31 @@ CashDisbursementBookCDB.post(
           maximumFractionDigits: 2,
         });
 
-      report.push({
+        summary.push({
+          Date_Entry: "",
+          nST: "",
+          Source_Type: "",
+          Source_No: "",
+          Explanation: "",
+          Acct_Code: "",
+          Acct_Title: "",
+          subAcct: "",
+          IDNo: "",
+          Name: "",
+          Debit: "",
+          Credit: "",
+          TC: "",
+          nSource_No: "",
+          nSource_Type: "",
+          nDate_Entry: "",
+          nExplanation: "",
+          nHeader: "",
+          prev_source_no: "",
+          summaryReport: true,
+          summaryReportExtraHeight: 0,
+        });
+
+      summary.push({
         Date_Entry: "",
         nST: "",
         Source_Type: "",
@@ -75,7 +100,7 @@ CashDisbursementBookCDB.post(
         mainTotal: true,
       });
 
-      report.push({
+      summary.push({
         Date_Entry: "",
         nST: "",
         Source_Type: "",
@@ -98,7 +123,7 @@ CashDisbursementBookCDB.post(
         summary: true,
       });
 
-      report.push({
+      summary.push({
         Date_Entry: "",
         nST: "",
         Source_Type: "",
@@ -122,7 +147,7 @@ CashDisbursementBookCDB.post(
       });
 
       dataSumm.forEach((item: any) => {
-        report.push({
+        summary.push({
           Date_Entry: "",
           nST: "",
           Source_Type: "",
@@ -171,7 +196,9 @@ CashDisbursementBookCDB.post(
           maximumFractionDigits: 2,
         });
 
-      report.push({
+
+
+      summary.push({
         Date_Entry: "",
         nST: "",
         Source_Type: "",
@@ -198,7 +225,8 @@ CashDisbursementBookCDB.post(
         message: "Successfully Get Report",
         success: true,
         qry,
-        report,
+        report: report.concat(summary),
+        summary
       });
     } catch (err: any) {
       console.log(err.message);

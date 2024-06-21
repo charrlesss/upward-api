@@ -1370,8 +1370,8 @@ export function CashDisbursementBook_CDB_GJB(
         a.Credit,
         a.TC
         FROM 
-          upward_insurance_umis.cash_disbursement a 
-            left join upward_insurance_umis.chart_account b on a.GL_Acct = b.Acct_Code
+          cash_disbursement a 
+            left join chart_account b on a.GL_Acct = b.Acct_Code
             left join sub_account c  on a.Sub_Acct = c.Sub_Acct
             left join ( SELECT 
             *
@@ -1575,7 +1575,7 @@ export function CashDisbursementBook_CDB_GJB(
       FROM (
       select * from journal
       ) a 
-      left join upward_insurance_umis.chart_account b on a.GL_Acct = b.Acct_Code
+      left join chart_account b on a.GL_Acct = b.Acct_Code
       left join ( SELECT 
               *
           FROM
@@ -1848,9 +1848,11 @@ export function CashDisbursementBook_CDB_GJB(
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_Type END AS nSource_Type,
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Date_Entry END AS nDate_Entry,
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Explanation END AS nExplanation,
-      CASE WHEN @prev_source_no = a.Source_No THEN 0 ELSE 1 END AS nHeader,
+      CASE WHEN @prev_source_no = a.Source_No THEN '0' ELSE '1' END AS nHeader,
       @prev_source_no := a.Source_No AS prev_source_no
-    from (${strSQL}) a
+    from
+    (SELECT @prev_source_no := NULL) AS init
+    JOIN (${strSQL}) a
   `;
   return { strSQL, strSubSQL };
 }
@@ -1873,7 +1875,7 @@ export function CashDisbursementBook_GJB(
         a.Explanation,
         b.Acct_Code,
         b.Acct_Title,
-        concat(a.Sub_Acct,' - ',a.cSub_Acct) as subAcct,	
+        concat(e.Acronym,' - ',e.ShortName) as subAcct,	
         d.IDNo,
         d.Shortname as Name,
         format(a.Debit,2) as Debit,
@@ -1882,7 +1884,7 @@ export function CashDisbursementBook_GJB(
       FROM (
       select * from journal
       ) a 
-      left join upward_insurance_umis.chart_account b on a.GL_Acct = b.Acct_Code
+      left join chart_account b on a.GL_Acct = b.Acct_Code
       left join ( SELECT 
               *
           FROM
@@ -2063,7 +2065,7 @@ export function CashDisbursementBook_GJB(
                   FROM
                     entry_others aa) a)
             ) a) d on a.ID_No = d.IDNo
-    
+      left join sub_account e on e.Sub_Acct = d.sub_account
       `;
 
   const formattedDate = format(reportDate, "yyyy-MM-dd");
@@ -2143,12 +2145,14 @@ export function CashDisbursementBook_GJB(
     select 
         *,
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_No END AS nSource_No,
-      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_Type END AS nSource_Type,
+      CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE 'JV' END AS nSource_Type,
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE date_format( a.Date_Entry,'%m-%d-%Y') END AS nDate_Entry,
       CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Explanation END AS nExplanation,
-      CASE WHEN @prev_source_no = a.Source_No THEN 0 ELSE 1 END AS nHeader,
+      CASE WHEN @prev_source_no = a.Source_No THEN '0' ELSE '1' END AS nHeader,
       @prev_source_no := a.Source_No AS prev_source_no
-    from (${strSQL}) a
+    from 
+    (SELECT @prev_source_no := NULL) AS init
+    JOIN (${strSQL}) a
     ORDER BY 
   a.Date_Entry, a.Source_No, a.Debit
   `;
@@ -2189,16 +2193,224 @@ export function ProductionBook(
   }
 
   // SQL queries
-  const strSQL = `
-      SELECT a.DateIssued, a.PolicyNo, b.Explanation, b.GL_Acct, b.cGL_Acct, 
-             CONCAT(Sub_Acct, ' ', cSub_Acct) AS SubAcct, b.cID_No, b.Debit, b.Credit, b.TC 
+  let strSQL = `
+      SELECT 
+          date_format(a.DateIssued,'%m-%d-%Y') as DateIssued, 
+          a.PolicyNo, 
+          b.Explanation, 
+          e.Acct_Code, 
+          e.Short, 
+          CONCAT(d.Acronym, ' - ', d.ShortName) AS SubAcct, 
+          c.Shortname, 
+          format(b.Debit,2) as Debit, 
+          format(b.Credit,2) as Credit, 
+          b.TC
       FROM Policy a
-      INNER JOIN Journal b ON b.ID_No = a.PolicyNo
+      LEFT JOIN Journal b ON b.ID_No = a.PolicyNo
+       left join ( SELECT 
+              *
+          FROM
+              (
+                SELECT 
+                *
+            FROM
+                (SELECT 
+                  "Client" as IDType,
+                  aa.entry_client_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_client_id as client_id  
+                  FROM
+                    entry_client aa
+                  union all
+                  SELECT 
+                  "Agent" as IDType,
+                  aa.entry_agent_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_agent_id as client_id  
+                  FROM
+                    entry_agent aa
+                  union all
+                  SELECT 
+                  "Employee" as IDType,
+                  aa.entry_employee_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_employee_id as client_id
+                  FROM
+                    entry_employee aa
+                  union all
+                  SELECT 
+                  "Supplier" as IDType,
+                  aa.entry_supplier_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_supplier_id as client_id
+                  FROM
+                    entry_supplier aa
+                  union all
+                  SELECT 
+                  "Fixed Assets" as IDType,
+                  aa.entry_fixed_assets_id AS IDNo,
+                  aa.sub_account,
+                  aa.fullname AS Shortname,
+                  aa.entry_fixed_assets_id as client_id
+                  FROM
+                    entry_fixed_assets aa
+                  union all
+                  SELECT 
+                  "Others" as IDType,
+                  aa.entry_others_id AS IDNo,
+                  aa.sub_account,
+                  aa.description AS Shortname,
+                  aa.entry_others_id as client_id
+                  FROM
+                    entry_others aa) a
+            WHERE
+                a.IDNo NOT IN 
+                (SELECT IDNo FROM   policy GROUP BY IDNo) 
+            UNION ALL SELECT 
+                    'Policy' AS IDType,
+                    a.PolicyNo AS IDNo,
+                    b.sub_account,
+                    b.Shortname,
+                    a.IDNo AS client_id
+            FROM
+                  policy a
+            LEFT JOIN (SELECT 
+                  "Client" as IDType,
+                  aa.entry_client_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_client_id as client_id  
+                  FROM
+                    entry_client aa
+                  union all
+                  SELECT 
+                  "Agent" as IDType,
+                  aa.entry_agent_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_agent_id as client_id  
+                  FROM
+                    entry_agent aa
+                  union all
+                  SELECT 
+                  "Employee" as IDType,
+                  aa.entry_employee_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_employee_id as client_id
+                  FROM
+                    entry_employee aa
+                  union all
+                  SELECT 
+                  "Supplier" as IDType,
+                  aa.entry_supplier_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_supplier_id as client_id
+                  FROM
+                    entry_supplier aa
+                  union all
+                  SELECT 
+                  "Fixed Assets" as IDType,
+                  aa.entry_fixed_assets_id AS IDNo,
+                  aa.sub_account,
+                  aa.fullname AS Shortname,
+                  aa.entry_fixed_assets_id as client_id
+                  FROM
+                    entry_fixed_assets aa
+                  union all
+                  SELECT 
+                  "Others" as IDType,
+                  aa.entry_others_id AS IDNo,
+                  aa.sub_account,
+                  aa.description AS Shortname,
+                  aa.entry_others_id as client_id
+                  FROM
+                    entry_others aa) b ON a.IDNo = b.IDNo
+            WHERE
+                a.PolicyNo NOT IN 
+                (SELECT a.IDNo FROM (SELECT 
+                  "Client" as IDType,
+                  aa.entry_client_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_client_id as client_id  
+                  FROM
+                    entry_client aa
+                  union all
+                  SELECT 
+                  "Agent" as IDType,
+                  aa.entry_agent_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_agent_id as client_id  
+                  FROM
+                    entry_agent aa
+                  union all
+                  SELECT 
+                  "Employee" as IDType,
+                  aa.entry_employee_id AS IDNo,
+                  aa.sub_account,
+                  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+                  aa.entry_employee_id as client_id
+                  FROM
+                    entry_employee aa
+                  union all
+                  SELECT 
+                  "Supplier" as IDType,
+                  aa.entry_supplier_id AS IDNo,
+                  aa.sub_account,
+                  if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+                  aa.entry_supplier_id as client_id
+                  FROM
+                    entry_supplier aa
+                  union all
+                  SELECT 
+                  "Fixed Assets" as IDType,
+                  aa.entry_fixed_assets_id AS IDNo,
+                  aa.sub_account,
+                  aa.fullname AS Shortname,
+                  aa.entry_fixed_assets_id as client_id
+                  FROM
+                    entry_fixed_assets aa
+                  union all
+                  SELECT 
+                  "Others" as IDType,
+                  aa.entry_others_id AS IDNo,
+                  aa.sub_account,
+                  aa.description AS Shortname,
+                  aa.entry_others_id as client_id
+                  FROM
+                    entry_others aa) a)
+            ) a) c on a.PolicyNo = c.IDNo
+      left join sub_account d on d.Sub_Acct = c.sub_account 
+      left join chart_account e on b.GL_Acct = e.Acct_Code
       WHERE Source_Type IN ('PL') AND b.cID_No <> 'S P O I L T' 
       ${sWhere} ${sSort}`;
 
+      strSQL = `
+    select 
+        *,
+      CASE WHEN @prev_source_no = a.PolicyNo THEN '' ELSE a.DateIssued END AS nDate_Entry,
+      CASE WHEN @prev_source_no = a.PolicyNo THEN '' ELSE a.PolicyNo END AS nSource_No,
+      CASE WHEN @prev_source_no = a.PolicyNo THEN '' ELSE a.Explanation END AS nExplanation,
+      CASE WHEN @prev_source_no = a.PolicyNo THEN '0' ELSE '1' END AS nHeader,
+      @prev_source_no := a.PolicyNo AS prev_source_no
+    from 
+     (SELECT @prev_source_no := NULL) AS init
+    JOIN (${strSQL}) a
+    
+    `
+
   const strSubSQL = `
-      SELECT b.cGL_Acct, SUM(b.Debit) AS Debit, SUM(b.Credit) AS Credit 
+      SELECT 
+      b.cGL_Acct, 
+      format(SUM(b.Debit),2) AS Debit, 
+      format(SUM(b.Credit),2) AS Credit 
       FROM Policy a
       INNER JOIN Journal b ON b.ID_No = a.PolicyNo
       WHERE Source_Type IN ('PL') AND b.cID_No <> 'S P O I L T' 
