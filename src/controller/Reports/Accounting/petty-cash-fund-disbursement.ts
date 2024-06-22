@@ -9,10 +9,12 @@ PettyCashFundDisbursements.post(
   "/petty-cash-fund-disbursement",
   async (req, res) => {
     try {
-      const qry = PettyCashFundDisbursement("ALL", "2406-001", "2406-009");
+      const qry = PettyCashFundDisbursement("ALL", "2406-001", "2406-029");
 
       const dataCash: any = await prisma.$queryRawUnsafe(qry.dtPettyCashQuery);
       const dataSumm: any = await prisma.$queryRawUnsafe(qry.dtSummaryQuery);
+      const summary: Array<any> = [];
+
       const Debit = dataCash
         .reduce((a: number, item: any) => {
           let num = 0;
@@ -39,7 +41,21 @@ PettyCashFundDisbursements.post(
           maximumFractionDigits: 2,
         });
 
-      dataCash.push({
+      summary.push({
+        DT: "",
+        Payee: "",
+        particulars: "",
+        transaction: "",
+        identity: "",
+        DRShort: "",
+        Debit: "",
+        CRShort: "",
+        Credit: "",
+        summaryReport: true,
+        summaryReportExtraHeight: 0,
+      });
+
+      summary.push({
         DT: "",
         Payee: "",
         particulars: "",
@@ -52,7 +68,7 @@ PettyCashFundDisbursements.post(
         total: true,
       });
 
-      dataCash.push({
+      summary.push({
         DT: "",
         Payee: "",
         particulars: "SUMMARY:",
@@ -65,7 +81,7 @@ PettyCashFundDisbursements.post(
         summary: true,
       });
 
-      dataCash.push({
+      summary.push({
         DT: "",
         Payee: "",
         particulars: "",
@@ -88,7 +104,7 @@ PettyCashFundDisbursements.post(
         if (!isNaN(parseFloat(itm.mCredit?.toString().replace(/,/g, "")))) {
           mCredit = parseFloat(itm.mCredit?.toString().replace(/,/g, ""));
         }
-        dataCash.push({
+        summary.push({
           DT: "",
           Payee: "",
           particulars: "",
@@ -133,7 +149,7 @@ PettyCashFundDisbursements.post(
           maximumFractionDigits: 2,
         });
 
-      dataCash.push({
+      summary.push({
         DT: "",
         Payee: "",
         particulars: "",
@@ -147,7 +163,7 @@ PettyCashFundDisbursements.post(
         footer: true,
       });
 
-      dataCash.push({
+      summary.push({
         DT: "",
         Payee: "",
         particulars: "",
@@ -164,7 +180,8 @@ PettyCashFundDisbursements.post(
       res.send({
         message: "Successfully Get Report",
         success: true,
-        report: dataCash,
+        report: dataCash.concat(summary),
+        summary,
         qry,
       });
     } catch (err: any) {
