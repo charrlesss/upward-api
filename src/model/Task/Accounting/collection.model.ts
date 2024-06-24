@@ -32,6 +32,8 @@ export async function getClientCheckedList(
     ORDER BY a.Check_Date
     LIMIT 500
     `;
+
+    console.log('check list -',query)
   return await prisma.$queryRawUnsafe(query);
 }
 

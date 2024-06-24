@@ -7,16 +7,18 @@ const prisma = new PrismaClient();
 
 DepositedCollection.post("/deposited-collection-report", async (req, res) => {
   try {
+ 
     const { queryDeposit, queryJournal } = DepositedCollections(
-      "Monthly",
-      "ALL",
-      new Date(),
+      req.body.dateFormat,
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
       "Ascending"
     );
 
     const dataDeposit: any = await prisma.$queryRawUnsafe(queryDeposit);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
-    
+    const summary: Array<any> = [];
+
     dataDeposit.push({
       Temp_SlipCntr: "",
       Temp_SlipDate: "",
@@ -85,7 +87,29 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       total: true,
     });
 
-    dataDeposit.push({
+    summary.push({
+      Temp_SlipCntr: "",
+      Temp_SlipDate: "",
+      Temp_SlipCode: "",
+      Date_Deposit: "",
+      Slip_Code: "",
+      Account_ID: "",
+      IDNo: "",
+      Bank: "",
+      cCheck_No: "",
+      Debit: "",
+      Credit: "",
+      Ref_No: "",
+      Type: "",
+      Check_Date: "",
+      Rpt: "",
+      Account_Name: "",
+      acct_name: "",
+      summaryReport: true,
+      summaryReportExtraHeight: 0,
+    });
+
+    summary.push({
       Temp_SlipCntr: "",
       Temp_SlipDate: "",
       Temp_SlipCode: "",
@@ -106,7 +130,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       summary: true,
     });
 
-    dataDeposit.push({
+    summary.push({
       Temp_SlipCntr: "",
       Temp_SlipDate: "",
       Temp_SlipCode: "",
@@ -129,7 +153,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
     });
 
     dataJournal.forEach((itm: any) => {
-      dataDeposit.push({
+      summary.push({
         Temp_SlipCntr: "",
         Temp_SlipDate: "",
         Temp_SlipCode: "",
@@ -177,7 +201,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
         maximumFractionDigits: 2,
       });
 
-    dataDeposit.push({
+    summary.push({
       Temp_SlipCntr: "",
       Temp_SlipDate: "",
       Temp_SlipCode: "",
@@ -198,7 +222,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       summ: true,
       footer: true,
     });
-    dataDeposit.push({
+    summary.push({
       Temp_SlipCntr: "",
       Temp_SlipDate: "",
       Temp_SlipCode: "",
@@ -208,7 +232,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       IDNo: "Prepared:",
       Bank: "Checked:",
       cCheck_No: "Approved:",
-      Debit: '',
+      Debit: "",
       Credit: "",
       Ref_No: "",
       Type: "",
@@ -233,12 +257,15 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       }
     });
 
-    const report = dataDeposit;
+    const report = dataDeposit.concat(summary);
 
     res.send({
       message: "Successfully Get Report",
       success: true,
       report,
+      summary,
+      queryDeposit,
+      queryJournal,
     });
   } catch (err: any) {
     console.log(err.message);
@@ -251,5 +278,3 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
 });
 
 export default DepositedCollection;
-
-

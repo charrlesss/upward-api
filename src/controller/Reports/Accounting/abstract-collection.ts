@@ -8,14 +8,16 @@ const prisma = new PrismaClient();
 AbstractCollection.post("/abstract-collection-report", async (req, res) => {
   try {
     const { queryCollection, queryJournal } = AbstractCollections(
-      "Monthly",
-      "ALL",
-      new Date(),
+      req.body.dateFormat,
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
       "Ascending"
     );
 
     const dataCollection: any = await prisma.$queryRawUnsafe(queryCollection);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
+    const summary: Array<any> = [];
+
     dataCollection.push({
       Date: "",
       ORNo: "",
@@ -88,7 +90,31 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       total: true,
     });
 
-    dataCollection.push({
+    summary.push({
+      Date: "",
+      ORNo: "",
+      IDNo: "",
+      cName: "",
+      Bank: "",
+      cCheck_No: "",
+      DRCode: "",
+      Debit: "",
+      DRTitle: "",
+      CRCode: "",
+      Credit: "",
+      CRTitle: "",
+      Purpose: "",
+      CRRemarks: "",
+      Official_Receipt: "",
+      Temp_OR: "",
+      Date_OR: "",
+      Rpt: "",
+      Status: "",
+      summaryReport: true,
+      summaryReportExtraHeight: 0,
+    });
+
+    summary.push({
       Date: "",
       ORNo: "",
       IDNo: "",
@@ -111,7 +137,7 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       summary: true,
     });
 
-    dataCollection.push({
+    summary.push({
       Date: "",
       ORNo: "ACCOUNT TITLE",
       IDNo: "",
@@ -136,7 +162,7 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
     });
 
     dataJournal.forEach((itm: any) => {
-      dataCollection.push({
+      summary.push({
         Date: "",
         ORNo: "",
         IDNo: "",
@@ -188,7 +214,7 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
         maximumFractionDigits: 2,
       });
 
-    dataCollection.push({
+    summary.push({
       Date: "",
       ORNo: "TOTAL:",
       IDNo: "",
@@ -211,7 +237,7 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       summ: true,
       footer: true,
     });
-    dataCollection.push({
+    summary.push({
       Date: "Prepared:",
       ORNo: "Checked:",
       IDNo: "Approved:",
@@ -235,11 +261,12 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       signature: true,
     });
 
-    const report = dataCollection;
+    const report = dataCollection.concat(summary);
     res.send({
       message: "Successfully Get Report",
       success: true,
       report,
+      summary,
     });
   } catch (err: any) {
     console.log(err.message);

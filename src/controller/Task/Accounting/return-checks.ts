@@ -93,6 +93,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         debit: [],
       });
     }
+    
     await deleteReturnCheck(req.body.RefNo, req);
     req.body.selected.forEach(async (items: any, index: number) => {
       await addNewReturnCheck(

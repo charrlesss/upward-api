@@ -9,7 +9,11 @@ PettyCashFundDisbursements.post(
   "/petty-cash-fund-disbursement",
   async (req, res) => {
     try {
-      const qry = PettyCashFundDisbursement("ALL", "2406-001", "2406-029");
+      const qry = PettyCashFundDisbursement(
+        req.body.sub_acct.toUpperCase(),
+        req.body.seriesFrom,
+        req.body.seriesTo
+      );
 
       const dataCash: any = await prisma.$queryRawUnsafe(qry.dtPettyCashQuery);
       const dataSumm: any = await prisma.$queryRawUnsafe(qry.dtSummaryQuery);

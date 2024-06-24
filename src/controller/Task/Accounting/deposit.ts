@@ -338,6 +338,8 @@ async function addDeposit(req: any) {
     },
     req
   );
+
+
   for (let i = 0; i < 2; i++) {
     if (Amount[i] !== 0) {
       addJournal(
@@ -364,7 +366,7 @@ async function addDeposit(req: any) {
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
     const IsCheck = selectedCollectionValue.Check_No !== "";
-
+    console.log(selectedCollectionValue)
     addJournal(
       {
         Branch_Code: "HO",

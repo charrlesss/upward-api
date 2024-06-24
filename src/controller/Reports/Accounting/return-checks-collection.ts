@@ -7,34 +7,17 @@ const prisma = new PrismaClient();
 
 ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
   try {
+    
     const qry = ReturnedChecksCollection(
-      "Monthly",
-      "ALL",
-      new Date(),
+      req.body.dateFormat,
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
       "Ascending"
     );
 
     const dataReturned: any = await prisma.$queryRawUnsafe(qry.queryReturned);
     const dataJournal: any = await prisma.$queryRawUnsafe(qry.queryJournal);
-
-    // dataReturned.push({
-    //   Date_Entry: "",
-    //   Source_No: "",
-    //   Explanation: "",
-    //   GL_Acct: "",
-    //   cGL_Acct: "",
-    //   ID_No: "",
-    //   cID_No: "",
-    //   Check_No: "----- Nothing Follows -----",
-    //   Check_Bank: "",
-    //   Check_Return: "",
-    //   Check_Deposit: "",
-    //   Check_Reason: "",
-    //   Debit: "",
-    //   Credit: "",
-    //   Rpt: "",
-    //   follows: true,
-    // });
+    const summary: Array<any> = [];
 
     const Debit = dataReturned
       .reduce((a: number, item: any) => {
@@ -61,7 +44,7 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
         maximumFractionDigits: 2,
       });
 
-    dataReturned.push({
+    summary.push({
       Date_Entry: "",
       Source_No: "",
       Explanation: "",
@@ -79,7 +62,28 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       Rpt: "",
       total: true,
     });
-    dataReturned.push({
+
+    summary.push({
+      Date_Entry: "",
+      Source_No: "",
+      Explanation: "",
+      GL_Acct: "",
+      cGL_Acct: "",
+      ID_No: "",
+      cID_No: "",
+      Check_No: "",
+      Check_Bank: "",
+      Check_Return: "",
+      Check_Deposit: "",
+      Check_Reason: "",
+      Debit: "",
+      Credit: "",
+      Rpt: "",
+      summaryReport: true,
+      summaryReportExtraHeight: 0,
+    });
+
+    summary.push({
       Date_Entry: "",
       Source_No: "",
       Explanation: "",
@@ -97,7 +101,7 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       Rpt: "",
       summary: true,
     });
-    dataReturned.push({
+    summary.push({
       Date_Entry: "",
       Source_No: "",
       Explanation: "",
@@ -117,7 +121,7 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       header: true,
     });
     dataJournal.forEach((itm: any) => {
-      dataReturned.push({
+      summary.push({
         Date_Entry: "",
         Source_No: "",
         Explanation: "",
@@ -170,8 +174,7 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
-
-    dataReturned.push({
+    summary.push({
       Date_Entry: "",
       Source_No: "",
       Explanation: "",
@@ -190,8 +193,7 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       summ: true,
       footer: true,
     });
-
-    dataReturned.push({
+    summary.push({
       Date_Entry: "",
       Source_No: "",
       Explanation: "",
@@ -210,11 +212,10 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       summ: true,
       signature: true,
     });
-
     let seen1 = new Set();
     let seen2 = new Set();
 
-    dataReturned.forEach((item: any) => {
+    summary.forEach((item: any) => {
       if (seen1.has(item.Source_No)) {
         item.Source_No = "";
         item.Date_Entry = "";
@@ -224,11 +225,12 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
       }
     });
 
-    const report = dataReturned;
+    const report = dataReturned.concat(summary);
     res.send({
       message: "Successfully Get Report",
       success: true,
       report,
+      summary,
     });
   } catch (err: any) {
     console.log(err.message);

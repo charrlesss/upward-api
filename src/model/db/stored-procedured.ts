@@ -1141,7 +1141,7 @@ export function DepositedCollections(
 
   const queryJournal = `
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
-           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+           format(SUM(IFNULL(Debit, 0)),2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
     FROM Journal 
     LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
     ${sWhere2}
@@ -1191,7 +1191,7 @@ export function ReturnedChecksCollection(
   const queryReturned = `
     SELECT DATE_FORMAT(Journal.Date_Entry,'%m/%d/%Y') as Date_Entry, Journal.Source_No, Journal.Explanation, Journal.GL_Acct, Journal.cGL_Acct, 
            Journal.ID_No, Journal.cID_No, Journal.Check_No, Journal.Check_Bank, Journal.Check_Return, 
-           Journal.Check_Deposit, Journal.Check_Reason, Journal.Debit, Journal.Credit, 'Monthly' AS Rpt 
+           Journal.Check_Deposit, Journal.Check_Reason, format(Journal.Debit,2) as Debit, format(Journal.Credit,2) as Credit, 'Monthly' AS Rpt 
     FROM Journal 
     ${sWhere1}
     ORDER BY Journal.Source_No ${order === "Ascending" ? "ASC" : "DESC"}
@@ -1200,7 +1200,7 @@ export function ReturnedChecksCollection(
   const queryJournal = `
   
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
-           SUM(IFNULL(Debit, 0)) AS mDebit, SUM(IFNULL(Credit, 0)) AS mCredit 
+           format(SUM(IFNULL(Debit, 0)),2) AS mDebit, format(SUM(IFNULL(Credit, 0)),2) AS mCredit 
     FROM Journal 
     LEFT JOIN Chart_Account ON Journal.GL_Acct = Chart_Account.Acct_Code 
     ${sWhere2}
@@ -2392,7 +2392,7 @@ export function ProductionBook(
       WHERE Source_Type IN ('PL') AND b.cID_No <> 'S P O I L T' 
       ${sWhere} ${sSort}`;
 
-      strSQL = `
+  strSQL = `
     select 
         *,
       CASE WHEN @prev_source_no = a.PolicyNo THEN '' ELSE a.DateIssued END AS nDate_Entry,
@@ -2404,7 +2404,7 @@ export function ProductionBook(
      (SELECT @prev_source_no := NULL) AS init
     JOIN (${strSQL}) a
     
-    `
+    `;
 
   const strSubSQL = `
       SELECT 
@@ -2590,7 +2590,7 @@ export function AgingAccountsReport(date: Date, type: string) {
                 ID_Entry.Shortname <> 'S P O I L T' AND (Policy.PolicyNo NOT LIKE '%TP-%')
             ORDER BY
                 Policy.DateIssued,
-                Policy.PolicyNo;
+                Policy.PolicyNo
         `;
   } else if (type === "Temporary") {
     query = `
@@ -2645,8 +2645,20 @@ export function AgingAccountsReport(date: Date, type: string) {
                 ID_Entry.Shortname <> 'S P O I L T' AND (Policy.PolicyNo LIKE '%TP-%')
             ORDER BY
                 Policy.DateIssued,
-                Policy.PolicyNo;
+                Policy.PolicyNo
         `;
   }
+
+  query = `
+    select 
+        a.*,
+        CAST(ROW_NUMBER() OVER () AS CHAR) AS Row_Num,
+        CASE
+            WHEN abs(DATEDIFF(CURDATE(), a.DateIssued)) > 90  THEN abs(DATEDIFF(CURDATE(), a.DateIssued)) - 90
+            ELSE 0
+        END AS due_days
+    from ( ${query} ) a
+  `;
+
   return query;
 }
