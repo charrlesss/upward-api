@@ -2550,7 +2550,7 @@ export function AgingAccountsReport(date: Date, type: string) {
                     WHEN MSPRPolicy.Location IS NOT NULL THEN MSPRPolicy.Location
                     WHEN PAPolicy.Location IS NOT NULL THEN PAPolicy.Location
                     WHEN CGLPolicy.Location IS NOT NULL THEN CGLPolicy.Location
-                    ELSE VPolicy.Make + ' ' + VPolicy.BodyType
+                    ELSE (concat(VPolicy.Make,' ',VPolicy.BodyType))
                 END AS UnitInssured,
                 Policy.DateIssued,
                 CASE 
@@ -2605,7 +2605,7 @@ export function AgingAccountsReport(date: Date, type: string) {
                     WHEN MSPRPolicy.Location IS NOT NULL THEN MSPRPolicy.Location
                     WHEN PAPolicy.Location IS NOT NULL THEN PAPolicy.Location
                     WHEN CGLPolicy.Location IS NOT NULL THEN CGLPolicy.Location
-                    ELSE VPolicy.Make + ' ' + VPolicy.BodyType
+                    ELSE (concat(VPolicy.Make,' ',VPolicy.BodyType))
                 END AS UnitInssured,
                 Policy.DateIssued,
                 CASE 
@@ -2652,12 +2652,21 @@ export function AgingAccountsReport(date: Date, type: string) {
   query = `
     select 
         a.*,
-        CAST(ROW_NUMBER() OVER () AS CHAR) AS Row_Num,
+        date_format(a.DateIssued,'%d/%m/%Y') as _DateIssued,
+        CAST(ROW_NUMBER() OVER (ORDER BY  a.DateIssued,
+                a.PolicyNo) AS CHAR) AS Row_Num,
+        if(a.EstimatedValue <= 0 , format(200000,2) ,format(a.EstimatedValue,2))  as  _EstimatedValue,
+        format(a.TotalDue,2) as  _TotalDue,
+        format(a.TotalPaid,2) as  _TotalPaid,
+        format(abs(a.Balance),2) as  _Balance,
+        format(a.Discount,2) as  _Discount,
+        format(a.AgentCom,2) as  _AgentCom,
         CASE
-            WHEN abs(DATEDIFF(CURDATE(), a.DateIssued)) > 90  THEN abs(DATEDIFF(CURDATE(), a.DateIssued)) - 90
-            ELSE 0
+            WHEN abs(DATEDIFF(CURDATE(), a.DateIssued)) > 90  THEN format((abs(DATEDIFF(CURDATE(), a.DateIssued)) - 90),0)
+            ELSE format(0,0)
         END AS due_days
     from ( ${query} ) a
+   
   `;
 
   return query;
