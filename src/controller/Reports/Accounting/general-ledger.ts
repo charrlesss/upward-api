@@ -1,16 +1,17 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import {
   GeneralLedgerReport,
   GeneralLedgerSumm,
 } from "../../../model/db/stored-procedured";
-import { report } from "process";
+import { PrismaList } from "../../../model/connection";
 
 const GeneralLedger = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 GeneralLedger.post("/general-ledger-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const qry = GeneralLedgerReport(
       req.body.dateFormat,
       new Date(req.body.date),

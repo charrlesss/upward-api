@@ -4,7 +4,7 @@ const Dashboard = express.Router();
 const { CustomPrismaClient } = PrismaList();
 
 Dashboard.get("/get-renewal-this-month", async (req, res) => {
-  const prisma = CustomPrismaClient("UMIS");
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   try {
     let qry = "";
@@ -97,7 +97,7 @@ Dashboard.get("/get-renewal-this-month", async (req, res) => {
 });
 
 Dashboard.get("/get-claims-notice", async (req, res) => {
-  const prisma = CustomPrismaClient("UMIS");
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const claimType = [
     "OWN DAMAGE",

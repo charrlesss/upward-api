@@ -1,18 +1,20 @@
-import { PrismaClient } from "@prisma/client";
-import { Console } from "console";
 import express from "express";
+import { PrismaList } from "../../../model/connection";
 
 const ReportFields = express.Router();
-const prisma = new PrismaClient();
+
+const { CustomPrismaClient } = PrismaList();
 
 ReportFields.get("/report-fields/accounts", async (req, res) => {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   try {
     res.send({
       accounts: await prisma.$queryRawUnsafe(
         `SELECT Account FROM  policy_account `
       ),
     });
-  } catch (error:any) {
+  } catch (error: any) {
     console.log(error.message);
     res.send({
       accounts: [],
@@ -22,6 +24,8 @@ ReportFields.get("/report-fields/accounts", async (req, res) => {
 
 ReportFields.get("/report-fields/policy", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     res.send({
       policy: await prisma.$queryRawUnsafe(
         `SELECT 'Bonds' 
@@ -40,7 +44,7 @@ ReportFields.get("/report-fields/policy", async (req, res) => {
             HAVING PolicyType <> ''`
       ),
     });
-  } catch (error:any) {
+  } catch (error: any) {
     console.log(error.message);
     res.send({
       policy: [],

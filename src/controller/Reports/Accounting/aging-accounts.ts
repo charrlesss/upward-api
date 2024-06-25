@@ -2,12 +2,15 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { AgingAccountsReport } from "../../../model/db/stored-procedured";
 import { format } from "date-fns";
+import { PrismaList } from "../../../model/connection";
+const { CustomPrismaClient } = PrismaList();
 
 const AgingAccounts = express.Router();
-const prisma = new PrismaClient();
 
 AgingAccounts.post("/aging-accounts", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const qry = AgingAccountsReport(
       new Date(req.body.date),
       req.body.policyType

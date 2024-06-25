@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import {
   format,
@@ -9,12 +8,16 @@ import {
   startOfYear,
 } from "date-fns";
 import { qryJournal } from "../../../model/db/views";
+import { PrismaList } from "../../../model/connection";
 
 const ScheduleAccounts = express.Router();
-const prisma = new PrismaClient();
+
+const { CustomPrismaClient } = PrismaList();
 
 ScheduleAccounts.get("/chart-schedule-account", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const { account_search } = req.query;
 
     const chartAccount = await prisma.$queryRawUnsafe(`
@@ -44,6 +47,8 @@ ScheduleAccounts.get("/chart-schedule-account", async (req, res) => {
 
 ScheduleAccounts.get("/schedule-accounts", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const accounts = await prisma.$queryRawUnsafe(`
       SELECT AccountCode FROM   policy_account;
     `);
@@ -63,6 +68,8 @@ ScheduleAccounts.get("/schedule-accounts", async (req, res) => {
 
 ScheduleAccounts.get("/get-sub-account-acronym", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const sub_account = await prisma.$queryRawUnsafe(`
     SELECT Acronym FROM   sub_account;
     `);
@@ -82,6 +89,8 @@ ScheduleAccounts.get("/get-sub-account-acronym", async (req, res) => {
 
 ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const selectClient = `
   SELECT 
 			"Client" as IDType,

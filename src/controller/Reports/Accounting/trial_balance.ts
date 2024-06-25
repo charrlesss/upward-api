@@ -1,12 +1,14 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { FinancialStatement } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const TrialBalance = express.Router();
-const prisma = new PrismaClient();
+
+const { CustomPrismaClient } = PrismaList();
 
 TrialBalance.post("/trial-balance-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
     console.log(req.body);
     const qry = FinancialStatement(
       req.body.date,

@@ -1,12 +1,13 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { AbstractCollections } from "../../../model/db/stored-procedured";
-
+import { PrismaList } from "../../../model/connection";
 const AbstractCollection = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 AbstractCollection.post("/abstract-collection-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const { queryCollection, queryJournal } = AbstractCollections(
       req.body.dateFormat,
       req.body.sub_acct.toUpperCase(),

@@ -1,13 +1,14 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { ReturnedChecksCollection } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const ReturnChecksCollection = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
   try {
-    
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const qry = ReturnedChecksCollection(
       req.body.dateFormat,
       req.body.sub_acct.toUpperCase(),

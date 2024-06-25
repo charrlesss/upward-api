@@ -1,12 +1,14 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { ProductionBook } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const ProductionBookPB = express.Router();
-const prisma = new PrismaClient();
 
 ProductionBookPB.post("/production-book-pb", async (req, res) => {
   try {
+    const { CustomPrismaClient } = PrismaList();
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const qry = ProductionBook(
       "Date Issued",
       "ASC",

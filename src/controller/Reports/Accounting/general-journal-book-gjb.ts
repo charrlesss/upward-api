@@ -1,12 +1,15 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { CashDisbursementBook_GJB } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const GeneralJournalBookGJB = express.Router();
-const prisma = new PrismaClient();
+
+const { CustomPrismaClient } = PrismaList();
 
 GeneralJournalBookGJB.post("/general-journal-book-gjb", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const qry = CashDisbursementBook_GJB(
       "General Journal Book - GJB",
       req.body.sub_acct.toUpperCase(),

@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import {
   format,
@@ -10,12 +9,17 @@ import {
 } from "date-fns";
 import { exportToExcel } from "./report-to-excel";
 import { ProductionReport } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const ProductionReports = express.Router();
-const prisma = new PrismaClient();
+
+
+const { CustomPrismaClient } = PrismaList();
 
 ProductionReports.post("/get-production-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     let dateFrom = "";
     let dateTo = "";
     if (req.body.report === "Daily") {
@@ -65,6 +69,7 @@ ProductionReports.post("/get-production-report", async (req, res) => {
 });
 
 ProductionReports.post("/export-excel-production-report", async (req, res) => {
+  
   exportToExcel({
     req,
     res,

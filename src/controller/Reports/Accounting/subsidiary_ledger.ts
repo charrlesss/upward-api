@@ -1,14 +1,16 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { format } from "date-fns";
 import { v4 as uuidV4 } from "uuid";
 import { qryJournal } from "../../../model/db/views";
+import { PrismaList } from "../../../model/connection";
 
 const SubsidiaryLedger = express.Router();
-const prisma = new PrismaClient();
 let dt: any = [];
+const { CustomPrismaClient } = PrismaList();
 
 SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   let account: string = req.body.account;
   let DateFrom: any = format(new Date(req.body.dateFrom), "MM/dd/yyyy");
   let DateTo: any = format(new Date(req.body.dateTo), "MM/dd/yyyy");

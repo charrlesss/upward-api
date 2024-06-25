@@ -1,14 +1,16 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { PettyCashFundDisbursement } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const PettyCashFundDisbursements = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 PettyCashFundDisbursements.post(
   "/petty-cash-fund-disbursement",
   async (req, res) => {
     try {
+      const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
       const qry = PettyCashFundDisbursement(
         req.body.sub_acct.toUpperCase(),
         req.body.seriesFrom,

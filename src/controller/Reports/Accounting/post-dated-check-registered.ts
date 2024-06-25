@@ -1,15 +1,16 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { PostDatedCheckRegistered } from "../../../model/db/stored-procedured";
 import { format, parseISO } from "date-fns";
+import { PrismaList } from "../../../model/connection";
 
 const PostDatedCheckRegister = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 PostDatedCheckRegister.post(
   "/post-dated-check-registered",
   async (req, res) => {
-    console.log(req.body);
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     try {
       const sort = ["Name", "Check_Date", "Date"];
       const order = ["Ascending", "Descending"];

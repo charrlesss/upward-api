@@ -1,15 +1,17 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import {
   FinancialStatement,
   FinancialStatementSumm,
 } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const IncomeStatement = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 IncomeStatement.post("/income-statement-report", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     let sql = "";
 
     if (req.body.format === 0) {
@@ -226,7 +228,7 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
       },
     ];
     const report = income.concat(expenses);
-   
+
     res.send({
       message: "Successfully Get Report",
       success: true,

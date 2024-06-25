@@ -1,11 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { FinancialStatement } from "../../../model/db/stored-procedured";
-
+import { PrismaList } from "../../../model/connection";
 const BalanceSheetLong = express.Router();
-const prisma = new PrismaClient();
+const { CustomPrismaClient } = PrismaList();
 
 BalanceSheetLong.post("/balance-sheet-long-report", async (req, res) => {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
   let qry = "";
   if (req.body.format === 0) {
     const tmp = `

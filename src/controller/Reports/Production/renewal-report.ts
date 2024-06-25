@@ -1,15 +1,19 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { format } from "date-fns";
 import { mapColumnsToKeys } from "./report-fields";
 import { exportToExcel } from "./report-to-excel";
 import { RenewalNoticeReport } from "../../../model/db/stored-procedured";
+import { PrismaList } from "../../../model/connection";
 
 const RenewalReport = express.Router();
-const prisma = new PrismaClient();
+
+
+const { CustomPrismaClient } = PrismaList();
 
 RenewalReport.post("/renewal-notice", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     let { dateFrom, policy, type, account } = req.body;
     policy = policy.toUpperCase();
   

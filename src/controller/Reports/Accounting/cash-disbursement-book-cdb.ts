@@ -1,13 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { CashDisbursementBook_CDB_GJB } from "../../../model/db/stored-procedured";
-
+import { PrismaList } from "../../../model/connection";
+const { CustomPrismaClient } = PrismaList();
 const CashDisbursementBookCDB = express.Router();
-const prisma = new PrismaClient();
 
 CashDisbursementBookCDB.post(
   "/cash-disbursement-book-cdb",
   async (req, res) => {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     try {
       const qry = CashDisbursementBook_CDB_GJB(
         "Cash Disbursement Book - CDB",
@@ -53,29 +55,29 @@ CashDisbursementBookCDB.post(
           maximumFractionDigits: 2,
         });
 
-        summary.push({
-          Date_Entry: "",
-          nST: "",
-          Source_Type: "",
-          Source_No: "",
-          Explanation: "",
-          Acct_Code: "",
-          Acct_Title: "",
-          subAcct: "",
-          IDNo: "",
-          Name: "",
-          Debit: "",
-          Credit: "",
-          TC: "",
-          nSource_No: "",
-          nSource_Type: "",
-          nDate_Entry: "",
-          nExplanation: "",
-          nHeader: "",
-          prev_source_no: "",
-          summaryReport: true,
-          summaryReportExtraHeight: 0,
-        });
+      summary.push({
+        Date_Entry: "",
+        nST: "",
+        Source_Type: "",
+        Source_No: "",
+        Explanation: "",
+        Acct_Code: "",
+        Acct_Title: "",
+        subAcct: "",
+        IDNo: "",
+        Name: "",
+        Debit: "",
+        Credit: "",
+        TC: "",
+        nSource_No: "",
+        nSource_Type: "",
+        nDate_Entry: "",
+        nExplanation: "",
+        nHeader: "",
+        prev_source_no: "",
+        summaryReport: true,
+        summaryReportExtraHeight: 0,
+      });
 
       summary.push({
         Date_Entry: "",
@@ -196,8 +198,6 @@ CashDisbursementBookCDB.post(
           maximumFractionDigits: 2,
         });
 
-
-
       summary.push({
         Date_Entry: "",
         nST: "",
@@ -226,7 +226,7 @@ CashDisbursementBookCDB.post(
         success: true,
         qry,
         report: report.concat(summary),
-        summary
+        summary,
       });
     } catch (err: any) {
       console.log(err.message);
