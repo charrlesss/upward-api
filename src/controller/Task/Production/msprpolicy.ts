@@ -23,6 +23,7 @@ import {
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const MSPRPolicy = express.Router();
 
@@ -46,6 +47,7 @@ MSPRPolicy.get("/get-mspr-policy", (req, res) => {
 });
 
 MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -106,6 +108,7 @@ MSPRPolicy.get("/search-mspr-policy", async (req, res) => {
 });
 
 MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string

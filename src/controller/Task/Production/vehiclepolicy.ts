@@ -22,6 +22,7 @@ import { getAgents, getClients } from "../../../model/Task/Production/policy";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const VehiclePolicy = express.Router();
 VehiclePolicy.get(
@@ -398,6 +399,7 @@ async function insertNewVPolicy(
   }
 }
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
+  convertToPassitive(req);
   const { sub_account, client_id, PolicyAccount, PolicyNo, Denomination } =
     req.body;
 
@@ -447,6 +449,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   }
 });
 VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -486,8 +489,8 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
-    const cost:any = await getCostByTPL(PolicyNo, req);
-    req.body.rateCost = cost[0].Cost
+    const cost: any = await getCostByTPL(PolicyNo, req);
+    req.body.rateCost = cost[0].Cost;
     //delete policy
     await deletePolicyByVehicle(form_type, PolicyNo, req);
     //delete v policy
@@ -504,6 +507,7 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
   }
 });
 VehiclePolicy.post("/com-update-vehicle-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string

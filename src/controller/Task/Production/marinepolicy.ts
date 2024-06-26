@@ -26,6 +26,7 @@ import {
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const MarinePolicy = express.Router();
 
@@ -52,6 +53,7 @@ MarinePolicy.get("/get-marine-policy", (req, res) => {
 });
 
 MarinePolicy.post("/add-marine-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -116,6 +118,7 @@ MarinePolicy.get(
 );
 
 MarinePolicy.post("/update-marine-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string

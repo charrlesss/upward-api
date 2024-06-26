@@ -38,7 +38,7 @@ export async function searchRate(
         OR a.Type like '%${mortgageeSearch}%'
         OR a.Rate like '%${mortgageeSearch}%'
     ORDER BY a.Account asc
-    limit 500}
+    limit 500
     `;
   return await prisma.$queryRawUnsafe(query);
 }

@@ -68,7 +68,7 @@ export async function searchMortgagee(
             a.Mortgagee like '%${mortgageeSearch}%'
             OR a.Policy like '%${mortgageeSearch}%'
         ORDER BY a.Policy asc
-        limit 500}
+        limit 500
     `;
   return await prisma.$queryRawUnsafe(query2);
 }

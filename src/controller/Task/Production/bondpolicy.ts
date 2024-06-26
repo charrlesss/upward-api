@@ -24,6 +24,7 @@ import {
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const BondPolicy = express.Router();
 
@@ -48,10 +49,10 @@ BondPolicy.get("/get-bonds-policy", (req, res) => {
   try {
     promiseAll([
       getSubAccount(req),
-      getPolicyAccount("G02",req),
-      getPolicyAccount("G13",req),
-      getPolicyAccount("G16",req),
-      getPolicyType("Bonds",req),
+      getPolicyAccount("G02", req),
+      getPolicyAccount("G13", req),
+      getPolicyAccount("G16", req),
+      getPolicyType("Bonds", req),
     ]).then(([sub_account, g1, g13, g16, policy_type]: any) => {
       res.send({
         message: "Successfully get data",
@@ -73,6 +74,7 @@ BondPolicy.get("/get-bonds-policy", (req, res) => {
 });
 
 BondPolicy.post("/add-bonds-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -135,6 +137,7 @@ BondPolicy.get("/search-bonds-policy", async (req, res) => {
 });
 
 BondPolicy.post("/update-bonds-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string

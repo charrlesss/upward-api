@@ -22,6 +22,7 @@ import {
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const CGLPolicy = express.Router();
 
@@ -45,6 +46,7 @@ CGLPolicy.get("/get-cgl-policy", (req, res) => {
 });
 
 CGLPolicy.post("/add-cgl-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -104,6 +106,7 @@ CGLPolicy.get("/search-cgl-policy", async (req, res) => {
 });
 
 CGLPolicy.post("/update-cgl-policy", async (req, res) => {
+  convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string

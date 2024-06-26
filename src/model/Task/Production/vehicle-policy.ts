@@ -379,7 +379,8 @@ export async function searchDataVPolicy(
       if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
       c.address as address,
       concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
-      c.sale_officer
+      c.sale_officer,
+      date_format(a.DateIssued,'%m/%d/%Y') as _DateIssued
     FROM
       policy a
           LEFT JOIN
