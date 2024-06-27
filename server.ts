@@ -3,6 +3,7 @@ import cors from "cors";
 import router from "./src/controller";
 import path from "path";
 import cookieParser from "cookie-parser";
+import { creatSampleUser } from "./src/model/StoredProcedure";
 
 const PORT = process.env.PORT;
 
@@ -22,6 +23,7 @@ async function main() {
   app.use(express.static(path.join(__dirname, "/static/image/")));
   app.use(express.static(path.join(__dirname, "/src/view")));
   app.use("/api", router);
+  // creatSampleUser()
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/src/view/", "index.html"));
   });

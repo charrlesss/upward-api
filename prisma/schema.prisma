@@ -1125,6 +1125,11 @@ model users {
   Department           String            @db.VarChar(500)
   AccountType          users_AccountType
   REFRESH_TOKEN        String?           @db.Text
+  email                String?           @db.Text
+  name                 String?           @db.Text
+  company_number       String?           @db.Text
+  profile              String?           @db.Text    
+  is_master_admin      Boolean?
   CreatedAt            DateTime          @default(now())
   userConfirmationCode String            @db.VarChar(500)
 }

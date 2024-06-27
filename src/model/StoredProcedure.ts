@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { hashSync } from "bcrypt";
-import {v4 as uuidV4} from 'uuid'
+import { v4 as uuidV4 } from "uuid";
 
 const prisma = new PrismaClient();
 
@@ -194,77 +194,65 @@ export async function testJoin() {
 }
 
 export async function creatSampleUser() {
-  const password1 = hashSync("charles1", 12);
-  const password2 = hashSync("buboy1", 12);
-  const password3 = hashSync("manok1", 12);
-  const password7 = hashSync("admin1", 12);
-  const password4 = hashSync("charles", 12);
-  const password5 = hashSync("buboy", 12);
-  const password6 = hashSync("manok", 12);
-  const password8 = hashSync("admin", 12);
-  const userConfirmationCode = hashSync("manok", 12);
+  const password1 = hashSync("password1", 12);
+  const _password1 = hashSync("EMP19073", 12);
+  const __password1 = hashSync("_EMP19073", 12);
+
+  const _password2 = hashSync("EMP21092", 12);
+  const __password2 = hashSync("_EMP21092", 12);
+  const password2 = hashSync("password2", 12);
+
+  const password3 = hashSync("password3", 12);
+  const _password3 = hashSync("EMP18314", 12);
+  const __password3 = hashSync("_EMP18314", 12);
 
   const data = [
     {
       AccountType: "ACCOUNTING",
       Password: password1,
-      Username: "charles1",
-      userConfirmationCode,
+      Username: "EMP19073",
+      userConfirmationCode: _password1,
+      Department: "UCSMI",
+    },
+    {
+      AccountType: "PRODUCTION",
+      Password: password1,
+      Username: "_EMP19073",
+      userConfirmationCode: __password1,
+      Department: "UMIS",
+    },
+    {
+      AccountType: "ACCOUNTING",
+      Password: password2,
+      Username: "EMP21092",
+      userConfirmationCode: _password2,
       Department: "UCSMI",
     },
     {
       AccountType: "PRODUCTION",
       Password: password2,
-      Username: "buboy1",
-      userConfirmationCode,
-      Department: "UCSMI",
-    },
-    {
-      AccountType: "CLAIMS",
-      Password: password3,
-      Username: "manok1",
-      userConfirmationCode,
-      Department: "UCSMI",
-    },
-    {
-      AccountType: "ADMIN",
-      Password: password7,
-      Username: "admin1",
-      userConfirmationCode,
-      Department: "UCSMI",
+      Username: "_EMP21092",
+      userConfirmationCode: __password2,
+      Department: "UMIS",
     },
     {
       AccountType: "ACCOUNTING",
-      Password: password4,
-      Username: "charles",
-      userConfirmationCode,
-      Department: "UMIS",
+      Password: password3,
+      Username: "EMP18314",
+      userConfirmationCode: _password3,
+      Department: "UCSMI",
     },
     {
       AccountType: "PRODUCTION",
-      Password: password5,
-      Username: "buboy",
-      userConfirmationCode,
-      Department: "UMIS",
-    },
-    {
-      AccountType: "CLAIMS",
-      Password: password6,
-      Username: "manok",
-      userConfirmationCode,
-      Department: "UMIS",
-    },
-    {
-      AccountType: "ADMIN",
-      Password: password8,
-      Username: "admin",
-      userConfirmationCode,
+      Password: password3,
+      Username: "_EMP18314",
+      userConfirmationCode: __password3,
       Department: "UMIS",
     },
   ];
 
   data.forEach(async (itm) => {
-    const UserId = uuidV4()
+    const UserId = uuidV4();
     const qry1 = `
     insert into upward_insurance.users(UserId,AccountType,Password,Username,userConfirmationCode,Department)
     values (
@@ -304,7 +292,6 @@ export async function creatSampleUser() {
     `;
     await prisma.$executeRawUnsafe(qry3);
   });
- 
 }
 
 export async function creatSampleSubAccount() {

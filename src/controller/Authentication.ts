@@ -100,8 +100,10 @@ Authentication.post("/login", async (req: Request, res: Response) => {
     );
 
     const department = findUser.Department;
+    const is_master_admin = findUser.is_master_admin;
     res.cookie("up-ac-login", userAccess, { httpOnly: true });
     res.cookie("up-dpm-login", department, { httpOnly: true });
+    res.cookie("up-ima-login", is_master_admin, { httpOnly: true });
     res.cookie("up-at-login", accessToken, { httpOnly: true });
     res.cookie("up-rt-login", refreshToken, { httpOnly: true });
 
@@ -127,6 +129,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
         refreshToken,
         userAccess: findUser.AccountType,
         department,
+        is_master_admin,
       },
     });
   } else {
@@ -142,6 +145,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
 
 Authentication.get("/token", async (req, res) => {
   const department = req.cookies["up-dpm-login"];
+  const is_master_admin = Boolean(req.cookies["up-ima-login"]);
   const accessToken = req.cookies["up-at-login"];
   const refreshToken = req.cookies["up-rt-login"];
   const userAccessToken = req.cookies["up-ac-login"];
@@ -162,7 +166,13 @@ Authentication.get("/token", async (req, res) => {
     const newAccessToken = generateAccessToken(user.UserId);
     res.cookie("up-at-login", newAccessToken, { httpOnly: true });
     req.user = user;
-    res.send({ accessToken, refreshToken, userAccess, department });
+    res.send({
+      accessToken,
+      refreshToken,
+      userAccess,
+      department,
+      is_master_admin,
+    });
   } catch (err: any) {
     console.log(err.message);
     return res.send(null);
@@ -180,7 +190,6 @@ Authentication.get("/token", async (req, res) => {
   //     res.send({ accessToken, refreshToken, userAccess });
   //   }
   // );
-
 });
 
 export async function VerifyToken(token: string, secret: string) {
