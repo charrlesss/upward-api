@@ -22,6 +22,7 @@ Policy.post("/get-policy-summary", async (req, res) => {
   try {
     const PolicyNo = req.body.PolicyNo;
     const policyDetails = await getPolicySummary(PolicyNo, req);
+
     res.send({
       message: "Successfully Policy Details",
       success: true,
@@ -37,13 +38,11 @@ Policy.post("/get-client-details", async (req, res) => {
     const clientId = req.body.userId;
     const clients = await getClientDetailsFromPolicy(clientId, req);
 
-    setTimeout(() => {
-      res.send({
-        message: "Successfully get Client Details",
-        success: true,
-        clients,
-      });
-    }, 3000);
+    res.send({
+      message: "Successfully get Client Details",
+      success: true,
+      clients,
+    });
   } catch (err: any) {
     console.log(err);
     res.send({ message: err.message, success: false, clients: [] });
