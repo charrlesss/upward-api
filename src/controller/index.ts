@@ -5,6 +5,7 @@ import Task from "./Task";
 import Reports from "./Reports";
 import Template from "./Template";
 import Dashboard from "./dashboard";
+import MasterAdminUser from "./MasterAdmin/user";
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.use(Reference);
 router.use(Task);
 router.use(Reports);
 router.use(Template);
+router.use(MasterAdminUser);
 router.get("/logout", logout);
 
 export default router;

@@ -145,7 +145,8 @@ Authentication.post("/login", async (req: Request, res: Response) => {
 
 Authentication.get("/token", async (req, res) => {
   const department = req.cookies["up-dpm-login"];
-  const is_master_admin = Boolean(req.cookies["up-ima-login"]);
+  const is_master_admin =
+    req.cookies["up-ima-login"] === "false" ? false : true;
   const accessToken = req.cookies["up-at-login"];
   const refreshToken = req.cookies["up-rt-login"];
   const userAccessToken = req.cookies["up-ac-login"];
@@ -227,6 +228,7 @@ export function logout(req: Request, res: Response) {
   res.clearCookie("up-rt-login");
   res.clearCookie("up-at-login");
   res.clearCookie("db-k-d");
+  res.clearCookie("up-ima-login");
   const id = (req.user as any).UserId;
   updateRefreshToken(id, "");
   res.send({ message: "Logout Successfully", success: true });

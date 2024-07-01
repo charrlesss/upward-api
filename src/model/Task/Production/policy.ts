@@ -1,8 +1,71 @@
 import { Request } from "express";
 import { PrismaList } from "../../connection";
+import { clients_view } from "../../db/views";
 const { CustomPrismaClient } = PrismaList();
 
-export async function getClients(search: string, hasLimit: boolean = false ,req:Request) {
+export async function getPolicySummary(policyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  const qryString = clients_view();
+  const query = `
+      SELECT 
+        a.PolicyNo,
+        a.PolicyType,
+        a.DateIssued,
+        a.Account,
+        b.Mortgagee,
+        concat(d.lastname,' ',d.firstname) as agent_fullname,
+        c.sale_officer,
+        a.TotalDue,
+        e.IDNo,
+        e.ShortName,
+        e.address,
+        e.options,
+        f.ShortName as subShortName,
+        g.email,
+        g.mobile,
+        g.telephone
+    FROM
+      policy a
+          LEFT JOIN
+      vpolicy b ON a.PolicyNo = b.PolicyNo
+      left join entry_client c on a.IDNo = c.entry_client_id 
+      left join entry_agent d on a.AgentID = d.entry_agent_id 
+      left join (${qryString}) e on a.IDNo = e.IDNo
+      left join sub_account f on e.sub_account = f.Sub_Acct
+      left join contact_details g on e.contact_details_id = g.contact_details_id
+		WHERE 
+		  a.PolicyNo = '${policyNo}'
+        `;
+  console.log(query);
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function getClientDetailsFromPolicy(
+  clientId: string,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  const qryString = clients_view();
+  const query = `
+          select 
+            a.* ,
+            b.ShortName as subShortName,
+            b.Acronym,
+            c.email,
+            c.mobile,
+            c.telephone
+          from (${qryString}) a
+          left join sub_account b on a.sub_account = b.Sub_Acct
+          left join contact_details c on a.contact_details_id = c.contact_details_id
+          where a.IDNo = '${clientId}'
+        `;
+  console.log(query);
+  return await prisma.$queryRawUnsafe(query);
+}
+export async function getClients(
+  search: string,
+  hasLimit: boolean = false,
+  req: Request
+) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -26,7 +89,11 @@ export async function getClients(search: string, hasLimit: boolean = false ,req:
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getAgents(search: string, hasLimit: boolean = false,req:Request) {
+export async function getAgents(
+  search: string,
+  hasLimit: boolean = false,
+  req: Request
+) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -46,7 +113,7 @@ export async function getAgents(search: string, hasLimit: boolean = false,req:Re
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getPolicyAccount(type: string,req:Request) {
+export async function getPolicyAccount(type: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.policy_account.findMany({
@@ -61,7 +128,7 @@ export async function getPolicyAccount(type: string,req:Request) {
   });
 }
 
-export async function policyAccounts(Line: string,req:Request) {
+export async function policyAccounts(Line: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
@@ -76,7 +143,7 @@ export async function policyAccounts(Line: string,req:Request) {
 
   `);
 }
-export async function policyTypes(Line: string, Account: string,req:Request) {
+export async function policyTypes(Line: string, Account: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
@@ -92,7 +159,7 @@ export async function policyTypes(Line: string, Account: string,req:Request) {
   `);
 }
 
-export async function getPolicyAccountType(req:Request) {
+export async function getPolicyAccountType(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
@@ -100,7 +167,7 @@ export async function getPolicyAccountType(req:Request) {
   `);
 }
 
-export async function getPolicyAccountByBonds(req:Request) {
+export async function getPolicyAccountByBonds(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
@@ -108,7 +175,11 @@ export async function getPolicyAccountByBonds(req:Request) {
   `);
 }
 
-export async function getPolicyAccounts(type: string, line: string,req:Request) {
+export async function getPolicyAccounts(
+  type: string,
+  line: string,
+  req: Request
+) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
@@ -124,7 +195,7 @@ export async function getPolicyAccounts(type: string, line: string,req:Request) 
   `);
 }
 
-export async function getPolicyType(Line: string,req:Request) {
+export async function getPolicyType(Line: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.subline.findMany({
@@ -137,7 +208,7 @@ export async function getPolicyType(Line: string,req:Request) {
   });
 }
 
-export async function getRates(type: string, Account: string,req:Request) {
+export async function getRates(type: string, Account: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -146,14 +217,14 @@ export async function getRates(type: string, Account: string,req:Request) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function getSubAccount(req:Request) {
+export async function getSubAccount(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
   SELECT a.Acronym FROM   sub_account a order by Acronym;`;
   return await prisma.$queryRawUnsafe(query);
 }
-export async function getMortgagee(type: string,req:Request) {
+export async function getMortgagee(type: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const equals: any = {

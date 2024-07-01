@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+
 export function PrismaList() {
   const DATABASE_URL_UCSMI =
     "mysql://root:charles@localhost:3306/upward_insurance_ucsmi";
