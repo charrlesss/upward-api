@@ -52,13 +52,11 @@ async function sub_account() {
     data,
   });
 }
-
 export function getMonth() {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
   return currentMonth.toString().padStart(2, "0");
 }
-
 export async function createIdSequence() {
   const user = await prisma.id_sequence.createMany({
     data: [
@@ -168,8 +166,7 @@ export async function createIdSequence() {
   });
   console.log("new user : ", user);
 }
-
-export function getAcronym(inputText: string) {
+export function getAcronym(inputText: string) { 
   const exclusionList = ["and", "the", "in", "of", "for", "with"];
   inputText = inputText.trim().toLowerCase();
   const words = inputText.split(" ");
@@ -181,7 +178,6 @@ export function getAcronym(inputText: string) {
   }
   return acronym.toUpperCase();
 }
-
 export async function testJoin() {
   return await prisma.entry_client.findMany({
     include: {
@@ -192,7 +188,6 @@ export async function testJoin() {
     },
   });
 }
-
 export async function creatSampleUser() {
   const password1 = hashSync("password1", 12);
   const _password1 = hashSync("EMP19073", 12);
@@ -205,7 +200,7 @@ export async function creatSampleUser() {
   const password3 = hashSync("password3", 12);
   const _password3 = hashSync("EMP18314", 12);
   const __password3 = hashSync("_EMP18314", 12);
-
+    
   const data = [
     {
       AccountType: "ACCOUNTING",

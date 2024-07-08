@@ -1132,14 +1132,18 @@ model users {
   is_master_admin      Boolean?
   CreatedAt            DateTime          @default(now())
   userConfirmationCode String            @db.VarChar(500)
+
 }
 
 enum users_AccountType {
+  PRODUCTION_ACCOUNTING
+  PRODUCTION_ACCOUNTING_CLAIMS
   PRODUCTION
   ACCOUNTING
   ADMIN
   CLAIMS
 }
+
 
 model system_logs {
   action       String   @db.Text

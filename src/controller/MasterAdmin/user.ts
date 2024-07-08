@@ -90,6 +90,22 @@ MasterAdminUser.post("/master-admin/add-user", async (req, res) => {
   }
 });
 
+MasterAdminUser.get("/master-admin/get-user", async (req, res) => {
+  try {
+    const users = await prisma.$queryRawUnsafe(
+      "SELECT *, date_format(a.CreatedAt ,'%d/%m/%Y') as _CreatedAt FROM upward_insurance_umis.users a;"
+    );
+    res.send({
+      message: "Successfully Policy Details",
+      success: true,
+      users,
+    });
+  } catch (err: any) {
+    console.log(err);
+    res.send({ message: err.message, success: false, users: [] });
+  }
+});
+
 function UploadFile(filesArr: Array<any>, uploadDir: string, res: Response) {
   const obj: any = [];
   filesArr.forEach((file: any) => {

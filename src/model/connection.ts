@@ -1,10 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 
 export function PrismaList() {
+//   upward_insurance_umis_new
+// upward_insurance_ucsmi_new
   const DATABASE_URL_UCSMI =
-    "mysql://root:charles@localhost:3306/upward_insurance_ucsmi";
+    "mysql://root:charles@localhost:3306/upward_insurance_ucsmi_new";
   const DATABASE_URL_UMIS =
-    "mysql://root:charles@localhost:3306/upward_insurance_umis";
+    "mysql://root:charles@localhost:3306/upward_insurance_umis_new";
 
   const prismaUMIS = new PrismaClient({
     datasources: { db: { url: DATABASE_URL_UMIS } },

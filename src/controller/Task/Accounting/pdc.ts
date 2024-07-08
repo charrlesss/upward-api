@@ -20,6 +20,7 @@ import { generateUniqueFilename } from "../Claims/claims";
 import { v4 as uuidV4 } from "uuid";
 import { IDGenerator, UpdateId } from "../../../model/Reference/id-entry.model";
 import { VerifyToken } from "../../Authentication";
+import { format } from "date-fns";
 const PDC = express.Router();
 
 PDC.post("/add-pdc", async (req, res) => {
@@ -42,8 +43,9 @@ PDC.post("/add-pdc", async (req, res) => {
     const checks = JSON.parse(req.body.checks);
     let num = 0;
     const id = await IDGenerator("chk", "pdc-chk", req);
-    const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
-    const year = id.split("-")[1].slice(2, id.split("-")[1].length);
+
+    const year = format(new Date(), "yy");
+    const month = format(new Date(), "MM");
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
@@ -97,13 +99,8 @@ PDC.post("/add-pdc", async (req, res) => {
       }
     });
     await UpdateId("pdc-chk", newId.split("-")[1], month, year, req);
-    await UpdateId(
-      "pdc",
-      req.body.Ref_No.split("-")[1],
-      req.body.Ref_No.split("-")[0].substring(2),
-      req.body.Ref_No.split("-")[0].substring(0, 2),
-      req
-    );
+
+    await UpdateId("pdc", req.body.Ref_No.split(".")[1], year, month, req);
     const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
     if (fs.existsSync(uploadDir)) {
       fs.rmSync(uploadDir, { recursive: true });
@@ -156,8 +153,8 @@ PDC.post("/update-pdc", async (req, res) => {
     const checks = JSON.parse(req.body.checks);
     let num = 0;
     const id = await IDGenerator("pdc", "pdc", req);
-    const month = id.split("-")[1].slice(0, id.split("-")[1].length / 2);
-    const year = id.split("-")[1].slice(2, id.split("-")[1].length);
+    const year = format(new Date(), "yy");
+    const month = format(new Date(), "MM");
     const count = id.split("-")[2];
     num = parseInt(count, 10);
     let newId = "";
