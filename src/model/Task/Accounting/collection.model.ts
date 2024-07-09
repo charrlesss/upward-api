@@ -183,7 +183,7 @@ export async function getCollections(
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-        MAX(a.Date) AS Date,
+        DATE_FORMAT(MAX(a.Date),'%y/%d/%m') AS Date,
         a.Official_Receipt AS 'ORNo',
         MAX(a.Name) AS Name
     FROM

@@ -193,6 +193,7 @@ Deposit.post("/search-cash-check", async (req, res) => {
       getBankFromDeposit,
     });
   } catch (error: any) {
+    console.log(error.message);
     res.send({ success: false, message: error.message });
   }
 });
@@ -339,7 +340,6 @@ async function addDeposit(req: any) {
     req
   );
 
-
   for (let i = 0; i < 2; i++) {
     if (Amount[i] !== 0) {
       addJournal(
@@ -366,7 +366,7 @@ async function addDeposit(req: any) {
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
     const IsCheck = selectedCollectionValue.Check_No !== "";
-    console.log(selectedCollectionValue)
+    console.log(selectedCollectionValue);
     addJournal(
       {
         Branch_Code: "HO",

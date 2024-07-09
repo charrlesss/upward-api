@@ -7,7 +7,7 @@ SELECT
   "Client" as IDType,
   aa.entry_client_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(aa.lastname, ", ", aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
   aa.entry_client_id as client_id  
 FROM
   entry_client aa
@@ -16,7 +16,7 @@ SELECT
   "Agent" as IDType,
   aa.entry_agent_id AS IDNo,
   aa.sub_account,
-  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
   aa.entry_agent_id as client_id  
 FROM
   entry_agent aa
@@ -25,7 +25,7 @@ SELECT
   "Employee" as IDType,
   aa.entry_employee_id AS IDNo,
   aa.sub_account,
-  CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
   aa.entry_employee_id as client_id
 FROM
   entry_employee aa
@@ -34,7 +34,7 @@ SELECT
   "Supplier" as IDType,
   aa.entry_supplier_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
   aa.entry_supplier_id as client_id
 FROM
   entry_supplier aa
@@ -62,7 +62,7 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
-  SELECT 
+   SELECT 
       a.IDType as Type,
       a.IDNo,
       a.sub_account,
@@ -74,33 +74,23 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
       if(a.IDType = 'Policy' and c.PolicyType = "COM" OR c.PolicyType = "TPL",concat('C: ',c.ChassisNo,'  ','E: ',c.MotorNo),'') as remarks
     FROM
         (
-          SELECT 
-          *
-      FROM
-          (${selectClient}) a
-      WHERE
-          a.IDNo NOT IN 
-          (SELECT IDNo FROM   policy GROUP BY IDNo) 
-      UNION ALL SELECT 
-              'Policy' AS IDType,
-              a.PolicyNo AS IDNo,
-              b.sub_account,
-              b.Shortname,
-              a.IDNo AS client_id
-      FROM
+         ${selectClient}
+        union all
+        select 
+          'Policy' AS IDType,
+          a.PolicyNo AS IDNo,
+          b.sub_account,
+          IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+          a.IDNo AS client_id
+        FROM
             policy a
-      LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
-      WHERE
-          a.PolicyNo NOT IN 
-          (SELECT a.IDNo FROM (${selectClient}) a)
+        LEFT JOIN entry_client b ON a.IDNo = b.entry_client_id
       ) a
-
-      
       left join sub_account b on a.sub_account = b.Sub_Acct
       left join vpolicy c on a.IDNo = c.PolicyNo
     WHERE
-      a.IDNo LIKE '%${search}%'
-      OR a.Shortname LIKE '%${search}%'
+      a.IDNo LIKE '%%'
+      OR a.Shortname LIKE '%%'
     ORDER BY a.Shortname
     LIMIT 50`;
 
@@ -180,41 +170,6 @@ export async function searchPDC(search: any, req: Request) {
 }
 export async function getSearchPDCheck(ref_no: any, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-  const client = `
- SELECT 
-      a.IDType as Type,
-      a.IDNo,
-      a.sub_account,
-      a.Shortname as Name,
-      a.client_id,
-      a.ShortName as sub_shortname,
-      b.ShortName,
-      b.Acronym
-    FROM
-        (
-          SELECT 
-          *
-      FROM
-          (${selectClient}) a
-      WHERE
-          a.IDNo NOT IN 
-          (SELECT IDNo FROM   policy GROUP BY IDNo) 
-      UNION ALL SELECT 
-              'Policy' AS IDType,
-              a.PolicyNo AS IDNo,
-              b.sub_account,
-              b.Shortname,
-              a.IDNo AS client_id
-      FROM
-            policy a
-      LEFT JOIN (${selectClient}) b ON a.IDNo = b.IDNo
-      WHERE
-          a.PolicyNo NOT IN 
-          (SELECT a.IDNo FROM (${selectClient}) a)
-      ) a
-      left join sub_account b on a.sub_account = b.Sub_Acct
-`;
-
   const qry = `
     SELECT 
       a.Ref_No,
@@ -226,8 +181,8 @@ export async function getSearchPDCheck(ref_no: any, req: Request) {
       a.Check_No,
       DATE_FORMAT(a.Check_Date, '%m/%d/%Y') AS Check_Date,
       a.Check_Amnt,
-      b.Bank AS BankName,
-      b.Bank_Code as BankCode,
+      d.Bank AS BankName,
+      d.Bank_Code as BankCode,
       a.Branch,
       a.Check_Remarks,
       a.SlipCode AS Deposit_Slip,
@@ -235,15 +190,26 @@ export async function getSearchPDCheck(ref_no: any, req: Request) {
       a.ORNum AS OR_No,
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS SEQ,
       c.Acronym,
-      c.sub_account
+      b.sub_account
     FROM
         pdc a
-          LEFT JOIN
-        bank b ON a.Bank = b.Bank_Code
-        LEFT JOIN (${client}) c on a.IDNo = c.IDNo OR a.PNo = c.IDNo
-    WHERE
-    a.Ref_No = '${ref_no}'
+            LEFT JOIN
+        (${selectClient}
+          UNION ALL SELECT 
+            'Policy' AS IDType,
+            a.PolicyNo AS IDNo,
+            b.sub_account,
+            IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+            a.IDNo AS client_id
+        FROM
+            policy a
+        LEFT JOIN entry_client b ON a.IDNo = b.entry_client_id) b ON a.PNo = b.IDNo
+        left join sub_account c on b.sub_account = c.Sub_Acct
+        LEFT JOIN bank d ON a.Bank = d.Bank_Code
+        WHERE
+        a.Ref_No = '${ref_no}'
   `;
+  console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }
 export async function pdcIDGenerator(req: Request) {
