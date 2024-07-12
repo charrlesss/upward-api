@@ -28,7 +28,8 @@ export async function searchMarinePolicy(search: string, req: Request) {
     if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
     concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
     c.address,
-    c.sale_officer
+    c.sale_officer,
+    date_format(b.DateIssued,'%m/%d/%Y') as _DateIssued
      FROM mpolicy a
     left join policy b
     on a.PolicyNo = b.PolicyNo 
@@ -39,6 +40,7 @@ export async function searchMarinePolicy(search: string, req: Request) {
     c.firstname like '%${search}%' or
     c.lastname like '%${search}%' or
     c.middlename like '%${search}%' 
+    order by b.DateIssued desc
     limit 100
     `;
   return await prisma.$queryRawUnsafe(query);

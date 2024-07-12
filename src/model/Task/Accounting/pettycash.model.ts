@@ -81,7 +81,7 @@ export async function searchPettyCash(search: string,req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-        date_format(a.PC_Date, '%m/%d/%y') AS PC_Date,
+        date_format(a.PC_Date, '%m/%d/%Y') AS PC_Date,
         a.PC_No,
         a.Payee,
         a.Explanation

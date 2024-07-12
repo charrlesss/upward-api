@@ -223,6 +223,7 @@ BalanceSheetLong.post("/balance-sheet-long-report", async (req, res) => {
       CASE WHEN CAST(H1 AS UNSIGNED) < 4 THEN 'ASSETS' ELSE 'LIABILITIES' END AS H 
     FROM (${Finals}) Final`;
   }
+  console.log(qry)
   const data: any = await prisma.$queryRawUnsafe(qry);
   const groupByCategory = (data: any, datakeyGroup: any) => {
     return data.reduce((acc: any, item: any) => {

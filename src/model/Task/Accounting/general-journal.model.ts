@@ -286,7 +286,8 @@ export async function searchGeneralJournal(search: string, req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-        date_format(Date_Entry , '%m/%d/%Y') as Date_Entry, Source_No, Explanation
+        date_format(Date_Entry , '%m/%d/%Y') as Date_Entry,
+         Source_No, Explanation
     FROM
           journal_voucher
     WHERE
@@ -294,7 +295,7 @@ export async function searchGeneralJournal(search: string, req: Request) {
             AND (Source_No LIKE '%${search}%'
             OR Explanation LIKE '%${search}%')
     GROUP BY Date_Entry , Source_No , Explanation
-    ORDER BY Date_Entry DESC , Source_No , Explanation
+    ORDER BY Date_Entry DESC , Source_No DESC
 
       `);
 }

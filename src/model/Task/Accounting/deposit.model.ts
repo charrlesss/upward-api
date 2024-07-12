@@ -247,7 +247,8 @@ export async function searchDeposit(searchDeposit: string, req: Request) {
         AND (a.SlipCode LIKE '%${searchDeposit}%'
         OR a.BankAccount LIKE '%${searchDeposit}%'
         OR a.AccountName LIKE '%${searchDeposit}%')
-    ORDER BY Date DESC
+    ORDER BY a.Date DESC
+    limit 100
 `);
 }
 export async function getCashDeposit(SlipCode: string, req: Request) {

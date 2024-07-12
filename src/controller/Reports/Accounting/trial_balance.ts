@@ -15,7 +15,6 @@ TrialBalance.post("/trial-balance-report", async (req, res) => {
       req.body.sub_acct,
       req.body.dateFormat
     );
-
     const report = await prisma.$queryRawUnsafe(qry);
     res.send({
       message: "Successfully get Report",

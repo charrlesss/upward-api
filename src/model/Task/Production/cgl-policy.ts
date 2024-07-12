@@ -30,6 +30,7 @@ export async function searchCGLPolicy(search: string, req: Request) {
         c.firstname like '%${search}%' or
         c.lastname like '%${search}%' or
         c.middlename like '%${search}%' 
+        order by b.DateIssued desc
       limit 100
       `;
   return await prisma.$queryRawUnsafe(query);

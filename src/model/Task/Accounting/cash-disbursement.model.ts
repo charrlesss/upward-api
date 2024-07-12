@@ -127,7 +127,7 @@ export async function searchCashDisbursement(search: string, req: Request) {
   return await prisma.$queryRawUnsafe(
     `
     SELECT 
-      DATE_FORMAT(Date_Entry, '%b. %d, %Y') AS Date_Entry, 
+      DATE_FORMAT(Date_Entry, '%m/%d/%Y') AS Date_Entry, 
           Source_No , 
           Explanation 
       FROM 
@@ -139,7 +139,7 @@ export async function searchCashDisbursement(search: string, req: Request) {
           Date_Entry, Source_No, Explanation 
       ORDER BY 
           Date_Entry DESC, Source_No, Explanation 
-      LIMIT 500;
+      LIMIT 100;
     `
   );
 }

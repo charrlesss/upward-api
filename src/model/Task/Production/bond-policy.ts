@@ -14,7 +14,7 @@ export async function getBondRate(account: string, type: string, req: Request) {
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function createMarinePolicy(data: any,req: Request) {
+export async function createMarinePolicy(data: any, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.mpolicy.create({
@@ -22,7 +22,7 @@ export async function createMarinePolicy(data: any,req: Request) {
   });
 }
 
-export async function createBondsPolicy(data: any,req: Request) {
+export async function createBondsPolicy(data: any, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.bpolicy.create({
@@ -30,7 +30,7 @@ export async function createBondsPolicy(data: any,req: Request) {
   });
 }
 
-export async function searchBondsPolicy(search: string,req: Request) {
+export async function searchBondsPolicy(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -50,12 +50,17 @@ export async function searchBondsPolicy(search: string,req: Request) {
   c.firstname like '%${search}%' or
   c.lastname like '%${search}%' or
   c.middlename like '%${search}%' 
+  order by b.DateIssued desc
   limit 100
   `;
   return await prisma.$queryRawUnsafe(query);
 }
 
-export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string,req: Request) {
+export async function deleteBondsPolicy(
+  PolicyType: string,
+  PolicyNo: string,
+  req: Request
+) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -68,8 +73,9 @@ export async function deleteBondsPolicy(PolicyType: string, PolicyNo: string,req
 
 export async function deletePolicyFromBond(
   policyType: string,
-  PolicyNo: string
-,req: Request) {
+  PolicyNo: string,
+  req: Request
+) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
@@ -81,7 +87,7 @@ export async function deletePolicyFromBond(
 }
 
 // SELECT SublineName FROM subline where Line = 'Bonds';
-export async function deletePolicyFromBonds(policyNo: string,req: Request) {
+export async function deletePolicyFromBonds(policyNo: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const query = `
