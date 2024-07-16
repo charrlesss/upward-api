@@ -7,7 +7,7 @@ SELECT
   "Client" as IDType,
   aa.entry_client_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
   aa.entry_client_id as client_id  
 FROM
   entry_client aa
@@ -16,7 +16,7 @@ SELECT
   "Agent" as IDType,
   aa.entry_agent_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
   aa.entry_agent_id as client_id  
 FROM
   entry_agent aa
@@ -25,7 +25,7 @@ SELECT
   "Employee" as IDType,
   aa.entry_employee_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
   aa.entry_employee_id as client_id
 FROM
   entry_employee aa
@@ -34,7 +34,7 @@ SELECT
   "Supplier" as IDType,
   aa.entry_supplier_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(IF(aa.lastname, CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
   aa.entry_supplier_id as client_id
 FROM
   entry_supplier aa
@@ -62,7 +62,8 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
-   SELECT 
+    select * from (
+    SELECT 
       a.IDType as Type,
       a.IDNo,
       a.sub_account,
@@ -80,7 +81,7 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
           'Policy' AS IDType,
           a.PolicyNo AS IDNo,
           b.sub_account,
-          IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+          IF(b.option = 'individual', CONCAT(IF(b.lastname is not null, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
           a.IDNo AS client_id
         FROM
             policy a
@@ -88,10 +89,13 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
       ) a
       left join sub_account b on a.sub_account = b.Sub_Acct
       left join vpolicy c on a.IDNo = c.PolicyNo
+    )a
+
     WHERE
-      a.IDNo LIKE '%%'
-      OR a.Shortname LIKE '%%'
-    ORDER BY a.Shortname
+     a.Name is not null and
+      a.IDNo LIKE '%${search}%'
+      OR a.Name LIKE '%${search}%'
+    ORDER BY a.Name
     LIMIT 50`;
 
   console.log(qry);
@@ -199,7 +203,7 @@ export async function getSearchPDCheck(ref_no: any, req: Request) {
             'Policy' AS IDType,
             a.PolicyNo AS IDNo,
             b.sub_account,
-            IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+            IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname is not null, ', '), ''), b.firstname), b.company) AS Shortname,
             a.IDNo AS client_id
         FROM
             policy a

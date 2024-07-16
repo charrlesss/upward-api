@@ -50,7 +50,7 @@ Collection.get("/get-client-checked-by-id", async (req, res) => {
 
 Collection.get("/get-transaction-code-title", async (req, res) => {
   try {
-    console.log(await getTransactionDescription(req))
+    console.log(await getTransactionDescription(req));
     res.send({
       message: "Get Data Successfully",
       success: true,
@@ -259,14 +259,14 @@ async function AddCollection(req: any) {
       CRInvoiceNo = credit[i].invoiceNo;
     }
 
-    const ColDate =
-      i === 0 ? format(new Date(req.body.Date), "MM/dd/yyyy") : null;
+
+    const ColDate = i === 0 ? format(new Date(req.body.Date), 'yyyy-MM-dd HH:mm:ss.SSS') : null;
     const OR = i === 0 ? req.body.ORNo : "";
     const PNo = i === 0 ? req.body.PNo : "";
     const Name = i === 0 ? req.body.Name : "";
 
     const newCollection = {
-      Date: ColDate,
+      Date: `${ColDate}`,
       ORNo: OR,
       IDNo: PNo,
       Name: Name,
@@ -290,7 +290,7 @@ async function AddCollection(req: any) {
       Official_Receipt: req.body.ORNo,
       Temp_OR: `${req.body.ORNo}${(i + 1).toString().padStart(2, "0")}`,
       Status: "HO",
-      Date_OR: format(new Date(req.body.Date), "MM/dd/yyyy"),
+      Date_OR: format(new Date(req.body.Date), 'yyyy-MM-dd HH:mm:ss.SSS'),
       Short: req.body.Name,
       CRVATType: CRVatType,
       CRInvoiceNo: CRInvoiceNo,
@@ -361,6 +361,9 @@ async function AddCollection(req: any) {
     const CRTitle = credit[i].Title;
     const CRVatType = credit[i].VATType;
     const CRInvoiceNo = credit[i].invoiceNo;
+
+    const CRLoanID = credit[i].Account_No;
+    const CRLoanName = credit[i].Name;
     const TC = credit[i].TC;
 
     await createJournal(
@@ -371,8 +374,8 @@ async function AddCollection(req: any) {
         Source_No: req.body.ORNo.toUpperCase(),
         GL_Acct: CRCode,
         cGL_Acct: CRTitle,
-        ID_No: req.body.PNo,
-        cID_No: req.body.Name,
+        ID_No: CRLoanID,
+        cID_No: CRLoanName,
         Explanation: Purpose,
         Sub_Acct: "HO",
         cSub_Acct: "Upward Insurance Agency",

@@ -13,8 +13,8 @@ export async function getClientCheckedList(
    SELECT 
         CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
         a.Check_No,
-        DATE_FORMAT(a.Check_Date, '%M %d %Y') as Check_Date,
-        a.Check_Amnt as  Amount,
+        DATE_FORMAT(a.Check_Date, '%m/%d/%Y') as Check_Date,
+        format(a.Check_Amnt,2) as  Amount,
         CONCAT(a.Bank, ' / ', a.Branch) as Bank_Branch,
         a.Remarks,
         a.Bank,
@@ -30,10 +30,10 @@ export async function getClientCheckedList(
             AND (a.PNo = '${PNo}')
             AND (a.ORNum IS NULL OR a.ORNum = '')
     ORDER BY a.Check_Date
-    LIMIT 500
+    LIMIT 100
     `;
 
-    console.log('check list -',query)
+  console.log("check list -", query);
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -183,7 +183,7 @@ export async function getCollections(
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-        DATE_FORMAT(MAX(a.Date),'%m/%d/%Y') AS Date,
+        date_format(MAX(a.Date),'%m/%d/%Y') AS Date,
         a.Official_Receipt AS 'ORNo',
         MAX(a.Name) AS Name
     FROM
@@ -248,6 +248,8 @@ WHERE
 export async function getDrCodeAndTitle(code: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
-    SELECT b.Acct_Code, b.Acct_Title FROM upward_insurance_umis.transaction_code  a left join upward_insurance_umis.chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
+    SELECT 
+    b.Acct_Code, 
+    b.Acct_Title FROM upward_insurance_umis.transaction_code  a left join upward_insurance_umis.chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
   `);
 }

@@ -8,7 +8,7 @@ export async function getCashCollection(SlipCode: string, req: Request) {
   const sql = `
     SELECT 
         a.Official_Receipt AS OR_No,
-        a.Date_OR AS OR_Date,
+        DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
         a.Debit AS Amount,
         a.Short AS Client_Name,
         a.DRCode,
@@ -34,7 +34,7 @@ export async function getCheckCollection(SlipCode: string, req: Request) {
   const sql = `
       SELECT 
         a.Official_Receipt AS OR_No,
-        a.Date_OR AS OR_Date,
+        DATE_FORMAT(a.Date_OR, '%m/%d/%Y') AS OR_Date,
         a.Check_No AS Check_No,
         a.Check_Date,
         a.Debit AS Amount,

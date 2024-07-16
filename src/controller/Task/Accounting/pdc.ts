@@ -99,7 +99,6 @@ PDC.post("/add-pdc", async (req, res) => {
       }
     });
     await UpdateId("pdc-chk", newId.split("-")[1], month, year, req);
-
     await UpdateId("pdc", req.body.Ref_No.split(".")[1], year, month, req);
     const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
     if (fs.existsSync(uploadDir)) {

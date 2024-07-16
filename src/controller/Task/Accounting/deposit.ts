@@ -26,6 +26,7 @@ import {
 import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
+import { format } from "date-fns";
 const Deposit = express.Router();
 
 Deposit.get("/getCashCollection", async (req, res) => {
@@ -283,10 +284,7 @@ async function addDeposit(req: any) {
           Slip_Code: Cnt > 1 ? null : req.body.depositSlip,
           Account_ID: req.body.Account_ID,
           Account_Name: req.body.Account_Name,
-          Debit: Amount[i].toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+          Debit: Amount[i].toFixed(2),
           Temp_SlipCode: req.body.depositSlip,
           Temp_SlipCntr: `${req.body.depositSlip}-${("000" + Cnt).slice(-3)}`,
           Temp_SlipDate: req.body.depositdate,
@@ -299,12 +297,18 @@ async function addDeposit(req: any) {
   }
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
+
     await addCashCheckInDeposit(
       {
         Account_ID: selectedCollectionValue.DRCode,
         Account_Name: selectedCollectionValue.Short,
-        Credit: selectedCollectionValue.Amount,
-        Check_Date: selectedCollectionValue.Check_Date,
+        Credit: parseFloat(
+          selectedCollectionValue.Amount.toString().replace(/,/, "")
+        ).toFixed(2),
+        Check_Date:   format(
+          new Date(selectedCollectionValue.Check_Date),
+          "yyyy-MM-dd HH:mm:ss.SSS"
+        ),
         Check_No: selectedCollectionValue.Check_No,
         Bank: selectedCollectionValue.Bank,
         Temp_SlipCode: req.body.depositSlip,
