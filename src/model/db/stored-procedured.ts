@@ -421,7 +421,7 @@ export function ProductionReport(
         Policy.Account AS Account,
         Policy.PolicyType,
         Policy.PolicyNo,
-        DATE_FORMAT(Policy.DateIssued, "%m-%d-%Y") AS DateIssued,
+        DATE_FORMAT(Policy.DateIssued, "%Y-%m-%d") AS DateIssued,
         Policy.TotalPremium,
         Policy.Vat,
         Policy.DocStamp,
@@ -1033,12 +1033,12 @@ export function AbstractCollections(
   let sWhere1 = "";
   let sWhere2 = "";
 
-  const formattedDateCollection = format(date, "MM/dd/yyyy");
+  const formattedDateCollection = format(date, "yyyy-MM-dd");
   const firstDayOfMonthCollection = format(
     new Date(date.getFullYear(), date.getMonth(), 1),
-    "MM/dd/yyyy"
+    "yyyy-MM-dd"
   );
-  const lastDayCollection = format(lastDayOfMonth(date), "MM/dd/yyyy");
+  const lastDayCollection = format(lastDayOfMonth(date), "yyyy-MM-dd");
 
   const formattedDateJournal = format(date, "yyyy-MM-dd");
   const firstDayOfMonthJournal = format(
@@ -1066,7 +1066,7 @@ export function AbstractCollections(
   }
 
   const queryCollection = `
-    SELECT Collection.Date, Collection.ORNo, Collection.IDNo, UPPER(Name) AS cName, Collection.Bank, 
+    SELECT date_format(Collection.Date,'%m/%d/%Y') as Date, Collection.ORNo, Collection.IDNo, UPPER(Name) AS cName, Collection.Bank, 
            Check_No AS cCheck_No, Collection.DRCode, Collection.Debit, Collection.DRTitle, Collection.CRCode, 
            Collection.Credit, Collection.CRTitle, Collection.Purpose, Collection.CRRemarks, Collection.Official_Receipt, 
            Collection.Temp_OR, Collection.Date_OR, 'Monthly' AS Rpt, Collection.Status 
@@ -1074,6 +1074,8 @@ export function AbstractCollections(
     ${sWhere1}
     ORDER BY Collection.Temp_OR ${order === "Ascending" ? "ASC" : "DESC"}
   `;
+
+  console.log(queryCollection)
 
   const queryJournal = `
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 

@@ -53,7 +53,6 @@ ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
     res.send({
       message: "Successfully Get Modal Data",
       success: true,
-      branchName: await getBranchName(req),
       credit: await getCreditOnSelectedCheck(req.body.BankAccount, req),
       debit: await getDebitOnSelectedCheck(req.body.Official_Receipt, req),
     });

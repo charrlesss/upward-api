@@ -1,7 +1,7 @@
 export function clients_view() {
   return `
   select * from (SELECT 
-    if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) AS ShortName,
+    if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as ShortName,
     aa.entry_client_id AS IDNo,
     aa.firstname,
     aa.middlename,
@@ -19,7 +19,7 @@ export function clients_view() {
 FROM
     entry_client aa 
 UNION ALL SELECT 
-    CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+    CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''), aa.firstname) AS ShortName,
     aa.entry_agent_id AS IDNo,
     aa.firstname,
     aa.middlename,
@@ -37,7 +37,7 @@ UNION ALL SELECT
 FROM
     entry_agent aa 
 UNION ALL SELECT 
-    CONCAT(aa.firstname, ', ', aa.lastname) AS ShortName,
+    CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''), aa.firstname) AS ShortName,
     aa.entry_employee_id AS IDNo,
     aa.firstname,
     aa.middlename,
@@ -91,7 +91,7 @@ UNION ALL SELECT
 FROM
     entry_others aa
  UNION ALL SELECT 
- if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) AS ShortName,
+    if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as ShortName,
     aa.entry_supplier_id AS IDNo,
     aa.firstname,
     aa.middlename,

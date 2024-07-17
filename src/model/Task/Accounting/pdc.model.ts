@@ -2,7 +2,7 @@ import { Request } from "express";
 import { PrismaList } from "../../connection";
 const { CustomPrismaClient } = PrismaList();
 
-const selectClient = `
+ const selectClient = `
 SELECT 
   "Client" as IDType,
   aa.entry_client_id AS IDNo,
@@ -16,7 +16,7 @@ SELECT
   "Agent" as IDType,
   aa.entry_agent_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
   aa.entry_agent_id as client_id  
 FROM
   entry_agent aa
@@ -25,7 +25,7 @@ SELECT
   "Employee" as IDType,
   aa.entry_employee_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname , ', '),''), aa.firstname) AS Shortname,
   aa.entry_employee_id as client_id
 FROM
   entry_employee aa
@@ -89,7 +89,7 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
       ) a
       left join sub_account b on a.sub_account = b.Sub_Acct
       left join vpolicy c on a.IDNo = c.PolicyNo
-    )a
+    ) a
 
     WHERE
      a.Name is not null and

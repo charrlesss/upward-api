@@ -14,7 +14,7 @@ export async function getClientCheckedList(
         CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
         a.Check_No,
         DATE_FORMAT(a.Check_Date, '%m/%d/%Y') as Check_Date,
-        format(a.Check_Amnt,2) as  Amount,
+        FORMAT(CAST(REPLACE(a.Check_Amnt, ',', '') AS DECIMAL(10,2)), 2) as  Amount,
         CONCAT(a.Bank, ' / ', a.Branch) as Bank_Branch,
         a.Remarks,
         a.Bank,

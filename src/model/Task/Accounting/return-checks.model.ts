@@ -2,6 +2,92 @@ import { Request } from "express";
 import { PrismaList } from "../../connection";
 const { CustomPrismaClient } = PrismaList();
 
+
+const clientDetails = `
+select * from (
+    SELECT 
+      a.IDType as Type,
+      a.IDNo,
+      a.sub_account,
+      a.Shortname as Name,
+      a.client_id,
+      a.ShortName as sub_shortname,
+      b.ShortName,
+      b.Acronym,
+      if(a.IDType = 'Policy' and c.PolicyType = "COM" OR c.PolicyType = "TPL",concat('C: ',c.ChassisNo,'  ','E: ',c.MotorNo),'') as remarks
+    FROM
+        (
+         SELECT 
+  "Client" as IDType,
+  aa.entry_client_id AS IDNo,
+  aa.sub_account,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
+  aa.entry_client_id as client_id  
+FROM
+  entry_client aa
+union all
+SELECT 
+  "Agent" as IDType,
+  aa.entry_agent_id AS IDNo,
+  aa.sub_account,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
+  aa.entry_agent_id as client_id  
+FROM
+  entry_agent aa
+union all
+SELECT 
+  "Employee" as IDType,
+  aa.entry_employee_id AS IDNo,
+  aa.sub_account,
+  CONCAT(IF(aa.lastname, CONCAT(aa.lastname is not null, ', '),''), aa.firstname) AS Shortname,
+  aa.entry_employee_id as client_id
+FROM
+  entry_employee aa
+union all
+SELECT 
+  "Supplier" as IDType,
+  aa.entry_supplier_id AS IDNo,
+  aa.sub_account,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
+  aa.entry_supplier_id as client_id
+FROM
+  entry_supplier aa
+union all
+SELECT 
+  "Fixed Assets" as IDType,
+  aa.entry_fixed_assets_id AS IDNo,
+  aa.sub_account,
+  aa.fullname AS Shortname,
+  aa.entry_fixed_assets_id as client_id
+FROM
+  entry_fixed_assets aa
+union all
+SELECT 
+  "Others" as IDType,
+  aa.entry_others_id AS IDNo,
+  aa.sub_account,
+  aa.description AS Shortname,
+  aa.entry_others_id as client_id
+FROM
+  entry_others aa
+        union all
+        select 
+          'Policy' AS IDType,
+          a.PolicyNo AS IDNo,
+          b.sub_account,
+          IF(b.option = 'individual', CONCAT(IF(b.lastname is not null, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+          a.IDNo AS client_id
+        FROM
+            policy a
+        LEFT JOIN entry_client b ON a.IDNo = b.entry_client_id
+      ) a
+      left join sub_account b on a.sub_account = b.Sub_Acct
+      left join vpolicy c on a.IDNo = c.PolicyNo
+    ) a
+    WHERE
+     a.Name is not null 
+`
+
 export async function GenerateReturnCheckID(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -47,43 +133,7 @@ export async function getCheckList(search: string, req: Request) {
         limit 50
   `);
 
-  // SELECT
-  //     a.Temp_SlipCodE AS DepoSlip,
-  //     date_format(a.Temp_SlipDate, '%m/%d/%Y') AS DepoDate,
-  //     a.Check_No,
-  //     a.Check_Date,
-  //     a.Credit  as Amount,
-  //     a.Bank,
-  //     a.BankAccount,
-  //     a.Ref_No,
-  //     b.Official_Receipt, b.Date_OR,
-  //     LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
-  // FROM
-  //   (SELECT
-  //       Temp_SlipCode,
-  //           Temp_SlipDate,
-  //           Check_No,
-  //           Check_Date,
-  //           Credit,
-  //           Bank,
-  //           BankAccount,
-  //           Ref_No
-  //   FROM
-  //         deposit a
-  //   LEFT JOIN   deposit_slip b ON a.Temp_SlipCode = b.SlipCode) a
-  //       LEFT JOIN
-  //   (SELECT
-  //       Official_Receipt, Date_OR
-  //   FROM
-  //         collection
-  //   GROUP BY Official_Receipt , Date_OR) b ON a.Ref_No = b.Official_Receipt
-  // GROUP BY a.Temp_SlipCode , a.Temp_SlipDate , a.Ref_No , a.BankAccount , a.Credit , a.Check_Date , a.Check_No , a.Bank , a.BankAccount , b.Date_OR , b.Official_Receipt
-  // HAVING (((b.Date_OR) IS NOT NULL)
-  //   AND ((a.Check_No) <> ''))
-  //   AND (a.Check_No LIKE '%${search}%' OR a.Bank LIKE '%${search}%')
-  //   AND a.Check_No not in (select Check_No from   return_checks)
-  // ORDER BY a.Check_Date
-  // limit 100
+  
 }
 export async function getCreditOnSelectedCheck(
   BankAccount: string,
@@ -93,7 +143,7 @@ export async function getCreditOnSelectedCheck(
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
-    a.Account_ID, b.Acct_Title,  b.Short, a.IDNo
+    a.Account_ID, b.Acct_Title, a.Desc,a.Identity
 FROM
       bankaccounts a
         LEFT JOIN
@@ -117,14 +167,18 @@ export async function getDebitOnSelectedCheck(
       a.ID_No,
       a.CRLoanName,
       a.Short,
-      'HO' AS SubAcctCode,
-      'Head Office' AS SubAcctName,
+      b.ShortName as SubAcctName,
+      b.Acronym as SubAcctCode, 
       LPAD(ROW_NUMBER() OVER (), 3, '0') AS TempID
   FROM
         collection a
+         left join (
+          ${clientDetails}
+        ) b on a.ID_No = b.IDNo
   WHERE
       a.Official_Receipt = '${Official_Receipt}'
       AND a.CRCode <> ''
+      
   `);
 }
 export async function getBranchName(req: Request) {
