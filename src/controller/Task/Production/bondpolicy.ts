@@ -27,7 +27,6 @@ import { VerifyToken } from "../../Authentication";
 import { convertToPassitive } from "../../../lib/convertToPassitive";
 
 const BondPolicy = express.Router();
-
 BondPolicy.get("/get-bond-acc-type", async (req, res) => {
   try {
     const bonds = ((await getAllBondsType(req)) as any).map(
@@ -44,7 +43,6 @@ BondPolicy.get("/get-bond-acc-type", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BondPolicy.get("/get-bonds-policy", (req, res) => {
   try {
     promiseAll([
@@ -72,7 +70,6 @@ BondPolicy.get("/get-bonds-policy", (req, res) => {
     res.send({ message: error.message, success: false, bondsPolicy: null });
   }
 });
-
 BondPolicy.post("/add-bonds-policy", async (req, res) => {
   convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
@@ -90,7 +87,7 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
 
   try {
     if (await findPolicy(PolicyNo, req)) {
-      return res.send({
+      return res.send({  
         message: "Unable to save! Policy No. already exists!",
         success: false,
       });
@@ -120,7 +117,6 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BondPolicy.get("/search-bonds-policy", async (req, res) => {
   try {
     res.send({
@@ -135,7 +131,6 @@ BondPolicy.get("/search-bonds-policy", async (req, res) => {
     res.send({ message: error.message, success: false, bondsPolicy: null });
   }
 });
-
 BondPolicy.post("/update-bonds-policy", async (req, res) => {
   convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
@@ -189,7 +184,6 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 BondPolicy.post("/delete-bonds-policy", async (req, res) => {
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
@@ -215,7 +209,6 @@ BondPolicy.post("/delete-bonds-policy", async (req, res) => {
     res.send({ message: err.message, success: false });
   }
 });
-
 async function insertBondsPolicy(
   {
     sub_account,

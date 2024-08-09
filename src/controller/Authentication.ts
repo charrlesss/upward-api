@@ -221,6 +221,8 @@ export async function VerifyToken(token: string, secret: string) {
 //   res.send({ message: "Logout Successfully", success: true });
 // });
 
+
+
 export function logout(req: Request, res: Response) {
   res.cookie("up-rt-login", { expires: Date.now() });
   res.cookie("up-at-login", { expires: Date.now() });

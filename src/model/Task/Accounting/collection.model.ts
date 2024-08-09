@@ -146,9 +146,7 @@ export async function collectionIDGenerator(req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-      if(concat(a.year,a.month) <> DATE_FORMAT(NOW(), '%y%m'),'000001',
-      concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1)) as collectionID 
-
+      concat(LEFT(a.last_count ,length(a.last_count) -length(a.last_count + 1)),a.last_count + 1) as collectionID 
     FROM
         id_sequence a
     WHERE

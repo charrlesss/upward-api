@@ -208,10 +208,10 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
                   Acronym
               FROM
                     Sub_Account ${
-                    req.body.subsi_options.toLowerCase() === "all"
-                      ? ""
-                      : ` where Acronym = '${req.body.subsi_options}'`
-                  }
+                      req.body.subsi_options.toLowerCase() === "all"
+                        ? ""
+                        : ` where Acronym = '${req.body.subsi_options}'`
+                    }
           ) 
       GROUP BY
           a.GL_Acct, a.Sub_Acct
@@ -320,8 +320,9 @@ ScheduleAccounts.post("/schedule-account-report", async (req, res) => {
       `;
     }
     const report: any = await prisma.$queryRawUnsafe(qry);
+
     const groupArray = FormatGroupArray(report);
-    console.log(groupArray);
+
     res.send({
       message: "Successfully Get Chart of Account!",
       success: true,

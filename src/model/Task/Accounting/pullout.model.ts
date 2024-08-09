@@ -2,6 +2,59 @@ import { Request } from "express";
 import { PrismaList } from "../../connection";
 const { CustomPrismaClient } = PrismaList();
 
+export async function load_pnno(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+      SELECT PNo, MIN(Name) AS Name, MIN(Name) AS label
+    FROM PDC  
+    WHERE PDC_Status = 'Stored' 
+    GROUP BY PNo 
+    ORDER BY PNo DESC;
+  `;
+
+  return await prisma.$queryRawUnsafe(qry);
+}
+
+export async function loadChecks(req: Request, PNo: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+  SELECT 
+    DISTINCT PDC_ID as temp_id, 
+    date_format(Check_Date , '%Y-%m-%d') as Check_Date,
+    Bank, 
+    Check_No, 
+    FORMAT(CAST(REPLACE(Check_Amnt, ',', '') AS DECIMAL(15,2)), 2) as Check_Amnt, 
+    ifnull((seleCT (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) as 'Status' 
+    from PullOut_Request_Details  a where 
+    (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED') 
+    and (selecT PNNo from PullOut_Request where  RCPNo = a.RCPNo)  = '${PNo}'
+    and CheckNo = pd.Check_No),'--') as 'Status', 
+    ifnull((seleCT RCPNO 
+  from PullOut_Request_Details  a where 
+  (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED')  
+  and (selecT PNNo from PullOut_Request where  RCPNo = a.RCPNo)  = '${PNo}'
+  and CheckNo = pd.Check_No),'--') as 'RCPNO' 
+  FROM PDC PD 
+  WHERE PNo = '${PNo}' AND PDC_Status = 'Stored' ORDER BY Check_No
+  `;
+
+  return await prisma.$queryRawUnsafe(qry);
+}
+
+export async function loadRCPN(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+  Select distinct a.RCPNo as label, a.RCPNo, Reason, b.Name,b.PNo From PullOut_Request a
+left join pdc b  on a.PNNo = b.PNo
+Where a.Branch = 'HO' and Status = 'PENDING' Order by RCPNo
+  `;
+  return await prisma.$queryRawUnsafe(qry);
+}
+// =======
+
 export async function pulloutRequestAutoID(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -14,6 +67,22 @@ export async function pulloutRequestAutoID(req: Request) {
     type = 'pullout';
 ;`);
 }
+
+export async function deletePulloutRequest(req: Request, RCPNo: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  return await prisma.$queryRawUnsafe(`
+    Delete from PullOut_Request where RCPNo = '${RCPNo}'
+;`);
+}
+
+export async function deletePulloutRequestDetails(req: Request, RCPNo: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  return await prisma.$queryRawUnsafe(`
+    Delete from pullout_request_details where RCPNo = '${RCPNo}'
+;`);
+}
+
 export async function pulloutRequestPNoWithName(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
@@ -383,3 +452,6 @@ export async function updateApprovalCode(
     a.RCPN = '${RCPN}'
         AND a.Approved_Code = '${Approved_Code}'`);
 }
+// sender = upwardumis2020@gmail.com , pass = vapw ridu eorg
+// upwardinsurance.grace@gmail.com
+// lva_ancar@yahoo.com

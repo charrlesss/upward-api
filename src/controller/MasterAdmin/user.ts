@@ -5,10 +5,16 @@ import fs from "fs";
 import { v4 as uuidV4 } from "uuid";
 import { hashSync } from "bcrypt";
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { PrismaList } from "../../model/connection";
 const MasterAdminUser = express.Router();
+
+const { CustomPrismaClient } = PrismaList();
+
 MasterAdminUser.post("/master-admin/add-user", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
     const id = uuidV4();
     delete req.body.confirmPassword;
     delete req.body.confirm_confirmationCode;
@@ -44,7 +50,7 @@ MasterAdminUser.post("/master-admin/add-user", async (req, res) => {
     };
 
     const qry1 = `
-    insert into upward_insurance_ucsmi.users(UserId,AccountType,Password,Username,userConfirmationCode,Department,company_number,email,name,is_master_admin,profile)
+    insert into upward_insurance_ucsmi_new.users(UserId,AccountType,Password,Username,userConfirmationCode,Department,company_number,email,name,is_master_admin,profile)
     values (
       '${data.UserId}',
       '${data.AccountType}',
@@ -61,7 +67,7 @@ MasterAdminUser.post("/master-admin/add-user", async (req, res) => {
     `;
     await prisma.$executeRawUnsafe(qry1);
     const qry2 = `
-    insert into upward_insurance_umis.users(UserId,AccountType,Password,Username,userConfirmationCode,Department,company_number,email,name,is_master_admin,profile)
+    insert into upward_insurance_umis_new.users(UserId,AccountType,Password,Username,userConfirmationCode,Department,company_number,email,name,is_master_admin,profile)
     values (
       '${data.UserId}',
       '${data.AccountType}',
@@ -92,8 +98,9 @@ MasterAdminUser.post("/master-admin/add-user", async (req, res) => {
 
 MasterAdminUser.get("/master-admin/get-user", async (req, res) => {
   try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
     const users = await prisma.$queryRawUnsafe(
-      "SELECT *, date_format(a.CreatedAt ,'%d/%m/%Y') as _CreatedAt FROM upward_insurance_umis.users a;"
+      "SELECT *, date_format(a.CreatedAt ,'%d/%m/%Y') as _CreatedAt FROM users a;"
     );
     res.send({
       message: "Successfully Policy Details",

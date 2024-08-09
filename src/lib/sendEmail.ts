@@ -3,7 +3,8 @@ export default async function sendEmail(
   credential: { user: string; pass: string },
   from: string,
   to: string,
-  messageHTML:string
+  subject: string,
+  messageHTML: string
 ) {
   // Importing nodemailer
 
@@ -19,7 +20,7 @@ export default async function sendEmail(
   const mailOptions = {
     from,
     to,
-    subject: "Test Email",
+    subject,
     html: messageHTML,
   };
 
@@ -31,4 +32,5 @@ export default async function sendEmail(
       console.log("Email sent: " + info.response);
     }
   });
+
 }

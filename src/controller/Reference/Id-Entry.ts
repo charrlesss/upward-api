@@ -248,7 +248,7 @@ ID_Entry.post("/entry-update", async (req, res) => {
       { key: "entry_others_id", module: "Entry Others" },
       { key: "entry_client_id", module: "Entry Client" },
       { key: "entry_employee_id", module: "Entry Employee" },
-      { key: "entry_agent_id", module: "Entry Agent" },
+      { key: "entry_agent_id", module: "Entry Agent"   },
       { key: "entry_fixed_assets_id", module: "Entry Fixed Assets" },
       { key: "entry_supplier_id", module: "Entry Supplier" },
     ];
@@ -270,7 +270,7 @@ ID_Entry.post("/entry-update", async (req, res) => {
     delete req.body.mode;
     delete req.body.search;
     delete req.body.userCodeConfirmation;
-
+ 
     await updateEntry(req.query.entry as string, req.body, req);
     res.send({ message: "Update Successfully", success: true });
   } catch (err: any) {

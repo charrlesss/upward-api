@@ -1048,6 +1048,10 @@ model entry_client {
   address                   String          @default("") @db.VarChar(225)
   option                    String          @default("") @db.VarChar(225)
   sub_account               String          @default("") @db.VarChar(225)
+  client_mortgagee          String          @db.LongText
+  client_branch             String          @db.LongText
+  chassis                   String          @db.LongText
+  engine                    String          @db.LongText
   createdAt                 DateTime        @default(now())
   update                    DateTime        @default(now())
   client_contact_details_id String          @unique(map: "Entry_Client_client_contact_details_id_key")
@@ -1128,11 +1132,10 @@ model users {
   email                String?           @db.Text
   name                 String?           @db.Text
   company_number       String?           @db.Text
-  profile              String?           @db.Text    
+  profile              String?           @db.Text
   is_master_admin      Boolean?
   CreatedAt            DateTime          @default(now())
   userConfirmationCode String            @db.VarChar(500)
-
 }
 
 enum users_AccountType {
@@ -1143,7 +1146,6 @@ enum users_AccountType {
   ADMIN
   CLAIMS
 }
-
 
 model system_logs {
   action       String   @db.Text

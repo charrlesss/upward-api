@@ -22,6 +22,7 @@ import {
 import saveUserLogs from "../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../lib/saveUserlogsCode";
 import { VerifyToken } from "../Authentication";
+import { format } from "date-fns";
 
 const CTPL = express.Router();
 function getZeroFirstInput(data: string) {
@@ -103,11 +104,12 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
     for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
       const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
       // DEBIT'
+      const newDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss.SSS') 
       await createJournal(
         {
           Source_No: _sourceNo,
           Branch_Code: "HO",
-          Date_Entry: `${new Date()}`,
+          Date_Entry: newDate,
           Source_Type: "GL",
           Explanation: "CTPL Registration",
           GL_Acct: "1.04.01",
@@ -124,7 +126,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
         {
           Source_No: _sourceNo,
           Branch_Code: "HO",
-          Date_Entry: `${new Date()}`,
+          Date_Entry: newDate,
           Source_Type: "GL",
           Explanation: "CTPL Registration",
           GL_Acct: "1.04.01",

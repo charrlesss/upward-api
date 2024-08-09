@@ -223,7 +223,7 @@ BalanceSheetLong.post("/balance-sheet-long-report", async (req, res) => {
       CASE WHEN CAST(H1 AS UNSIGNED) < 4 THEN 'ASSETS' ELSE 'LIABILITIES' END AS H 
     FROM (${Finals}) Final`;
   }
-  console.log(qry)
+
   const data: any = await prisma.$queryRawUnsafe(qry);
   const groupByCategory = (data: any, datakeyGroup: any) => {
     return data.reduce((acc: any, item: any) => {
@@ -235,6 +235,7 @@ BalanceSheetLong.post("/balance-sheet-long-report", async (req, res) => {
   const ASSETS = data.filter((itm: any) => itm.H === "ASSETS");
   const assetHT1 = groupByCategory(ASSETS, "HT1");
   const keyAsset = Object.keys(assetHT1);
+
   keyAsset.forEach((k2) => {
     Assets.push({
       N: k2,
@@ -465,6 +466,7 @@ BalanceSheetLong.post("/balance-sheet-long-report", async (req, res) => {
       message: "Successfully ger report",
       success: true,
       report,
+      data,
     });
   } catch (err: any) {
     console.log(err.message);

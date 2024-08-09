@@ -2694,7 +2694,7 @@ export function AgingAccountsReport(date: Date, type: string) {
         date_format(a.DateIssued,'%d/%m/%Y') as _DateIssued,
         CAST(ROW_NUMBER() OVER (ORDER BY  a.DateIssued,
                 a.PolicyNo) AS CHAR) AS Row_Num,
-        if(a.EstimatedValue <= 0 , format(200000,2) ,format(a.EstimatedValue,2))  as  _EstimatedValue,
+        if(a.EstimatedValue > 0 , format(a.EstimatedValue,2),format(0,2) )  as  _EstimatedValue,
         format(a.TotalDue,2) as  _TotalDue,
         format(a.TotalPaid,2) as  _TotalPaid,
         format(abs(a.Balance),2) as  _Balance,

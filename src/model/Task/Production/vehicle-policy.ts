@@ -5,20 +5,46 @@ const { CustomPrismaClient } = PrismaList();
 
 export async function getTPL_IDS(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+//   SELECT 
+//   MIN(Source_No) AS Source_No,
+//   MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
+//   Source_No_Ref_ID
+// FROM
+//   journal
+// WHERE
+//       Explanation = 'CTPL Registration'
+//       AND Credit > 0
+//       AND Remarks IS NULL 
+//       AND Source_No like '%${search}%'
+// GROUP BY Source_No_Ref_ID
+// ORDER BY Source_No ASC
   return await prisma.$queryRawUnsafe(`
-  SELECT 
-      MIN(Source_No) AS Source_No,
-      MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
-      Source_No_Ref_ID
-  FROM
-      journal
-  WHERE
-          Explanation = 'CTPL Registration'
-          AND Credit > 0
-          AND Remarks IS NULL 
-          AND Source_No like '%${search}%'
-  GROUP BY Source_No_Ref_ID
-  ORDER BY Source_No ASC
+    SELECT 
+        *
+    FROM
+        (SELECT 
+            CONCAT(REGEXP_REPLACE(MIN(a.Source_No), '[0-9]', ''), MIN(b.SourceNo)) AS Source_No,
+                MIN(b.Cost) AS Cost,
+                a.Source_No_Ref_ID
+        FROM
+            journal a
+        INNER JOIN (SELECT 
+            (CAST(Credit AS DECIMAL (18 , 2 ))) AS Cost,
+                Source_No_Ref_ID,
+                CAST(REGEXP_REPLACE(Source_No, '[^0-9]', '') AS UNSIGNED) AS SourceNo,
+                Source_No
+        FROM
+            journal a
+        WHERE
+            Explanation = 'CTPL Registration'
+                AND Credit > 0
+                AND Remarks IS NULL
+        ORDER BY SourceNo) b ON a.Source_No = b.Source_No
+        GROUP BY a.Source_No_Ref_ID
+        ORDER BY MIN(b.SourceNo)) a
+    WHERE
+        a.Source_No LIKE '%${search}%'
+
   `);
 }
 
@@ -372,7 +398,7 @@ export async function searchDataVPolicy(
   req: Request
 ) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-  return await prisma.$queryRawUnsafe(`
+  const qry = `
       SELECT 
       a.*,
       b.*,
@@ -388,6 +414,9 @@ export async function searchDataVPolicy(
         left join entry_client c on a.IDNo = c.entry_client_id 
         left join entry_agent d on a.AgentID = d.entry_agent_id 
             WHERE 
+
+                b.PolicyNo is not null and
+            a.PolicyNo is not null and
         a.PolicyType = '${policyType}' and
        ${
          isTemp
@@ -401,7 +430,9 @@ export async function searchDataVPolicy(
        )
     ORDER BY a.DateIssued desc
     LIMIT 100 
-  `);
+  `
+  console.log(qry)
+  return await prisma.$queryRawUnsafe(qry);
 }
 
 export async function getCostByTPL(Source_No: string, req: Request) {

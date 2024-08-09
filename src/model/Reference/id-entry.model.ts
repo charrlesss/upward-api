@@ -15,6 +15,10 @@ interface DataEntryClientTypes {
   lastname?: string;
   company?: string;
   sale_officer?: string;
+  client_mortgagee: string;
+  client_branch: string;
+  chassis: string;
+  engine: string;
 }
 
 interface EntryEmployeeType {
@@ -86,7 +90,11 @@ const queryList: any = {
             b.telephone,
             concat(c.Acronym,'-',c.ShortName) as NewShortName,
             c.Sub_Acct as sub_account,
-            a.sale_officer
+            a.sale_officer,
+            a.client_mortgagee,
+            a.client_branch,
+            a.chassis,
+            a.engine
         FROM
           entry_client a
             LEFT JOIN
@@ -98,6 +106,8 @@ const queryList: any = {
         OR a.firstname like '%${search}%'
         OR a.lastname like '%${search}%'
         OR a.company like '%${search}%'
+        OR a.chassis like '%${search}%'
+        OR a.engine like '%${search}%'
         ORDER BY a.createdAt desc 
        limit 500
     `,
@@ -347,6 +357,10 @@ async function updateClient(data: DataEntryClientTypes, req: Request) {
     \`option\`='${data.option}',
     \`sub_account\`='${data.sub_account}',
     \`sale_officer\`='${data.sale_officer}',
+     \`client_mortgagee\`='${data.client_mortgagee}',
+    \`client_branch\`='${data.client_branch}',
+     \`chassis\`='${data.chassis}',
+    \`engine\`='${data.engine}',
     \`update\`=NOW()
     where 
       \`entry_client_id\`= '${data.entry_client_id}'
@@ -601,12 +615,12 @@ export async function deleteEntry(entry: string, id: string, req: Request) {
       break;
   }
 }
-export async function getClientInIdEntry(where: string,req:Request) {
+export async function getClientInIdEntry(where: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`call id_entry('${where}')`);
 }
-export async function getSubAccounts(req:Request) {
+export async function getSubAccounts(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(` 
@@ -618,7 +632,7 @@ export async function getSubAccounts(req:Request) {
     sub_account a`);
 }
 
-export async function IDGenerator(sign: string, type: string,req:Request) {
+export async function IDGenerator(sign: string, type: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const lastSeq = await prisma.id_sequence.findFirst({ where: { type } });

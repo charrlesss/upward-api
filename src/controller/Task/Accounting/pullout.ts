@@ -15,6 +15,11 @@ import {
   insertApprovalCode,
   existApprovalCode,
   updateApprovalCode,
+  load_pnno,
+  loadChecks,
+  loadRCPN,
+  deletePulloutRequest,
+  deletePulloutRequestDetails,
 } from "../../../model/Task/Accounting/pullout.model";
 import { getUserById } from "../../../model/StoredProcedure";
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
@@ -28,46 +33,62 @@ const Pullout = express.Router();
 const PulloutRequest = express.Router();
 const PulloutApporved = express.Router();
 
+PulloutRequest.get("/pullout/reqeust/load-pnno", async (req, res) => {
+  try {
+    res.send({
+      message: "Successfully",
+      success: true,
+      data: await load_pnno(req),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false, id: [] });
+  }
+});
+
+PulloutRequest.post("/pullout/reqeust/load-checks", async (req, res) => {
+  try {
+    res.send({
+      message: "Successfully",
+      success: true,
+      data: await loadChecks(req, req.body.PNNo),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false, id: [] });
+  }
+});
+
+PulloutRequest.post("/pullout/reqeust/load-rcpn", async (req, res) => {
+  try {
+    res.send({
+      message: "Successfully",
+      success: true,
+      data: await loadRCPN(req),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false, id: [] });
+  }
+});
+PulloutRequest.get("/pullout/reqeust/load-rcpn", async (req, res) => {
+  try {
+    res.send({
+      message: "Successfully",
+      success: true,
+      data: await loadRCPN(req),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({ message: "SERVER ERROR", success: false, id: [] });
+  }
+});
 PulloutRequest.get("/pullout/reqeust/get-id", async (req, res) => {
   try {
     res.send({
       message: "Successfully",
       success: true,
       id: await pulloutRequestAutoID(req),
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
-  }
-});
-PulloutRequest.get("/pullout/reqeust/get-pno-name", async (req, res) => {
-  const { pnclientSearch: serach } = req.query;
-  try {
-    res.send({
-      message: "Successfully",
-      success: true,
-      clientCheckName: await pulloutRequestPNoWithName(serach as string, req),
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
-  }
-});
-PulloutRequest.post("/pullout/reqeust/selected-pnno", async (req, res) => {
-  const { PNo, requestMode, RCPNo } = req.body;
-  console.log(req.body);
-  try {
-    if (requestMode === "edit") {
-      return res.send({
-        message: "Successfully",
-        success: true,
-        selected: await getSelectedEditRequestCheck(RCPNo, req),
-      });
-    }
-    res.send({
-      message: "Successfully",
-      success: true,
-      selected: await getSelectedRequestCheck(PNo, req),
     });
   } catch (error: any) {
     console.log(error.message);
@@ -91,13 +112,18 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
     <h3>Check storage pullout</h3>
     <h3>Pullout Request</h3>
     `;
-    const approvalCode = generateRandomNumber(6);
-    const { RCPNo, PNNo, reason, selected } = req.body;
+    const { RCPNo, PNNo, reason, selected, requestMode } = req.body;
     const user = await getUserById((req.user as any).UserId);
     let text = "";
     const Requested_By = user?.Username;
     const Requested_Date = new Date();
     text = getSelectedCheck(selected);
+
+    if (requestMode === "edit") {
+      deletePulloutRequest(req, RCPNo);
+      deletePulloutRequestDetails(req, RCPNo);
+    }
+
     await createPulloutRequest(
       {
         RCPNo: RCPNo,
@@ -112,14 +138,26 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
     );
     await createPulloutRequestDetailsFunc(selected, RCPNo, req);
     await updateAnyId("pullout", req);
-    await sendRequestEmail({
-      ...req.body,
-      text,
-      Requested_By,
-      Requested_Date,
-      approvalCode,
-      subtitle,
-    });
+
+    const EmailToSend = [
+      "upwardinsurance.grace@gmail.com",
+      "lva_ancar@yahoo.com",
+      "encoder.upward@yahoo.com",
+    ];
+    const approvalCode = generateRandomNumber(6);
+
+    for (const toEmail of EmailToSend) {
+      await sendRequestEmail({
+        ...req.body,
+        text,
+        Requested_By,
+        Requested_Date,
+        approvalCode,
+        subtitle,
+        toEmail,
+      });
+    }
+
     const pullout_auth_codes_id = await generateUniqueUUID(
       "pullout_auth_codes",
       "pullout_auth_codes_id"
@@ -128,12 +166,13 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       {
         pullout_auth_codes_id,
         RCPN: RCPNo,
-        For_User: "['LVA_ancar@yahoo.com','upwardclaims@yahoo.com']",
+        For_User: `[${EmailToSend.join(",")}]`,
         Approved_Code: approvalCode.toString(),
         Disapproved_Code: "",
       },
       req
     );
+
     await saveUserLogs(req, RCPNo, "add", "Pullout");
     res.send({
       message: "Save Successfully",
@@ -142,63 +181,6 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
   } catch (error: any) {
     console.log(error.message);
     res.send({ message: "SERVER ERROR", success: false, selected: [] });
-  }
-});
-PulloutRequest.post("/pullout/request/cancel-request", async (req, res) => {
-  try {
-    const { userAccess }: any = await VerifyToken(
-      req.cookies["up-ac-login"] as string,
-      process.env.USER_ACCESS as string
-    );
-    if (userAccess.includes("ADMIN")) {
-      return res.send({
-        message: `CAN'T CANCEL, ADMIN IS FOR VIEWING ONLY!`,
-        success: false,
-      });
-    }
-
-    const { RCPNo, selected } = req.body;
-    const user = await getUserById((req.user as any).UserId);
-    const approvalCode = null;
-    const text = getSelectedCheck(selected);
-    const subtitle = `
-    <h3>Check storage pullout</h3>
-    <h3>Cancel Request</h3>
-    `;
-    const Requested_By = user?.Username;
-    const Requested_Date = new Date();
-    await sendRequestEmail({
-      ...req.body,
-      text,
-      Requested_By,
-      Requested_Date,
-      approvalCode,
-      subtitle,
-    });
-
-    await updatePulloutRequest({ Status: "CANCEL" }, RCPNo, req);
-    await updatePulloutRequestDetails(RCPNo, req);
-    await saveUserLogs(req, RCPNo, "cancel request", "Pullout");
-    res.send({
-      message: `Cancel Request ${RCPNo} Successfully`,
-      success: true,
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, selected: [] });
-  }
-});
-PulloutRequest.get("/pullout/reqeust/edit-search", async (req, res) => {
-  try {
-    const { onEditSearch: search } = req.query;
-    res.send({
-      message: "Save Successfully",
-      success: true,
-      requestList: await searchPulloutRequestOnEdit(search as string, req),
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, requestList: [] });
   }
 });
 PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
@@ -236,18 +218,30 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
       });
 
     const user = await getUserById((req.user as any).UserId);
-    await sendApprovedEmail({
-      RCPNo,
-      PNNo,
-      client,
-      reason,
-      code,
-      selected,
-      approvedBy: user?.Username,
-      isApproved,
-    });
+
+    const EmailToSend = [
+      "upwardinsurance.grace@gmail.com",
+      "lva_ancar@yahoo.com",
+      "encoder.upward@yahoo.com",
+    ];
+
+    for (const toEmail of EmailToSend) {
+      await sendApprovedEmail({
+        RCPNo,
+        PNNo,
+        client,
+        reason,
+        code,
+        selected,
+        approvedBy: user?.Username,
+        isApproved,
+        toEmail,
+      });
+    }
+
     await approvedPullout(RCPNo, user?.Username as string, isApproved, req);
     await updateApprovalCode(RCPNo, code, user?.Username as string, req);
+
     await saveUserLogs(
       req,
       RCPNo,
@@ -263,18 +257,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     res.send({ message: "SERVER ERROR", success: false });
   }
 });
-PulloutApporved.post("/pullout/approved/selected-pnno", async (req, res) => {
-  try {
-    return res.send({
-      message: "Successfully",
-      success: true,
-      selected: await getSelectedEditRequestCheck(req.body.RCPNo, req),
-    });
-  } catch (error: any) {
-    console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
-  }
-});
+
 async function createPulloutRequestDetailsFunc(
   selected: string,
   RCPNo: string,
@@ -325,6 +308,7 @@ async function sendRequestEmail(props: any) {
     Requested_By,
     approvalCode,
     subtitle,
+    toEmail,
   } = props;
   const strong1 = `
     font-family: Arial, Helvetica, sans-serif;
@@ -342,9 +326,10 @@ async function sendRequestEmail(props: any) {
     background-color: #64748b;
     color: white;`;
   await sendEmail(
-    { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
-    "upwardinsurance.gelo@gmail.com",
-    "charlespalencia21@gmail.com",
+    { user: "upwardumis2020@gmail.com", pass: "vapw ridu eorg ukxd" },
+    "upwardumis2020@gmail.com",
+    `${toEmail}`,
+    "For Approval",
     `
   <div
     style="
@@ -467,8 +452,16 @@ async function sendRequestEmail(props: any) {
   );
 }
 async function sendApprovedEmail(props: any) {
-  const { PNNo, client, reason, code, selected, approvedBy, isApproved } =
-    props;
+  const {
+    PNNo,
+    client,
+    reason,
+    code,
+    selected,
+    approvedBy,
+    isApproved,
+    toEmail,
+  } = props;
   const strong1 = `
     font-family: Arial, Helvetica, sans-serif;
             font-size: 14px;
@@ -485,9 +478,10 @@ async function sendApprovedEmail(props: any) {
     background-color:  ${isApproved ? "green" : "red"};
     color: white;`;
   await sendEmail(
-    { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
-    "upwardinsurance.gelo@gmail.com",
-    "charlespalencia21@gmail.com",
+    { user: "upwardumis2020@gmail.com", pass: "vapw ridu eorg ukxd" },
+    "upwardumis2020@gmail.com",
+    `${toEmail}`,
+    `${isApproved ? "Approved" : "Disapproved"}`,
     `
   <div
     style="

@@ -3,25 +3,8 @@ import { PrismaList } from "../../connection";
 import { Request } from "express";
 const { CustomPrismaClient } = PrismaList();
 
-export async function getWarehouseSearch(search: string, req: Request) {
+export async function getWarehouseSearch(query: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-
-  const query = `
-    SELECT 
-        CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
-        a.PNo AS Policy,
-        MIN(a.IDNo) AS IDNo,
-        MIN(a.Name) AS fullname
-    FROM
-      pdc a
-    WHERE
-        a.PNo LIKE '%${search}%'
-            OR a.IDNo LIKE '%${search}%'
-            OR a.Name LIKE '%${search}%'
-    GROUP BY a.PNo
-    LIMIT 100`;
-  console.log(query);
-
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -194,6 +177,5 @@ export async function updatePDCChecks(
   }
 `;
   console.log(query);
-
   return await prisma.$queryRawUnsafe(query);
 }

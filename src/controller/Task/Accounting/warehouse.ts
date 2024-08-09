@@ -13,16 +13,49 @@ import { VerifyToken } from "../../Authentication";
 
 const Warehouse = express.Router();
 
-Warehouse.get(
+Warehouse.post(
   "/warehouse/search-pdc-checks-client-policy",
   async (req, res) => {
     try {
-      const { searchCheck: search } = req.query;
+      const pdcStatus = parseInt(req.body.pdcStatus);
+      const searchType = parseInt(req.body.searchType);
+      const search = req.body.search;
 
+      let StrWhere =
+        "(PDC_Status = '" +
+        ["Received", "Stored", "Stored"][pdcStatus] +
+        "'" +
+        (pdcStatus !== 2
+          ? ")"
+          : " OR (PDC_Status='Pulled Out' AND (PDC_Remarks='Fully Paid' OR PDC_Remarks='Replaced')))");
+
+      const searchBy = ["PNo", "IDNo", "Name", "Bank"][searchType];
+
+      function LoadPDC(searchBy: string, search: string, StrWhere: string) {
+        return `
+        SELECT 
+          PDC_ID,
+          CAST(ROW_NUMBER() OVER () AS CHAR) AS temp_id,
+          PNo, 
+          IDNo, 
+          date_format(Date,'%m-%d-%Y') AS dateRecieved, 
+          Name, 
+          date_format(Check_Date,'%m-%d-%Y') AS CheckDate, 
+          Check_No, 
+          Check_Amnt, 
+          Bank, 
+          PDC_Status 
+        FROM PDC 
+        WHERE  ${searchBy}  LIKE '%${search}%' AND ${StrWhere} ORDER BY Date,Check_Date`;
+      }
+      console.log(req.body);
       res.send({
         message: "successfully",
         success: true,
-        data: await getWarehouseSearch(search as string, req),
+        data: await getWarehouseSearch(
+          LoadPDC(searchBy, search, StrWhere),
+          req
+        ),
       });
     } catch (err: any) {
       console.log(err.message);
@@ -123,12 +156,15 @@ Warehouse.post("/warehouse/save", async (req, res) => {
       });
     }
 
+
+      
     const successMessage = [
       "Stored In Warehouse",
       "Endorsed for Deposit",
       "Pulled Out As " + req.body.remarks,
     ];
     const selected = JSON.parse(req.body.selected);
+
     if (req.body.pdcStatus === "2") {
       selected.forEach(async (item: any) => {
         const pulloutRequest = await pullout(item.PNo, item.Check_No, req);

@@ -114,6 +114,7 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
     }
     console.log(sql);
     const dataRes: any = await prisma.$queryRawUnsafe(sql);
+    
     const updatedDataRes = dataRes.map((obj: any) => ({
       ...obj,
       second: true,

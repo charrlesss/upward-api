@@ -376,6 +376,7 @@ async function sendRequestEmail(props: any) {
     { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
     "upwardinsurance.gelo@gmail.com",
     "charlespalencia21@gmail.com",
+    '',
     `
   <div
     style="
@@ -570,6 +571,7 @@ async function sendApprovedEmail(props: any) {
     { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
     "upwardinsurance.gelo@gmail.com",
     "charlespalencia21@gmail.com",
+    '',
     `
   <div
     style="

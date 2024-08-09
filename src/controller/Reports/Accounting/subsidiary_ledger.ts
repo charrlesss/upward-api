@@ -10,7 +10,6 @@ const { CustomPrismaClient } = PrismaList();
 
 SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-
   let account: string = req.body.account;
   let DateFrom: any = format(new Date(req.body.dateFrom), "MM/dd/yyyy");
   let DateTo: any = format(new Date(req.body.dateTo), "MM/dd/yyyy");
@@ -20,6 +19,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
   let Balance = 0;
   let sFilter = " ";
   let Qry = "";
+
   const balanceForwarded: any = [];
   const report: any = [];
   if (account === "") account = "ALL";
@@ -27,7 +27,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
     switch (subsi) {
       case 0:
         // Balances
-       
+
         if (account !== "ALL") {
           if (
             new Date(
@@ -483,7 +483,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
        qryJournal.Date_Entry, qryJournal.Number, qryJournal.Source_No, qryJournal.Auto`;
       dt = await prisma.$queryRawUnsafe(Qry);
     }
-    console.log(Qry);
+
 
     if (dt.length > 0) {
       let dtBal: any = [];
