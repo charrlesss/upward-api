@@ -1,6 +1,23 @@
 import { Request } from "express";
 import { PrismaList } from "../../connection";
+import { selectClient } from "./pdc.model";
 const { CustomPrismaClient } = PrismaList();
+
+export async function searchPDCCLients(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+ SELECT 
+    PNo, max(Name) as Name, 'HO' AS branch_code, 'Head Office' AS branch_name
+FROM
+    pdc a
+WHERE
+    PDC_Status = 'Stored' 
+    group by PNo
+  `;
+
+  return await prisma.$queryRawUnsafe(qry);
+}
 
 export async function checkPostponementRequestAutoID(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
@@ -98,9 +115,144 @@ export async function getCheckPostponementPNNo(search: string, req: Request) {
     `;
   return await prisma.$queryRawUnsafe(query);
 }
+
+export async function getRCPNList(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  return await prisma.$queryRawUnsafe(`
+   Select RPCDNo from Postponement Where Status = 'PENDING'
+  ;`);
+}
+
+export async function getRCPNDetails(req: Request, RPCDNo: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+   SELECT 
+    a.RPCDNo,
+    a.PNNo,
+    a.HoldingFees,
+    a.PenaltyCharge,
+    a.Surplus,
+    a.Deducted_to,
+    a.PaidVia,
+    a.PaidInfo,
+    a.PaidDate,
+    a.ClientBranch,
+    b.*,
+    c.Name,
+    b.reason,
+    b.NewCheckDate,
+    a.Requested_By,
+    a.Requested_Date
+FROM
+    postponement a
+        LEFT JOIN
+    (SELECT 
+        PDC_ID,
+            DATE_FORMAT(Check_Date, '%m/%d/%Y') AS Check_Date,
+            Bank,
+            Check_No,
+            FORMAT(CAST(REPLACE(Check_Amnt, ',', '') AS DECIMAL(10,2)), 2) as  Check_Amnt,
+            IFNULL(Status, '--') AS Status,
+            PNo,
+            reason,
+            date_format(NewCheckDate , '%m/%d/%Y') as NewCheckDate,
+            LPAD(ROW_NUMBER() OVER (), 3, '0') as temp_id
+    FROM
+        PDC PD
+    LEFT JOIN (SELECT 
+        bb.CheckNo, aa.Status, bb.reason, bb.NewCheckDate
+    FROM
+        postponement aa
+    LEFT JOIN postponement_detail bb ON aa.RPCDNo = bb.RPCD AND bb.cancel = 0) b ON PD.Check_No = b.CheckNo
+    WHERE
+        PDC_Status = 'Stored'
+            AND Status IN ('PENDING' , 'APPROVED', 'DECLINED')
+    ORDER BY Check_No) b ON a.PNNo = b.PNo
+        LEFT JOIN
+    (SELECT 
+        *
+    FROM
+        (SELECT 
+        a.IDType AS Type,
+            a.IDNo,
+            a.sub_account,
+            a.Shortname AS Name,
+            a.client_id,
+            a.ShortName AS sub_shortname,
+            b.ShortName,
+            b.Acronym,
+            IF(a.IDType = 'Policy'
+                AND c.PolicyType = 'COM'
+                OR c.PolicyType = 'TPL', CONCAT('C: ', c.ChassisNo, '  ', 'E: ', c.MotorNo), '') AS remarks
+    FROM
+        (SELECT 
+        'Client' AS IDType,
+            aa.entry_client_id AS IDNo,
+            aa.sub_account,
+            IF(aa.option = 'individual', CONCAT(IF(aa.lastname IS NOT NULL
+                AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''), aa.firstname), aa.company) AS Shortname,
+            aa.entry_client_id AS client_id
+    FROM
+        entry_client aa UNION ALL SELECT 
+        'Agent' AS IDType,
+            aa.entry_agent_id AS IDNo,
+            aa.sub_account,
+            CONCAT(IF(aa.lastname IS NOT NULL
+                AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''), aa.firstname) AS Shortname,
+            aa.entry_agent_id AS client_id
+    FROM
+        entry_agent aa UNION ALL SELECT 
+        'Employee' AS IDType,
+            aa.entry_employee_id AS IDNo,
+            aa.sub_account,
+            CONCAT(IF(aa.lastname IS NOT NULL
+                AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''), aa.firstname) AS Shortname,
+            aa.entry_employee_id AS client_id
+    FROM
+        entry_employee aa UNION ALL SELECT 
+        'Supplier' AS IDType,
+            aa.entry_supplier_id AS IDNo,
+            aa.sub_account,
+            IF(aa.option = 'individual', CONCAT(IF(aa.lastname IS NOT NULL
+                AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''), aa.firstname), aa.company) AS Shortname,
+            aa.entry_supplier_id AS client_id
+    FROM
+        entry_supplier aa UNION ALL SELECT 
+        'Fixed Assets' AS IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+            aa.sub_account,
+            aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id AS client_id
+    FROM
+        entry_fixed_assets aa UNION ALL SELECT 
+        'Others' AS IDType,
+            aa.entry_others_id AS IDNo,
+            aa.sub_account,
+            aa.description AS Shortname,
+            aa.entry_others_id AS client_id
+    FROM
+        entry_others aa UNION ALL SELECT 
+        'Policy' AS IDType,
+            a.PolicyNo AS IDNo,
+            b.sub_account,
+            IF(b.option = 'individual', CONCAT(IF(b.lastname IS NOT NULL
+                AND b.lastname <> '', CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+            a.IDNo AS client_id
+    FROM
+        policy a
+    LEFT JOIN entry_client b ON a.IDNo = b.entry_client_id) a
+    LEFT JOIN sub_account b ON a.sub_account = b.Sub_Acct
+    LEFT JOIN vpolicy c ON a.IDNo = c.PolicyNo) a) c ON a.PNNo = c.IDNo
+  where a.RPCDNo = '${RPCDNo}'
+  `;
+
+  return await prisma.$queryRawUnsafe(qry);
+}
+
 export async function getSelectedCheckPostponementPNNo(
   PNNo: string,
-  checkNo: string,
   req: Request
 ) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
@@ -117,16 +269,23 @@ export async function getSelectedCheckPostponementPNNo(
             PDC PD
           left join (
             SELECT bb.CheckNo,aa.Status FROM  postponement aa
-                left join   postponement_detail bb on aa.RPCDNo = bb.RPCD and bb.cancel = 0 and  aa.Status <> 'CANCEL'
+                left join  postponement_detail bb on aa.RPCDNo = bb.RPCD and bb.cancel = 0 and  aa.Status <> 'CANCEL'
                 ) b on PD.Check_No = b.CheckNo 
       WHERE
         PNo = '${PNNo}'
         AND PDC_Status = 'Stored'
-        AND Check_No like '%${checkNo}%'
         ORDER BY Check_No
     ;`;
   return await prisma.$queryRawUnsafe(query);
 }
+
+export async function deleteOnUpdate(req: Request, RPCDNo: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  await prisma.$queryRawUnsafe(`Delete from Postponement where RPCDNo = '${RPCDNo}'`);
+  await prisma.$queryRawUnsafe(`Delete from Postponement_Detail where RPCD ='${RPCDNo}' `);
+}
+
 export async function searchEditPostponentRequest(
   search: string,
   req: Request

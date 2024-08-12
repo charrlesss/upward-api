@@ -166,6 +166,7 @@ export async function updatePDCChecks(
 
   const status = ["Stored", "Endorsed", "Pulled Out"];
   const field = ["Date_Stored", "Date_Endorsed", "Date_Pulled_Out"];
+  
   const query = `UPDATE   pdc SET PDC_Status = '${
     status[parseInt(pdcStatus)]
   }', ${field[parseInt(pdcStatus)]} = str_to_date('${convertDate(

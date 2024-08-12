@@ -48,7 +48,6 @@ Warehouse.post(
         FROM PDC 
         WHERE  ${searchBy}  LIKE '%${search}%' AND ${StrWhere} ORDER BY Date,Check_Date`;
       }
-      console.log(req.body);
       res.send({
         message: "successfully",
         success: true,
@@ -156,8 +155,6 @@ Warehouse.post("/warehouse/save", async (req, res) => {
       });
     }
 
-
-      
     const successMessage = [
       "Stored In Warehouse",
       "Endorsed for Deposit",
@@ -176,6 +173,7 @@ Warehouse.post("/warehouse/save", async (req, res) => {
         }
       });
     }
+
     selected.forEach(async (check: any) => {
       await updatePDCChecks(
         req.body.pdcStatus,
@@ -184,7 +182,6 @@ Warehouse.post("/warehouse/save", async (req, res) => {
         req
       );
     });
-
     await saveUserLogs(req, "", "add", "Warehouse");
     res.send({
       message: `Successfully ${successMessage[parseInt(req.body.pdcStatus)]}`,

@@ -20,6 +20,8 @@ import {
   loadRCPN,
   deletePulloutRequest,
   deletePulloutRequestDetails,
+  loadRCPNApproved,
+  loadRCPNApprovedList,
 } from "../../../model/Task/Accounting/pullout.model";
 import { getUserById } from "../../../model/StoredProcedure";
 import generateUniqueUUID from "../../../lib/generateUniqueUUID";
@@ -258,6 +260,44 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
   }
 });
 
+PulloutApporved.post(
+  "/pullout/approved/load-rcpn-approved",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully",
+        success: true,
+        rcpn: await loadRCPNApproved(req),
+      });
+    } catch (error: any) {
+      console.log(error.message);
+      res.send({ message: "SERVER ERROR", success: false, id: [] });
+    }
+  }
+);
+
+PulloutApporved.post(
+  "/pullout/approved/load-rcpn-approved-list",
+  async (req, res) => {
+    try {
+      const RCPN = req.body.RCPN;
+      const data = await loadRCPNApprovedList(req, RCPN);
+      const jsonString = JSON.stringify(data, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      );
+      const rcpnList = JSON.parse(jsonString);
+      res.send({
+        message: "Successfully",
+        success: true,
+        rcpnList,
+      });
+    } catch (error: any) {
+      console.log(error.message);
+      res.send({ message: "SERVER ERROR", success: false, id: [] });
+    }
+  }
+);
+
 async function createPulloutRequestDetailsFunc(
   selected: string,
   RCPNo: string,
@@ -388,7 +428,7 @@ async function sendRequestEmail(props: any) {
         style="${strong1}"
         >Approval Code : </strong
       ><strong
-        style="${strong2}"
+        style="${strong2} color:green;font-weight: bold;"
         >${approvalCode}</strong
       >
     </p>`
@@ -546,7 +586,7 @@ async function sendApprovedEmail(props: any) {
     style="${strong1}"
     >${isApproved ? "Approved by" : "Disapproved by"} : </strong
   ><strong
-    style="${strong2}"
+    style="${strong2} color:green;font-weight: bold;"
     >${code}</strong
   >
 </p>

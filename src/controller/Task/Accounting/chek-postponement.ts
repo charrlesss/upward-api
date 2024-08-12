@@ -13,8 +13,10 @@ import {
   updatePostponementStatus,
   updateApprovalPostponementCode,
   findApprovalPostponementCode,
-
-  
+  searchPDCCLients,
+  getRCPNList,
+  getRCPNDetails,
+  deleteOnUpdate,
 } from "../../../model/Task/Accounting/chek-postponement.model";
 import { getUserById } from "../../../model/StoredProcedure";
 import { updateAnyId } from "../../../model/Task/Accounting/pullout.model";
@@ -23,8 +25,47 @@ import sendEmail from "../../../lib/sendEmail";
 import generateRandomNumber from "../../../lib/generateRandomNumber";
 import saveUserLogs from "../../../lib/save_user_logs";
 import { VerifyToken } from "../../Authentication";
+import generateUniqueUUID from "../../../lib/generateUniqueUUID";
 
 const CheckPostponement = express.Router();
+
+CheckPostponement.get(
+  "/check-postponement/reqeust/search-pnno-client",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully Get ID",
+        success: true,
+        pnnoClients: await searchPDCCLients(req),
+      });
+    } catch (error: any) {
+      console.log(`${CheckPostponement} : ${error.message}`);
+      res.send({ message: "SERVER ERROR", success: false, data: [] });
+    }
+  }
+);
+
+CheckPostponement.post(
+  "/check-postponement/selected-pn-no-checklist",
+  async (req, res) => {
+    const { PNNo } = req.body;
+    try {
+      const selectedChecks = await getSelectedCheckPostponementPNNo(PNNo, req);
+      res.send({
+        message: "Successfully Get Search Selected",
+        success: true,
+        selectedChecks,
+      });
+    } catch (error: any) {
+      console.log(`${CheckPostponement} : ${error.message}`);
+      res.send({
+        message: "SERVER ERROR!",
+        success: false,
+        selectedChecks: [],
+      });
+    }
+  }
+);
 
 CheckPostponement.get(
   "/check-postponement/reqeust/get-id",
@@ -41,47 +82,7 @@ CheckPostponement.get(
     }
   }
 );
-CheckPostponement.get("/check-postponement/pn-no", async (req, res) => {
-  const { pnclientSearch } = req.query;
-  try {
-    const clientCheckName = await getCheckPostponementPNNo(
-      pnclientSearch as string,
-      req
-    );
-    res.send({
-      message: "Successfully Search",
-      success: true,
-      clientCheckName,
-    });
-  } catch (error: any) {
-    console.log(`${CheckPostponement} : ${error.message}`);
-    res.send({ message: "SERVER ERROR!", success: false, clientCheckName: [] });
-  }
-});
-CheckPostponement.get(
-  "/check-postponement/selected-pn-no",
-  async (req, res) => {
-    const { check, pnno } = req.query;
-    try {
-      const selectedChecks = await getSelectedCheckPostponementPNNo(
-        pnno as string,
-        check as string, req
-      );
-      res.send({
-        message: "Successfully Get Search Selected",
-        success: true,
-        selectedChecks,
-      });
-    } catch (error: any) {
-      console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({
-        message: "SERVER ERROR!",
-        success: false,
-        selectedChecks: [],
-      });
-    }
-  }
-);
+
 CheckPostponement.post("/check-postponement/save", async (req, res) => {
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
@@ -95,6 +96,10 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
   }
 
   try {
+    if (req.body.requestMode === "edit") {
+      await deleteOnUpdate(req, req.body.RPCD);
+    }
+
     const user = await getUserById((req.user as any).UserId);
     const data = {
       RPCDNo: req.body.RPCD,
@@ -115,6 +120,7 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       Requested_Date: new Date(),
     };
     await createPostponement(data, req);
+
     JSON.parse(req.body.checkSelected).forEach(async (item: any) => {
       const details = {
         RPCD: req.body.RPCD,
@@ -126,6 +132,7 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       };
       await createPostponementDetails(details, req);
     });
+
     const subtitle = `
       <h3>Check Deposit Postponement Request</h3>
     `;
@@ -134,21 +141,40 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
     const Requested_Date = new Date();
     const approvalCode = generateRandomNumber(6);
 
-    await sendRequestEmail({
-      ...req.body,
-      text,
-      Requested_By,
-      Requested_Date,
-      approvalCode,
-      subtitle,
-    });
-    await approvalCodePostponement({
-      RPCD: req.body.RPCD,
-      For_User: Requested_By,
-      Approved_Code: approvalCode.toString(),
-      Disapproved_Code: ""
-    }, req);
-    await updateAnyId("check-postponement",req);
+    const EmailToSend = [
+      "upwardinsurance.grace@gmail.com",
+      "lva_ancar@yahoo.com",
+      "encoder.upward@yahoo.com",
+    ];
+
+    for (const toEmail of EmailToSend) {
+      await sendRequestEmail({
+        ...req.body,
+        text,
+        Requested_By,
+        Requested_Date,
+        approvalCode,
+        subtitle,
+        toEmail,
+      });
+    }
+
+    const postponement_auth_codes_id = await generateUniqueUUID(
+      "postponement_auth_codes",
+      "postponement_auth_codes_id"
+    );
+
+    await approvalCodePostponement(
+      {
+        postponement_auth_codes_id,
+        RPCD: req.body.RPCD,
+        For_User: Requested_By,
+        Approved_Code: approvalCode.toString(),
+        Disapproved_Code: "",
+      },
+      req
+    );
+    await updateAnyId("check-postponement", req);
     await saveUserLogs(req, req.body.RPCD, `add request`, "Check-Postponement");
     res.send({ message: "Save Successfully.", success: true });
   } catch (error: any) {
@@ -156,11 +182,58 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
     res.send({ message: "SERVER ERROR!", success: false });
   }
 });
+
+CheckPostponement.post(
+  "/check-postponement/request/get-rcpn-list",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully Get ID",
+        success: true,
+        rcpn: await getRCPNList(req),
+      });
+    } catch (error: any) {
+      console.log(`${CheckPostponement} : ${error.message}`);
+      res.send({ message: "SERVER ERROR", success: false, rcpn: [] });
+    }
+  }
+);
+CheckPostponement.get(
+  "/check-postponement/request/get-rcpn-list",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully Get ID",
+        success: true,
+        rcpn: await getRCPNList(req),
+      });
+    } catch (error: any) {
+      console.log(`${CheckPostponement} : ${error.message}`);
+      res.send({ message: "SERVER ERROR", success: false, rcpn: [] });
+    }
+  }
+);
+CheckPostponement.post(
+  "/check-postponement/request/get-rcpn-selected-datails",
+  async (req, res) => {
+    try {
+      res.send({
+        message: "Successfully Get ID",
+        success: true,
+        rcpnDetails: await getRCPNDetails(req, req.body.RPCDNo),
+      });
+    } catch (error: any) {
+      console.log(`${CheckPostponement} : ${error.message}`);
+      res.send({ message: "SERVER ERROR", success: false, rcpnDetails: [] });
+    }
+  }
+);
 CheckPostponement.get("/check-postponement/search-edit", async (req, res) => {
   const { searchEdit } = req.query;
   try {
     const selectedRequest = await searchEditPostponentRequest(
-      searchEdit as string, req
+      searchEdit as string,
+      req
     );
     res.send({
       message: "Successfully Get Search Selected",
@@ -181,7 +254,8 @@ CheckPostponement.post(
   async (req, res) => {
     try {
       const selectedSearchEdit = await searchSelectedEditPostponentRequest(
-        req.body.RPCD, req
+        req.body.RPCD,
+        req
       );
       res.send({
         message: "Successfully Get Search Selected",
@@ -194,42 +268,6 @@ CheckPostponement.post(
         message: "SERVER ERROR!",
         success: false,
         selectedSearchEdit: [],
-      });
-    }
-  }
-);
-CheckPostponement.post(
-  "/check-postponement/cancel-request",
-  async (req, res) => {
-    const { userAccess }: any = await VerifyToken(
-      req.cookies["up-ac-login"] as string,
-      process.env.USER_ACCESS as string
-    );
-    if (userAccess.includes("ADMIN")) {
-      return res.send({
-        message: `CAN'T CANCEL, ADMIN IS FOR VIEWING ONLY!`,
-        success: false,
-      });
-    }
-
-    try {
-      await updateOnCancelPostponentRequest(req.body.RPCD, req);
-      await updateOnCancelPostponentRequestDetails(req.body.RPCD, req);
-      await saveUserLogs(
-        req,
-        req.body.RPCD,
-        `cancel request`,
-        "Check-Postponement"
-      );
-      res.send({
-        message: `Cancel Request ${req.body.RPCD} Successfully`,
-        success: true,
-      });
-    } catch (error: any) {
-      console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({
-        message: "SERVER ERROR!",
-        success: false,
       });
     }
   }
@@ -261,7 +299,8 @@ CheckPostponement.post(
       }
       const isAuthorized: any = await findApprovalPostponementCode(
         req.body.code,
-        req.body.RPCD, req
+        req.body.RPCD,
+        req
       );
 
       if (isAuthorized.length <= 0) {
@@ -275,11 +314,13 @@ CheckPostponement.post(
       await updatePostponementStatus(
         req.body.isApproved,
         req.body.RPCD,
-        user?.Username as string, req
+        user?.Username as string,
+        req
       );
       await updateApprovalPostponementCode(
         user?.Username as string,
-        req.body.RPCD, req
+        req.body.RPCD,
+        req
       );
       const subtitle = `
         <h3>Check Deposit Postponement Request</h3>
@@ -287,21 +328,33 @@ CheckPostponement.post(
       const text = getSelectedCheck(req.body.checkSelected);
       const Approved_By = user?.Username;
 
-      await sendApprovedEmail({
-        ...req.body,
-        text,
-        Requested_By: req.body.Requested_By,
-        Requested_Date: req.body.Requested_Date,
-        approvalCode: req.body.code,
-        subtitle,
-        Approved_By,
-      });
+      const EmailToSend = [
+        "upwardinsurance.grace@gmail.com",
+        "lva_ancar@yahoo.com",
+        "encoder.upward@yahoo.com",
+      ];
+
+      for (const toEmail of EmailToSend) {
+        await sendApprovedEmail({
+          ...req.body,
+          text,
+          Requested_By: req.body.Requested_By,
+          Requested_Date: req.body.Requested_Date,
+          approvalCode: req.body.code,
+          subtitle,
+          Approved_By,
+          toEmail,
+        });
+      }
+
       await saveUserLogs(
         req,
         req.body.RPCD,
         `${req.body.isApproved ? "approved" : "disapproved"} request`,
         "Check-Postponement"
       );
+
+      console.log(req.body);
 
       res.send({
         message: `${req.body.isApproved ? "APPROVED" : "DISAPPROVED"} Request ${
@@ -310,7 +363,7 @@ CheckPostponement.post(
         success: true,
       });
     } catch (error: any) {
-      console.log(`${CheckPostponement} : ${error.message}`);
+      console.log(error.message);
       res.send({
         message: "SERVER ERROR!",
         success: false,
@@ -318,7 +371,6 @@ CheckPostponement.post(
     }
   }
 );
-
 function getSelectedCheck(selected: string) {
   let tbodyText = "";
   JSON.parse(selected).forEach((item: any) => {
@@ -352,6 +404,7 @@ async function sendRequestEmail(props: any) {
     penaltyCharge,
     surplus,
     paidVia,
+    toEmail,
   } = props;
   const totalFee =
     parseFloat(holdingFee.replace(/,/g, "")) +
@@ -373,10 +426,10 @@ async function sendRequestEmail(props: any) {
     background-color: #64748b;
     color: white;`;
   await sendEmail(
-    { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
-    "upwardinsurance.gelo@gmail.com",
-    "charlespalencia21@gmail.com",
-    '',
+    { user: "upwardumis2020@gmail.com", pass: "vapw ridu eorg ukxd" },
+    "upwardumis2020@gmail.com",
+    `${toEmail}`,
+    "For Approval",
     `
   <div
     style="
@@ -434,7 +487,7 @@ async function sendRequestEmail(props: any) {
         style="${strong1}"
         >Approval Code : </strong
       ><strong
-        style="${strong2}"
+        style="${strong2} color:green;font-weight: bold;"
         >${approvalCode}</strong
       >
     </p>`
@@ -529,7 +582,6 @@ async function sendRequestEmail(props: any) {
     `
   );
 }
-
 async function sendApprovedEmail(props: any) {
   const {
     RPCD,
@@ -547,6 +599,7 @@ async function sendApprovedEmail(props: any) {
     username,
     code,
     Approved_By,
+    toEmail,
   } = props;
   const totalFee =
     parseFloat(holdingFee.replace(/,/g, "")) +
@@ -568,10 +621,10 @@ async function sendApprovedEmail(props: any) {
     background-color:${isApproved ? "green" : "#b91c1c"};
     color: white;`;
   await sendEmail(
-    { user: "upwardinsurance.gelo@gmail.com", pass: "onss clqu vwnp tbea" },
-    "upwardinsurance.gelo@gmail.com",
-    "charlespalencia21@gmail.com",
-    '',
+    { user: "upwardumis2020@gmail.com", pass: "vapw ridu eorg ukxd" },
+    "upwardumis2020@gmail.com",
+    `${toEmail}`,
+    `${isApproved ? "Approved" : "Disapproved"}`,
     `
   <div
     style="
@@ -650,7 +703,7 @@ async function sendApprovedEmail(props: any) {
       style="${strong1}"
       >Approved Code: </strong
     ><strong
-      style="${strong2}"
+      style="${strong2} color:green;font-weight: bold;"
       >${code}</strong
     >
     </p>

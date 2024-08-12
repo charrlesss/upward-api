@@ -2,12 +2,12 @@ import { Request } from "express";
 import { PrismaList } from "../../connection";
 const { CustomPrismaClient } = PrismaList();
 
- const selectClient = `
+export const selectClient = `
 SELECT 
   "Client" as IDType,
   aa.entry_client_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
   aa.entry_client_id as client_id  
 FROM
   entry_client aa
@@ -16,7 +16,7 @@ SELECT
   "Agent" as IDType,
   aa.entry_agent_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
   aa.entry_agent_id as client_id  
 FROM
   entry_agent aa
@@ -25,7 +25,7 @@ SELECT
   "Employee" as IDType,
   aa.entry_employee_id AS IDNo,
   aa.sub_account,
-  CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname , ', '),''), aa.firstname) AS Shortname,
+  CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname , ', '),''), aa.firstname) AS Shortname,
   aa.entry_employee_id as client_id
 FROM
   entry_employee aa
@@ -34,7 +34,7 @@ SELECT
   "Supplier" as IDType,
   aa.entry_supplier_id AS IDNo,
   aa.sub_account,
-  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null, CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
+  if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
   aa.entry_supplier_id as client_id
 FROM
   entry_supplier aa
@@ -81,7 +81,7 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
           'Policy' AS IDType,
           a.PolicyNo AS IDNo,
           b.sub_account,
-          IF(b.option = 'individual', CONCAT(IF(b.lastname is not null, CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
+          IF(b.option = 'individual', CONCAT(IF(b.lastname is not null AND b.lastname <> '', CONCAT(b.lastname, ', '), ''), b.firstname), b.company) AS Shortname,
           a.IDNo AS client_id
         FROM
             policy a

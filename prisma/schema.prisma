@@ -814,12 +814,13 @@ model postponement {
 }
 
 model postponement_auth_codes {
-  RPCD             String    @id @db.VarChar(250)
-  For_User         String?   @db.VarChar(500)
-  Approved_Code    String?   @db.VarChar(250)
-  Disapproved_Code String?   @db.VarChar(250)
-  Used_By          String?   @db.VarChar(250)
-  Used_DateTime    DateTime? @db.Date
+  RPCD                       String    @db.VarChar(250)
+  For_User                   String?   @db.VarChar(500)
+  Approved_Code              String?   @db.VarChar(250)
+  Disapproved_Code           String?   @db.VarChar(250)
+  Used_By                    String?   @db.VarChar(250)
+  Used_DateTime              DateTime? @db.Date
+  postponement_auth_codes_id String    @id @db.VarChar(500)
 }
 
 model postponement_detail {

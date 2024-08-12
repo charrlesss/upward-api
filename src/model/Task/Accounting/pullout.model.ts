@@ -53,6 +53,42 @@ Where a.Branch = 'HO' and Status = 'PENDING' Order by RCPNo
   `;
   return await prisma.$queryRawUnsafe(qry);
 }
+
+export async function loadRCPNApproved(req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+      Select Distinct B.RCPNo 
+        From PDC A 
+        Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status 
+                    From PullOut_Request A 
+                  INNER JOIN PullOut_Request_Details B ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
+        WHERE PDC_Status = 'Stored' and b.Status = 'APPROVED' 
+        Order by B.RCPNo
+    `;
+  return await prisma.$queryRawUnsafe(qry);
+}
+
+export async function loadRCPNApprovedList(req: Request, RCPN: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  let whr = "";
+  if (RCPN !== "") {
+    whr = ` and b.RCPNo = '${RCPN}' `;
+  }
+  const qry = `
+       Select B.RCPNo, b.PNNo, a.Name, count(b.CheckNo) NoOfChecks, b.Reason
+        From PDC A 
+        Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status, a.Reason 
+        			    From PullOut_Request A 
+        			    INNER JOIN PullOut_Request_Details B  ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
+        WHERE PDC_Status = 'Stored' and b.Status = 'APPROVED' ${whr}
+        Group by B.RCPNo, b.PNNo, a.Name, b.Reason 
+        Order by B.RCPNo
+    `;
+    
+  return await prisma.$queryRawUnsafe(qry);
+}
 // =======
 
 export async function pulloutRequestAutoID(req: Request) {
