@@ -399,10 +399,14 @@ async function insertNewVPolicy(
   }
 }
 VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
+  // req.user = {
+  //   UserId: "211ecd33-ac33-40fc-94a1-944618e124e5",
+  //   iat: 1723702375,
+  //   exp: 1723788775,
+  // };
   convertToPassitive(req);
   const { sub_account, client_id, PolicyAccount, PolicyNo, Denomination } =
     req.body;
-
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
     process.env.USER_ACCESS as string
@@ -438,7 +442,8 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-
+    // const strArea = "HO";
+    // const cStrArea = "Head Office";
     await insertNewVPolicy({ ...req.body, cStrArea, strArea }, req);
 
     await saveUserLogs(req, PolicyNo, "add", "Vehicle Policy");

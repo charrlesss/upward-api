@@ -53,7 +53,11 @@ CTPL.get("/get-ctpl", async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -104,7 +108,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
     for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
       const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
       // DEBIT'
-      const newDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss.SSS') 
+      const newDate = format(new Date(), "yyyy-MM-dd HH:mm:ss.SSS");
       await createJournal(
         {
           Source_No: _sourceNo,
@@ -156,8 +160,11 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -192,7 +199,11 @@ CTPL.post("/delete-ctpl", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -238,7 +249,10 @@ CTPL.post("/update-ctpl", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -252,7 +266,11 @@ CTPL.get("/search-ctpl", async (req: Request, res: Response) => {
       ctpl,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -268,7 +286,7 @@ CTPL.get("/export-ctpl", async (req, res) => {
         "Created At",
       ],
       row: [
-        "Prefix",
+        "Prefix",   
         "NumSeriesFrom",
         "NumSeriesTo",
         "Cost",

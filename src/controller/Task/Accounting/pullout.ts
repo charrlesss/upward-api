@@ -145,6 +145,7 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
       "upwardinsurance.grace@gmail.com",
       "lva_ancar@yahoo.com",
       "encoder.upward@yahoo.com",
+      "charlespalencia21@gmail.com",
     ];
     const approvalCode = generateRandomNumber(6);
 
@@ -225,6 +226,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
       "upwardinsurance.grace@gmail.com",
       "lva_ancar@yahoo.com",
       "encoder.upward@yahoo.com",
+      "charlespalencia21@gmail.com"
     ];
 
     for (const toEmail of EmailToSend) {

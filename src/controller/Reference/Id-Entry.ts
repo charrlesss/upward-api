@@ -42,6 +42,7 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
   delete req.body.mode;
   delete req.body.search;
   try {
+    delete req.body.NewShortName;
     await CreateClientEntry(req.body, req);
     await UpdateId("entry client", newCount, newMonth, newYear, req);
     await saveUserLogs(req, req.body.entry_client_id, "add", "Entry Client");
@@ -52,7 +53,10 @@ ID_Entry.post("/id-entry-client", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -89,7 +93,10 @@ ID_Entry.post("/id-entry-employee", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -122,7 +129,10 @@ ID_Entry.post("/id-entry-agent", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -159,7 +169,10 @@ ID_Entry.post("/id-entry-fixed-assets", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -196,7 +209,11 @@ ID_Entry.post("/id-entry-supplier", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.
+`,
+    });
   }
 });
 
@@ -228,7 +245,11 @@ ID_Entry.post("/id-entry-others", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.
+`,
+    });
   }
 });
 
@@ -248,7 +269,7 @@ ID_Entry.post("/entry-update", async (req, res) => {
       { key: "entry_others_id", module: "Entry Others" },
       { key: "entry_client_id", module: "Entry Client" },
       { key: "entry_employee_id", module: "Entry Employee" },
-      { key: "entry_agent_id", module: "Entry Agent"   },
+      { key: "entry_agent_id", module: "Entry Agent" },
       { key: "entry_fixed_assets_id", module: "Entry Fixed Assets" },
       { key: "entry_supplier_id", module: "Entry Supplier" },
     ];
@@ -266,16 +287,21 @@ ID_Entry.post("/entry-update", async (req, res) => {
     ) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-
+    delete req.body.NewShortName;
     delete req.body.mode;
     delete req.body.search;
     delete req.body.userCodeConfirmation;
- 
+
     await updateEntry(req.query.entry as string, req.body, req);
     res.send({ message: "Update Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.
+`,
+    });
   }
 });
 
@@ -499,7 +525,11 @@ ID_Entry.post("/entry-delete", async (req, res) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ success: false, message: err.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.
+`,
+    });
   }
 });
 

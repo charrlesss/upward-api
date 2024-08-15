@@ -145,6 +145,7 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
       "upwardinsurance.grace@gmail.com",
       "lva_ancar@yahoo.com",
       "encoder.upward@yahoo.com",
+      "charlespalencia21@gmail.com",
     ];
 
     for (const toEmail of EmailToSend) {
@@ -332,6 +333,7 @@ CheckPostponement.post(
         "upwardinsurance.grace@gmail.com",
         "lva_ancar@yahoo.com",
         "encoder.upward@yahoo.com",
+        "charlespalencia21@gmail.com",
       ];
 
       for (const toEmail of EmailToSend) {
@@ -354,7 +356,6 @@ CheckPostponement.post(
         "Check-Postponement"
       );
 
-      console.log(req.body);
 
       res.send({
         message: `${req.body.isApproved ? "APPROVED" : "DISAPPROVED"} Request ${

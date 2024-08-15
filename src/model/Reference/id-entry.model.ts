@@ -333,7 +333,7 @@ async function updateClient(data: DataEntryClientTypes, req: Request) {
     where: { entry_client_id: data.entry_client_id },
   });
   let injectQuery = "";
-  if (data.company) {
+  if (data.option === "company") {
     injectQuery = `
     \`firstname\`='',
     \`lastname\`='',
@@ -348,6 +348,7 @@ async function updateClient(data: DataEntryClientTypes, req: Request) {
     \`company\`='',
     `;
   }
+
   const query1 = `
   update 
       \`entry_client\`

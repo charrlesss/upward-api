@@ -5,19 +5,19 @@ const { CustomPrismaClient } = PrismaList();
 
 export async function getTPL_IDS(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-//   SELECT 
-//   MIN(Source_No) AS Source_No,
-//   MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
-//   Source_No_Ref_ID
-// FROM
-//   journal
-// WHERE
-//       Explanation = 'CTPL Registration'
-//       AND Credit > 0
-//       AND Remarks IS NULL 
-//       AND Source_No like '%${search}%'
-// GROUP BY Source_No_Ref_ID
-// ORDER BY Source_No ASC
+  //   SELECT
+  //   MIN(Source_No) AS Source_No,
+  //   MIN(CAST(Credit AS DECIMAL (18 , 2 ))) as Cost ,
+  //   Source_No_Ref_ID
+  // FROM
+  //   journal
+  // WHERE
+  //       Explanation = 'CTPL Registration'
+  //       AND Credit > 0
+  //       AND Remarks IS NULL
+  //       AND Source_No like '%${search}%'
+  // GROUP BY Source_No_Ref_ID
+  // ORDER BY Source_No ASC
   return await prisma.$queryRawUnsafe(`
     SELECT 
         *
@@ -143,7 +143,6 @@ export async function getRate(
   and trim(Line) = '${line}' 
   and trim(Type) = '${type}'
   `;
-  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -158,6 +157,8 @@ export async function getClientById(entry_client_id: string, req: Request) {
   sub_account b ON a.sub_account = b.Sub_Acct
   where a.entry_client_id ='${entry_client_id}'
   `;
+  console.log(query);
+
   return await prisma.$queryRawUnsafe(query);
 }
 
@@ -402,9 +403,9 @@ export async function searchDataVPolicy(
       SELECT 
       a.*,
       b.*,
-      if(c.company = '', concat(c.firstname,', ',c.middlename,', ',c.lastname) , c.company) as client_fullname,
+      if(c.option = 'individual', concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ),c.company) as client_fullname,
       c.address as address,
-      concat(d.firstname,', ',d.middlename,', ',d.lastname) as agent_fullname,
+      concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ) as agent_fullname,
       c.sale_officer,
       date_format(a.DateIssued,'%m/%d/%Y') as _DateIssued
     FROM
@@ -428,10 +429,10 @@ export async function searchDataVPolicy(
           c.firstname like '%${search}%' or 
           c.lastname like '%${search}%'
        )
-    ORDER BY a.DateIssued desc
+    ORDER BY a.PolicyNo desc
     LIMIT 100 
-  `
-  console.log(qry)
+  `;
+  console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
 }
 

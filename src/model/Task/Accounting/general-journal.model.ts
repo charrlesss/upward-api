@@ -4,7 +4,8 @@ import { Request } from "express";
 const { CustomPrismaClient } = PrismaList();
 
 export async function GenerateGeneralJournalID(req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
       SELECT 
@@ -16,7 +17,8 @@ export async function GenerateGeneralJournalID(req: Request) {
 }
 
 export async function getChartOfAccount(search: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -35,7 +37,8 @@ export async function getChartOfAccount(search: string, req: Request) {
 }
 
 export async function getPolicyIdClientIdRefId(search: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -143,7 +146,8 @@ FROM
 }
 
 export async function getTransactionAccount(search: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -159,18 +163,21 @@ export async function getTransactionAccount(search: string, req: Request) {
 }
 
 export async function addJournalVoucher(data: any, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return prisma.journal_voucher.create({ data });
 }
 export async function addJournalFromJournalVoucher(data: any, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return prisma.journal.create({ data });
 }
 
 export async function updateGeneralJournalID(last_count: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
       UPDATE  id_sequence a 
@@ -183,7 +190,8 @@ export async function updateGeneralJournalID(last_count: string, req: Request) {
       `);
 }
 export async function deleteGeneralJournal(Source_No: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
     DELETE
@@ -199,7 +207,8 @@ export async function deleteJournalFromGeneralJournal(
   Source_No: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
       DELETE
@@ -211,14 +220,16 @@ export async function deleteJournalFromGeneralJournal(
         `);
 }
 export async function findeGeneralJournal(Source_No: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(
     `SELECT * FROM  journal_voucher where Source_No = '${Source_No}'`
   );
 }
 export async function voidGeneralJournal(Source_No: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
         DELETE
@@ -234,7 +245,8 @@ export async function insertVoidGeneralJournal(
   dateEntry: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
@@ -251,7 +263,8 @@ export async function voidJournalFromGeneralJournal(
   Source_No: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
     DELETE
@@ -268,7 +281,8 @@ export async function insertVoidJournalFromGeneralJournal(
   dateEntry: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
   INSERT INTO
@@ -282,7 +296,8 @@ export async function insertVoidJournalFromGeneralJournal(
 }
 
 export async function searchGeneralJournal(search: string, req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
@@ -304,7 +319,8 @@ export async function getSelectedSearchGeneralJournal(
   Source_No: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
@@ -331,7 +347,8 @@ export async function getSelectedSearchGeneralJournal(
 }
 
 export async function doRPTTransactionLastRow(req: Request) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return prisma.$queryRawUnsafe(`
   SELECT 
@@ -350,7 +367,8 @@ export async function doMonthlyProduction(
   year: number,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return prisma.$queryRawUnsafe(`
   SELECT 
@@ -374,7 +392,8 @@ export async function doRPTTransaction(
   Mortgagee: string,
   req: Request
 ) {
-  const prisma = CustomPrismaClient("UMIS");
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
 
   return prisma.$queryRawUnsafe(`
   SELECT 

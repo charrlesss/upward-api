@@ -72,7 +72,7 @@ export async function getClients(
         SELECT
         a.entry_client_id,
         a.address,
-        IF(a.company = '', concat(a.firstname,' ',a.middlename,' ',a.lastname), a.company) AS fullname,
+        IF(a.option = 'individual', concat(a.firstname,' ',a.middlename,' ',a.lastname), a.company) AS fullname,
         a.sale_officer,
         'Client' AS entry_type
         FROM
@@ -214,6 +214,7 @@ export async function getRates(type: string, Account: string, req: Request) {
   const query = `
   select distinct type from   rates where Line = 'Vehicle' and SUBSTRING(type,1,3) = '${type}' and Account = '${Account}'
 `;
+  console.log(query);
   return await prisma.$queryRawUnsafe(query);
 }
 

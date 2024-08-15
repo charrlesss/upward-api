@@ -17,10 +17,14 @@ BankAccount.get("/get-bank-account", async (req: Request, res: Response) => {
     res.send({
       message: "Get Bank Account Successfully!",
       success: true,
-      bankAccount: await getBankAccount(bankAccountSearch as string ,req),
+      bankAccount: await getBankAccount(bankAccountSearch as string, req),
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 BankAccount.get("/search-client", async (req: Request, res: Response) => {
@@ -29,10 +33,14 @@ BankAccount.get("/search-client", async (req: Request, res: Response) => {
     res.send({
       message: "Search Client Account Successfully!",
       success: true,
-      client: await searchClient(searchClientInput as string,req),
+      client: await searchClient(searchClientInput as string, req),
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 BankAccount.post("/add-bank-account", async (req: Request, res: Response) => {
@@ -54,14 +62,17 @@ BankAccount.post("/add-bank-account", async (req: Request, res: Response) => {
     delete req.body.BankName;
     await saveUserLogs(req, `${req.body.Auto}`, "add", "Bank-Account");
     delete req.body.Auto;
-    await addBankAccount(req.body,req);
+    await addBankAccount(req.body, req);
     res.send({
       message: "Create Bank Account Successfully!",
       success: true,
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 BankAccount.post(
@@ -91,14 +102,17 @@ BankAccount.post(
       delete req.body.BankName;
       req.body.Inactive = Boolean(req.body.Inactive);
       const { Auto, ...rest } = req.body;
-      await updateBankAccount(rest, Auto,req);
+      await updateBankAccount(rest, Auto, req);
       res.send({
         message: "Update Bank Account Successfully!",
         success: true,
       });
     } catch (err: any) {
       console.log(err.message);
-      res.send({ message: err.message, success: false });
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -123,14 +137,17 @@ BankAccount.post(
         return res.send({ message: "Invalid User Code", success: false });
       }
 
-      await removeBankAccount(req.body.Auto,req);
+      await removeBankAccount(req.body.Auto, req);
       res.send({
         message: "Delete Bank Account Successfully!",
         success: true,
       });
     } catch (err: any) {
       console.log(err.message);
-      res.send({ message: err.message, success: false });
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -140,10 +157,14 @@ BankAccount.get("/search-bank-account", async (req: Request, res: Response) => {
     res.send({
       message: "Search Bank Account Successfuly",
       success: true,
-      bankAccount: await getBankAccount(bankAccountSearch as string,req),
+      bankAccount: await getBankAccount(bankAccountSearch as string, req),
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 export default BankAccount;
