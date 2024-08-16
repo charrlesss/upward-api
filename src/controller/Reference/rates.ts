@@ -38,7 +38,11 @@ Rates.get("/get-rates", async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -67,7 +71,10 @@ Rates.post("/add-rates", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -97,7 +104,10 @@ Rates.post("/update-rates", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -123,7 +133,10 @@ Rates.post("/delete-rates", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -137,35 +150,47 @@ Rates.get("/search-rates", async (req: Request, res: Response) => {
       rates,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
 Rates.get("/export-rates", async (req: Request, res: Response) => {
-  const subAccountHeaders: any = {
-    Rates: {
-      header: ["ID", "Account", "Type", "Rate", "Created At"],
-      row: ["ID", "Account", "Type", "Rate", "createdAt"],
-    },
-  };
-  const { ratesSearch, isAll } = req.query;
+  try {
+    const subAccountHeaders: any = {
+      Rates: {
+        header: ["ID", "Account", "Type", "Rate", "Created At"],
+        row: ["ID", "Account", "Type", "Rate", "createdAt"],
+      },
+    };
+    const { ratesSearch, isAll } = req.query;
 
-  let data = [];
-  if (JSON.parse(isAll as string)) {
-    data = mapDataBasedOnHeaders(
-      (await searchRate("", true, req)) as Array<any>,
-      subAccountHeaders,
-      "Rates"
-    );
-  } else {
-    data = mapDataBasedOnHeaders(
-      (await searchRate(ratesSearch as string, false, req)) as Array<any>,
-      subAccountHeaders,
-      "Rates"
-    );
+    let data = [];
+    if (JSON.parse(isAll as string)) {
+      data = mapDataBasedOnHeaders(
+        (await searchRate("", true, req)) as Array<any>,
+        subAccountHeaders,
+        "Rates"
+      );
+    } else {
+      data = mapDataBasedOnHeaders(
+        (await searchRate(ratesSearch as string, false, req)) as Array<any>,
+        subAccountHeaders,
+        "Rates"
+      );
+    }
+
+    ExportToExcel(data, res);
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
-
-  ExportToExcel(data, res);
 });
 
 export default Rates;

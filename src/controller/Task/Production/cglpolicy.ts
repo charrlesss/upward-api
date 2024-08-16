@@ -41,7 +41,12 @@ CGLPolicy.get("/get-cgl-policy", (req, res) => {
       }
     );
   } catch (error: any) {
-    res.send({ message: error.message, success: false, cglPolicy: null });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      cglPolicy: null,
+    });
   }
 });
 
@@ -85,8 +90,12 @@ CGLPolicy.post("/add-cgl-policy", async (req, res) => {
     await insertCGLPolicy({ ...req.body, cStrArea, strArea }, req);
     await saveUserLogs(req, PolicyNo, "add", "CGL Policy");
     res.send({ message: "Create CGL Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -101,7 +110,13 @@ CGLPolicy.get("/search-cgl-policy", async (req, res) => {
       ),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, cglPolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      cglPolicy: null,
+    });
   }
 });
 
@@ -153,8 +168,12 @@ CGLPolicy.post("/update-cgl-policy", async (req, res) => {
     await insertCGLPolicy({ ...req.body, cStrArea, strArea }, req);
 
     res.send({ message: "Update CGL Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -178,8 +197,13 @@ CGLPolicy.post("/delete-cgl-policy", async (req, res) => {
     await deleteCGLPolicy(PolicyNo, req);
     await deletePolicyByCGL(PolicyNo, req);
     res.send({ message: "Delete CGL Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 

@@ -44,7 +44,12 @@ Collection.get("/get-client-checked-by-id", async (req, res) => {
       ),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, clientCheckedList: [] });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      clientCheckedList: [],
+    });
   }
 });
 
@@ -58,8 +63,10 @@ Collection.get("/get-transaction-code-title", async (req, res) => {
       transactionDesc: await getTransactionDescription(req),
     });
   } catch (error: any) {
+    console.log(error.message);
+
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       banktransaction: [],
       transactionDesc: [],
@@ -75,8 +82,10 @@ Collection.get("/get-new-or-number", async (req, res) => {
       ORNo: await collectionIDGenerator(req),
     });
   } catch (error: any) {
+    console.log(error.message);
+
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       ORNo: [],
     });
@@ -124,7 +133,7 @@ Collection.post("/add-collection", async (req, res) => {
   } catch (error: any) {
     console.log(error.message);
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       collectionID: null,
     });
@@ -140,7 +149,12 @@ Collection.get("/get-collection-data-search", async (req, res) => {
       collection: await getSearchCollection(ORNo as string, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, collection: [] });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      collection: [],
+    });
   }
 });
 Collection.get("/search-collection", async (req, res) => {
@@ -153,7 +167,12 @@ Collection.get("/search-collection", async (req, res) => {
       collection: await getCollections(searchCollectionInput as string, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, collection: [] });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      collection: [],
+    });
   }
 });
 
@@ -183,7 +202,7 @@ Collection.post("/update-collection", async (req, res) => {
   } catch (error: any) {
     console.log(error.message);
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
     });
   }
@@ -201,7 +220,7 @@ Collection.post("/get-drcode-drtitle-from-collection", async (req, res) => {
   } catch (error: any) {
     console.log(error.message);
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
     });
   }
@@ -259,8 +278,10 @@ async function AddCollection(req: any) {
       CRInvoiceNo = credit[i].invoiceNo;
     }
 
-
-    const ColDate = i === 0 ? format(new Date(req.body.Date), 'yyyy-MM-dd HH:mm:ss.SSS') : null;
+    const ColDate =
+      i === 0
+        ? format(new Date(req.body.Date), "yyyy-MM-dd HH:mm:ss.SSS")
+        : null;
     const OR = i === 0 ? req.body.ORNo : "";
     const PNo = i === 0 ? req.body.PNo : "";
     const Name = i === 0 ? req.body.Name : "";
@@ -290,7 +311,7 @@ async function AddCollection(req: any) {
       Official_Receipt: req.body.ORNo,
       Temp_OR: `${req.body.ORNo}${(i + 1).toString().padStart(2, "0")}`,
       Status: "HO",
-      Date_OR: format(new Date(req.body.Date), 'yyyy-MM-dd HH:mm:ss.SSS'),
+      Date_OR: format(new Date(req.body.Date), "yyyy-MM-dd HH:mm:ss.SSS"),
       Short: req.body.Name,
       CRVATType: CRVatType,
       CRInvoiceNo: CRInvoiceNo,

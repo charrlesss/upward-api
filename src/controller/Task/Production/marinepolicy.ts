@@ -48,7 +48,12 @@ MarinePolicy.get("/get-marine-policy", (req, res) => {
       });
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, marinePolicy: null });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      marinePolicy: null,
+    });
   }
 });
 
@@ -94,8 +99,11 @@ MarinePolicy.post("/add-marine-policy", async (req, res) => {
     await saveUserLogs(req, PolicyNo, "add", "Marine Policy");
     res.send({ message: "Create Marine Policy Successfully", success: true });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -112,7 +120,12 @@ MarinePolicy.get(
         ),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, vehiclePolicy: null });
+      console.log(error.message);
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        vehiclePolicy: null,
+      });
     }
   }
 );
@@ -161,8 +174,13 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
     // insert fire policy
     await insertMarinePolicy({ ...req.body, cStrArea, strArea }, req);
     res.send({ message: "Update Marine Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -192,9 +210,11 @@ MarinePolicy.post("/delete-marine-policy", async (req, res) => {
       message: "Delete Marine Policy Successfully",
       success: true,
     });
-  } catch (err: any) {
+  } catch (error: any) {
+    console.log(error.message);
+
     res.send({
-      message: err.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
     });
   }

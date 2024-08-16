@@ -16,6 +16,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       "Ascending"
     );
 
+
     const dataDeposit: any = await prisma.$queryRawUnsafe(queryDeposit);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
     const summary: Array<any> = [];

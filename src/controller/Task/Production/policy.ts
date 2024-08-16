@@ -3,7 +3,7 @@ import {
   getAgents,
   getClients,
   getSubAccount,
-  getMortgagee, 
+  getMortgagee,
   getPolicyAccount,
   getRates,
   getPolicyType,
@@ -29,8 +29,12 @@ Policy.post("/get-policy-summary", async (req, res) => {
       policyDetails,
     });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false, clients: [] });
+    console.log(err.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      clients: [],
+    });
   }
 });
 Policy.post("/get-client-details", async (req, res) => {
@@ -44,8 +48,12 @@ Policy.post("/get-client-details", async (req, res) => {
       clients,
     });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false, clients: [] });
+    console.log(err.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      clients: [],
+    });
   }
 });
 Policy.get("/get-clients", async (req, res) => {
@@ -57,8 +65,12 @@ Policy.get("/get-clients", async (req, res) => {
       clients: await getClients(clientSearch as string, false, req),
     });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: "SERVER:ERROR", success: false, clients: [] });
+    console.log(err.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      clients: [],
+    });
   }
 });
 Policy.get("/get-agents", async (req, res) => {
@@ -71,7 +83,13 @@ Policy.get("/get-agents", async (req, res) => {
       agents: await getAgents(agentSearch as string, false, req),
     });
   } catch (err: any) {
-    res.send({ message: "SERVER:ERROR", success: false, agents: [] });
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      agents: [],
+    });
   }
 });
 Policy.get("/get-sub_account", async (req, res) => {
@@ -82,7 +100,13 @@ Policy.get("/get-sub_account", async (req, res) => {
       sub_account: await getSubAccount(req),
     });
   } catch (err: any) {
-    res.send({ message: "SERVER:ERROR", success: false, sub_account: [] });
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      sub_account: [],
+    });
   }
 });
 Policy.get("/get-policy-account", async (req, res) => {
@@ -96,8 +120,10 @@ Policy.get("/get-policy-account", async (req, res) => {
       },
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policy_account: { COM: [], TPL: [] },
     });
@@ -111,8 +137,10 @@ Policy.get("/policy-accounts-by-line", async (req, res) => {
       policyAccounts: await policyAccounts(req.query.Line as string, req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policyAccounts: [],
     });
@@ -127,8 +155,10 @@ Policy.get("/get-policy-account-types", async (req, res) => {
       getPolicyAccountType: await getPolicyAccountType(req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: err.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policyTypes: [],
     });
@@ -143,8 +173,10 @@ Policy.get("/get-policy-account-bonds", async (req, res) => {
       getPolicyAccountByBonds: await getPolicyAccountByBonds(req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: err.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policyTypes: [],
     });
@@ -162,8 +194,10 @@ Policy.get("/get-rates", async (req, res) => {
       });
     }, 2000);
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       rates: {
         COM: [],
@@ -183,8 +217,10 @@ Policy.post("/get-rates", async (req, res) => {
       rates: await getRates(Type, Account, req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       rates: [],
     });
@@ -202,8 +238,10 @@ Policy.get("/get-mortgagee", async (req, res) => {
       },
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       mortgagee: { COM: [], TPL: [] },
     });
@@ -222,8 +260,10 @@ Policy.get("/search-policy-account", async (req, res) => {
       ),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policy_account: { COM: [], TPL: [] },
     });
@@ -240,8 +280,10 @@ Policy.get("/search-rates", async (req, res) => {
       rates: await getRateType(ratesSearch as string, req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       rates: {
         COM: [],
@@ -261,8 +303,10 @@ Policy.get("/search-mortgagee", async (req, res) => {
       mortgagee: await getMortgagee(mortgageeSearch as string, req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       mortgagee: { COM: [], TPL: [] },
     });
@@ -281,8 +325,10 @@ Policy.get("/bond-policy-account", async (req, res) => {
       },
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policy_account: {
         G02: [],
@@ -301,8 +347,10 @@ Policy.get("/policy-type", async (req, res) => {
       policy_type: await getPolicyType("Bonds", req),
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: "SERVER:ERROR",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       policy_type: [],
     });

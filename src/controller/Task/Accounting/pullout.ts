@@ -44,7 +44,11 @@ PulloutRequest.get("/pullout/reqeust/load-pnno", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      id: [],
+    });
   }
 });
 
@@ -57,7 +61,11 @@ PulloutRequest.post("/pullout/reqeust/load-checks", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      id: [],
+    });
   }
 });
 
@@ -70,7 +78,11 @@ PulloutRequest.post("/pullout/reqeust/load-rcpn", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      id: [],
+    });
   }
 });
 PulloutRequest.get("/pullout/reqeust/load-rcpn", async (req, res) => {
@@ -82,7 +94,11 @@ PulloutRequest.get("/pullout/reqeust/load-rcpn", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      id: [],
+    });
   }
 });
 PulloutRequest.get("/pullout/reqeust/get-id", async (req, res) => {
@@ -94,7 +110,11 @@ PulloutRequest.get("/pullout/reqeust/get-id", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, id: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      id: [],
+    });
   }
 });
 PulloutRequest.post("/pullout/request/save", async (req, res) => {
@@ -183,7 +203,11 @@ PulloutRequest.post("/pullout/request/save", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false, selected: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      selected: [],
+    });
   }
 });
 PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
@@ -226,7 +250,7 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
       "upwardinsurance.grace@gmail.com",
       "lva_ancar@yahoo.com",
       "encoder.upward@yahoo.com",
-      "charlespalencia21@gmail.com"
+      "charlespalencia21@gmail.com",
     ];
 
     for (const toEmail of EmailToSend) {
@@ -258,7 +282,10 @@ PulloutApporved.post("/pullout/approved/approved", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: "SERVER ERROR", success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -273,7 +300,11 @@ PulloutApporved.post(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: "SERVER ERROR", success: false, id: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        id: [],
+      });
     }
   }
 );
@@ -295,7 +326,11 @@ PulloutApporved.post(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: "SERVER ERROR", success: false, id: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        id: [],
+      });
     }
   }
 );

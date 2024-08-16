@@ -26,7 +26,11 @@ TransactionCode.get(
         ),
       });
     } catch (err: any) {
-      res.send({ message: err.message, success: false });
+      console.log(err.message);
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -63,7 +67,10 @@ TransactionCode.post(
       });
     } catch (err: any) {
       console.log(err.message);
-      res.send({ message: err.message, success: false });
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -104,7 +111,10 @@ TransactionCode.post(
       });
     } catch (err: any) {
       console.log(err.message);
-      res.send({ message: err.message, success: false });
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -140,7 +150,10 @@ TransactionCode.post(
       });
     } catch (err: any) {
       console.log(err.message);
-      res.send({ message: err.message, success: false });
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );
@@ -159,7 +172,11 @@ TransactionCode.get(
         ),
       });
     } catch (err: any) {
-      res.send({ message: err.message, success: false });
+      console.log(err.message);
+      res.send({
+        success: false,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      });
     }
   }
 );

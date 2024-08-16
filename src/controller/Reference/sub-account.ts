@@ -38,7 +38,10 @@ SubAccount.post("/add-sub-account", async (req: Request, res: Response) => {
     res.send({ message: "Create Sub Account Successfully!", success: true });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -57,7 +60,11 @@ SubAccount.get("/get-sub-account", async (req: Request, res: Response) => {
       subaccount,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -75,7 +82,11 @@ SubAccount.get("/search-sub-account", async (req: Request, res: Response) => {
       subaccount,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -110,7 +121,10 @@ SubAccount.post("/update-sub-account", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
@@ -138,45 +152,55 @@ SubAccount.post("/delete-sub-account", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
 SubAccount.get("/export-sub-account", async (req, res) => {
-  const subAccountHeaders: any = {
-    SubAccount: {
-      header: [
-        "Sub Account ID",
-        "Acronym",
-        "Short Name",
-        "Description",
-        "Created At",
-      ],
-      row: ["Sub_Acct", "Acronym", "ShortName", "Description", "createdAt"],
-    },
-  };
-  const { policySearch, isAll } = req.query;
+  try {
+    const subAccountHeaders: any = {
+      SubAccount: {
+        header: [
+          "Sub Account ID",
+          "Acronym",
+          "Short Name",
+          "Description",
+          "Created At",
+        ],
+        row: ["Sub_Acct", "Acronym", "ShortName", "Description", "createdAt"],
+      },
+    };
+    const { policySearch, isAll } = req.query;
 
-  let data = [];
-  if (JSON.parse(isAll as string)) {
-    data = mapDataBasedOnHeaders(
-      (await searchSubAccount("", true, req)) as Array<any>,
-      subAccountHeaders,
-      "SubAccount"
-    );
-  } else {
-    data = mapDataBasedOnHeaders(
-      (await searchSubAccount(
-        policySearch as string,
-        false,
-        req
-      )) as Array<any>,
-      subAccountHeaders,
-      "SubAccount"
-    );
+    let data = [];
+    if (JSON.parse(isAll as string)) {
+      data = mapDataBasedOnHeaders(
+        (await searchSubAccount("", true, req)) as Array<any>,
+        subAccountHeaders,
+        "SubAccount"
+      );
+    } else {
+      data = mapDataBasedOnHeaders(
+        (await searchSubAccount(
+          policySearch as string,
+          false,
+          req
+        )) as Array<any>,
+        subAccountHeaders,
+        "SubAccount"
+      );
+    }
+
+    ExportToExcel(data, res);
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
-
-  ExportToExcel(data, res);
 });
 export default SubAccount;

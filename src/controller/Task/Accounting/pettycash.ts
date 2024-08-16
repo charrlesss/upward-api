@@ -27,7 +27,11 @@ PettyCash.get("/get-petty-log", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, pettyLog: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      pettyLog: [],
+    });
   }
 });
 
@@ -40,7 +44,11 @@ PettyCash.get("/get-petty-cash-id", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, pettyCashId: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      pettyCashId: [],
+    });
   }
 });
 
@@ -169,7 +177,10 @@ PettyCash.post("/add-petty-cash", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -184,7 +195,11 @@ PettyCash.get("/search-petty-cash", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, searchPettyCash: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      searchPettyCash: [],
+    });
   }
 });
 
@@ -199,7 +214,11 @@ PettyCash.post("/load-selected-petty-cash", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, pettyCash: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      pettyCash: [],
+    });
   }
 });
 

@@ -30,7 +30,13 @@ ReturnCheck.get("/get-new-return-check-id", async (req, res) => {
       returnCheckID: await GenerateReturnCheckID(req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, returnCheckID: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      returnCheckID: [],
+    });
   }
 });
 ReturnCheck.get("/get-check-list", async (req, res) => {
@@ -45,7 +51,13 @@ ReturnCheck.get("/get-check-list", async (req, res) => {
       checkList,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, checkList: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      checkList: [],
+    });
   }
 });
 ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
@@ -57,7 +69,14 @@ ReturnCheck.post("/get-modal-return-check-data", async (req, res) => {
       debit: await getDebitOnSelectedCheck(req.body.Official_Receipt, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, credit: [], debit: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      credit: [],
+      debit: [],
+    });
   }
 });
 ReturnCheck.post("/add-return-check", async (req, res) => {
@@ -92,7 +111,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         debit: [],
       });
     }
-    
+
     await deleteReturnCheck(req.body.RefNo, req);
     req.body.selected.forEach(async (items: any, index: number) => {
       await addNewReturnCheck(
@@ -122,7 +141,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
         req
       );
       await updatePDCFromReturnCheck(items.Check_No, req);
-      await updateJournalFromReturnCheck(items.Check_No, items.DepoSlip, req); 
+      await updateJournalFromReturnCheck(items.Check_No, items.DepoSlip, req);
     });
 
     await deleteJournalFromReturnCheck(req.body.RefNo, req);
@@ -175,7 +194,7 @@ ReturnCheck.post("/add-return-check", async (req, res) => {
   } catch (error: any) {
     console.log(error.message);
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       credit: [],
       debit: [],
@@ -193,7 +212,11 @@ ReturnCheck.get("/search-return-checks", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, returnCheckSearch: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      returnCheckSearch: [],
+    });
   }
 });
 ReturnCheck.post(
@@ -211,7 +234,10 @@ ReturnCheck.post(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: error.message, success: false });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+      });
     }
   }
 );

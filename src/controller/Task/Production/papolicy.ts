@@ -43,7 +43,12 @@ PAPolicy.get("/get-pa-policy", (req, res) => {
       }
     );
   } catch (error: any) {
-    res.send({ message: error.message, success: false, paPolicy: null });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      paPolicy: null,
+    });
   }
 });
 
@@ -92,9 +97,12 @@ PAPolicy.post("/add-pa-policy", async (req, res) => {
     await insertPaPolicy({ ...req.body, cStrArea, strArea }, req);
     await saveUserLogs(req, PolicyNo, "add", "PA Policy");
     res.send({ message: "Create PA Policy Successfully", success: true });
-  } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -106,7 +114,13 @@ PAPolicy.get("/search-pa-policy", async (req, res) => {
       paPolicy: await searchPAPolicy(req.query.searchPaPolicy as string, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, paPolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      paPolicy: null,
+    });
   }
 });
 
@@ -160,7 +174,10 @@ PAPolicy.post("/update-pa-policy", async (req, res) => {
     res.send({ message: "Update PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -192,7 +209,10 @@ PAPolicy.post("/delete-pa-policy", async (req, res) => {
     res.send({ message: "Delete PA Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 

@@ -33,7 +33,11 @@ Mortgagee.get("/get-mortgagee", async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -68,7 +72,10 @@ Mortgagee.post("/add-mortgagee", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -96,7 +103,11 @@ Mortgagee.post("/delete-mortgagee", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -127,7 +138,11 @@ Mortgagee.post("/update-mortgagee", async (req: Request, res: Response) => {
       success: true,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -145,7 +160,11 @@ Mortgagee.get("/search-mortgagee", async (req: Request, res: Response) => {
       mortgagee,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 

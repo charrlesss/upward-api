@@ -39,8 +39,12 @@ BondPolicy.get("/get-bond-acc-type", async (req, res) => {
       success: true,
     });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 BondPolicy.get("/get-bonds-policy", (req, res) => {
@@ -66,8 +70,14 @@ BondPolicy.get("/get-bonds-policy", (req, res) => {
         },
       });
     });
-  } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+  } catch (err: any) {
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      bondsPolicy: null,
+    });
   }
 });
 BondPolicy.post("/add-bonds-policy", async (req, res) => {
@@ -87,7 +97,7 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
 
   try {
     if (await findPolicy(PolicyNo, req)) {
-      return res.send({  
+      return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
       });
@@ -113,8 +123,11 @@ BondPolicy.post("/add-bonds-policy", async (req, res) => {
     await saveUserLogs(req, PolicyNo, "add", "Bonds Policy");
     res.send({ message: "Create Bonds Policy Successfully", success: true });
   } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 BondPolicy.get("/search-bonds-policy", async (req, res) => {
@@ -128,7 +141,13 @@ BondPolicy.get("/search-bonds-policy", async (req, res) => {
       ),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      bondsPolicy: null,
+    });
   }
 });
 BondPolicy.post("/update-bonds-policy", async (req, res) => {
@@ -179,9 +198,12 @@ BondPolicy.post("/update-bonds-policy", async (req, res) => {
     await insertBondsPolicy({ ...req.body, cStrArea, strArea }, req);
 
     res.send({ message: "Update Bonds Policy Successfully", success: true });
-  } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 BondPolicy.post("/delete-bonds-policy", async (req, res) => {
@@ -205,8 +227,13 @@ BondPolicy.post("/delete-bonds-policy", async (req, res) => {
     //delete v policy
     await deleteBondsPolicy(policyType, PolicyNo, req);
     res.send({ message: "Delete Bonds Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 async function insertBondsPolicy(

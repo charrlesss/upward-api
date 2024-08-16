@@ -50,7 +50,13 @@ FirePolicy.get("/get-fire-policy", async (req: Request, res: Response) => {
       });
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, firePolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      firePolicy: null,
+    });
   }
 });
 FirePolicy.get(
@@ -63,7 +69,13 @@ FirePolicy.get(
         agents: await getAgents(req.query.searchAgent as string, false, req),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, agents: null });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        agents: null,
+      });
     }
   }
 );
@@ -77,7 +89,13 @@ FirePolicy.get(
         clients: await getClients(req.query.searchClient as string, false, req),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, clients: null });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        clients: null,
+      });
     }
   }
 );
@@ -87,116 +105,140 @@ FirePolicy.get("/search-fire-policy", async (req: Request, res: Response) => {
     res.send({
       message: "Successfully search data",
       success: true,
-      firePolicy: await searchFirePolicy(req.query.searchFirePolicy as string,req),
+      firePolicy: await searchFirePolicy(
+        req.query.searchFirePolicy as string,
+        req
+      ),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, vehiclePolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      vehiclePolicy: null,
+    });
   }
 });
-async function insertFirePolicy({
-  sub_account,
-  client_id,
-  client_name,
-  agent_id,
-  agent_com,
-  PolicyAccount,
-  PolicyNo,
-  bill_no,
-  DateFrom,
-  DateTo,
-  DateIssued,
-  locRisk,
-  propertyInsured,
-  construction,
-  occupancy,
-  boundaries,
-  mortgage,
-  warranties,
-  insuredValue,
-  percentagePremium,
-  totalPremium,
-  vat,
-  docStamp,
-  localGovTax,
-  totalDue,
-  strArea,
-  cStrArea,
-}: any ,req:Request) {
-  await createPolicy({
-    IDNo: client_id,
-    Account: PolicyAccount,
-    SubAcct: sub_account,
-    PolicyType: "FIRE",
-    PolicyNo: PolicyNo,
-    DateIssued,
-    TotalPremium: parseFloat(parseFloat(totalPremium).toFixed(2)),
-    Vat: vat,
-    DocStamp: docStamp,
-    FireTax: "0",
-    LGovTax: localGovTax,
-    Notarial: "0",
-    Misc: "0",
-    TotalDue: totalDue,
-    TotalPaid: "0",
-    Journal: false,
-    AgentID: agent_id,
-    AgentCom: agent_com,
-  },req);
-
-  await createFirePolicy({
+async function insertFirePolicy(
+  {
+    sub_account,
+    client_id,
+    client_name,
+    agent_id,
+    agent_com,
+    PolicyAccount,
     PolicyNo,
-    Account: PolicyAccount,
-    BillNo: bill_no,
-    DateFrom: DateFrom,
-    DateTo: DateTo,
-    Location: locRisk,
-    PropertyInsured: propertyInsured,
-    Constraction: construction,
-    Occupancy: occupancy,
-    Boundaries: boundaries,
-    Mortgage: mortgage,
-    Warranties: warranties,
-    InsuredValue: insuredValue,
-    Percentage: percentagePremium,
-  },req);
+    bill_no,
+    DateFrom,
+    DateTo,
+    DateIssued,
+    locRisk,
+    propertyInsured,
+    construction,
+    occupancy,
+    boundaries,
+    mortgage,
+    warranties,
+    insuredValue,
+    percentagePremium,
+    totalPremium,
+    vat,
+    docStamp,
+    localGovTax,
+    totalDue,
+    strArea,
+    cStrArea,
+  }: any,
+  req: Request
+) {
+  await createPolicy(
+    {
+      IDNo: client_id,
+      Account: PolicyAccount,
+      SubAcct: sub_account,
+      PolicyType: "FIRE",
+      PolicyNo: PolicyNo,
+      DateIssued,
+      TotalPremium: parseFloat(parseFloat(totalPremium).toFixed(2)),
+      Vat: vat,
+      DocStamp: docStamp,
+      FireTax: "0",
+      LGovTax: localGovTax,
+      Notarial: "0",
+      Misc: "0",
+      TotalDue: totalDue,
+      TotalPaid: "0",
+      Journal: false,
+      AgentID: agent_id,
+      AgentCom: agent_com,
+    },
+    req
+  );
 
-  await createJournal({
-    Branch_Code: sub_account,
-    Date_Entry: DateIssued,
-    Source_No: PolicyNo,
-    Source_Type: "PL",
-    Explanation: "Fire Production",
-    GL_Acct: "1.03.01",
-    Sub_Acct: strArea,
-    ID_No: PolicyNo,
-    cGL_Acct: "Premium Receivable",
-    cSub_Acct: cStrArea,
-    cID_No: client_name,
-    Debit: parseFloat(totalDue).toFixed(2),
-    Credit: "0",
-    TC: "P/R",
-    Remarks: "",
-    Source_No_Ref_ID: "FIRE",
-  },req);
+  await createFirePolicy(
+    {
+      PolicyNo,
+      Account: PolicyAccount,
+      BillNo: bill_no,
+      DateFrom: DateFrom,
+      DateTo: DateTo,
+      Location: locRisk,
+      PropertyInsured: propertyInsured,
+      Constraction: construction,
+      Occupancy: occupancy,
+      Boundaries: boundaries,
+      Mortgage: mortgage,
+      Warranties: warranties,
+      InsuredValue: insuredValue,
+      Percentage: percentagePremium,
+    },
+    req
+  );
 
-  await createJournal({
-    Branch_Code: sub_account,
-    Date_Entry: DateIssued,
-    Source_No: PolicyNo,
-    Source_Type: "PL",
-    Explanation: "Fire Production",
-    GL_Acct: "4.02.01",
-    Sub_Acct: strArea,
-    ID_No: PolicyNo,
-    cGL_Acct: "A/P",
-    cSub_Acct: cStrArea,
-    cID_No: client_name,
-    Debit: 0,
-    Credit: parseFloat(totalDue).toFixed(2),
-    TC: "A/P",
-    Remarks: "",
-    Source_No_Ref_ID: "FIRE",
-  },req);
+  await createJournal(
+    {
+      Branch_Code: sub_account,
+      Date_Entry: DateIssued,
+      Source_No: PolicyNo,
+      Source_Type: "PL",
+      Explanation: "Fire Production",
+      GL_Acct: "1.03.01",
+      Sub_Acct: strArea,
+      ID_No: PolicyNo,
+      cGL_Acct: "Premium Receivable",
+      cSub_Acct: cStrArea,
+      cID_No: client_name,
+      Debit: parseFloat(totalDue).toFixed(2),
+      Credit: "0",
+      TC: "P/R",
+      Remarks: "",
+      Source_No_Ref_ID: "FIRE",
+    },
+    req
+  );
+
+  await createJournal(
+    {
+      Branch_Code: sub_account,
+      Date_Entry: DateIssued,
+      Source_No: PolicyNo,
+      Source_Type: "PL",
+      Explanation: "Fire Production",
+      GL_Acct: "4.02.01",
+      Sub_Acct: strArea,
+      ID_No: PolicyNo,
+      cGL_Acct: "A/P",
+      cSub_Acct: cStrArea,
+      cID_No: client_name,
+      Debit: 0,
+      Credit: parseFloat(totalDue).toFixed(2),
+      TC: "A/P",
+      Remarks: "",
+      Source_No_Ref_ID: "FIRE",
+    },
+    req
+  );
 }
 FirePolicy.post("/add-fire-policy", async (req, res) => {
   convertToPassitive(req);
@@ -214,7 +256,7 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
   const { sub_account, client_id, PolicyAccount, PolicyNo, occupancy } =
     req.body;
   try {
-    if (await findPolicy(PolicyNo,req)) {
+    if (await findPolicy(PolicyNo, req)) {
       return res.send({
         message: "Unable to save! Policy No. already exists!",
         success: false,
@@ -222,7 +264,7 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
     }
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Fire", occupancy,req)) as Array<any>
+      (await getRate(PolicyAccount, "Fire", occupancy, req)) as Array<any>
     )[0];
 
     if (rate == null) {
@@ -232,15 +274,19 @@ FirePolicy.post("/add-fire-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id,req)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
-    await insertFirePolicy({ ...req.body, cStrArea, strArea },req);
+    await insertFirePolicy({ ...req.body, cStrArea, strArea }, req);
     await saveUserLogs(req, PolicyNo, "add", "Fire Policy");
     res.send({ message: "Create Fire Policy Successfully", success: true });
-  } catch (err: any) {
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 FirePolicy.post("/update-fire-policy", async (req, res) => {
@@ -264,7 +310,7 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
 
     //get Commision rate
     const rate = (
-      (await getRate(PolicyAccount, "Fire", occupancy,req)) as Array<any>
+      (await getRate(PolicyAccount, "Fire", occupancy, req)) as Array<any>
     )[0];
 
     if (rate == null) {
@@ -274,23 +320,28 @@ FirePolicy.post("/update-fire-policy", async (req, res) => {
       });
     }
 
-    const subAccount = ((await getClientById(client_id,req)) as Array<any>)[0];
+    const subAccount = ((await getClientById(client_id, req)) as Array<any>)[0];
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
 
     //delete policy
-    await deletePolicyFromFire(PolicyNo,req);
+    await deletePolicyFromFire(PolicyNo, req);
     //delete v policy
-    await deleteFirePolicy(PolicyNo,req);
+    await deleteFirePolicy(PolicyNo, req);
     //delete journal
-    await deleteJournalBySource(PolicyNo, "PL",req);
+    await deleteJournalBySource(PolicyNo, "PL", req);
 
     // insert fire policy
-    await insertFirePolicy({ ...req.body, cStrArea, strArea },req);
+    await insertFirePolicy({ ...req.body, cStrArea, strArea }, req);
     res.send({ message: "Update Fire Policy Successfully", success: true });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 FirePolicy.post("/delete-fire-policy", async (req, res) => {
@@ -311,16 +362,18 @@ FirePolicy.post("/delete-fire-policy", async (req, res) => {
     }
 
     //delete policy
-    await deletePolicyFromFire(PolicyNo,req);
+    await deletePolicyFromFire(PolicyNo, req);
     // //delete v policy
-    await deleteFirePolicy(PolicyNo,req);
+    await deleteFirePolicy(PolicyNo, req);
     res.send({
       message: "Delete Fire Policy Successfully",
       success: true,
     });
   } catch (err: any) {
+    console.log(err.message);
+
     res.send({
-      message: err.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
     });
   }

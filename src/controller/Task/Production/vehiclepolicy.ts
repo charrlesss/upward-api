@@ -35,7 +35,13 @@ VehiclePolicy.get(
         tempId: await getTempPolicyID(req),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, tempId: [] });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        tempId: [],
+      });
     }
   }
 );
@@ -55,7 +61,13 @@ VehiclePolicy.get(
         },
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, vehiclePolicy: null });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        vehiclePolicy: null,
+      });
     }
   }
 );
@@ -71,7 +83,13 @@ VehiclePolicy.get(
         },
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, vehiclePolicy: null });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        vehiclePolicy: null,
+      });
     }
   }
 );
@@ -85,7 +103,13 @@ VehiclePolicy.get(
         tpl_ids: await getTPL_IDS(req.query.tplIDSearch as string, req),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false, tpl_ids: [] });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        tpl_ids: [],
+      });
     }
   }
 );

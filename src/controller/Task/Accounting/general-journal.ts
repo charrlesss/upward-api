@@ -129,8 +129,9 @@ GeneralJournal.post(
         success: true,
       });
     } catch (error: any) {
+      console.log(error.message);
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
       });
     }
@@ -177,7 +178,7 @@ GeneralJournal.post(
     } catch (error: any) {
       console.log(error.message);
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
       });
     }
@@ -193,8 +194,9 @@ GeneralJournal.get(
         generateGeneralJournalID: await GenerateGeneralJournalID(req),
       });
     } catch (error: any) {
+      console.log(error.message);
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         generateGeneralJournalID: [],
       });
@@ -211,7 +213,12 @@ GeneralJournal.get("/general-journal/get-chart-account", async (req, res) => {
       getChartOfAccount: await getChartOfAccount(search as string, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -229,7 +236,12 @@ GeneralJournal.get(
         ),
       });
     } catch (error: any) {
-      res.send({ message: error.message, success: false });
+      console.log(error.message);
+
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+      });
     }
   }
 );
@@ -248,8 +260,10 @@ GeneralJournal.get(
         ),
       });
     } catch (error: any) {
+      console.log(error.message);
+
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         getTransactionAccount: [],
       });
@@ -268,8 +282,10 @@ GeneralJournal.get(
         searchGeneralJournal: await searchGeneralJournal(search as string, req),
       });
     } catch (error: any) {
+      console.log(error.message);
+
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         searchGeneralJournal: [],
       });
@@ -290,8 +306,10 @@ GeneralJournal.post(
         ),
       });
     } catch (error: any) {
+      console.log(error.message);
+
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         getSelectedSearchGeneralJournal: [],
       });
@@ -387,8 +405,10 @@ GeneralJournal.post("/general-journal/jobs", async (req, res) => {
       jobs: response,
     });
   } catch (error: any) {
+    console.log(error.message);
+
     res.send({
-      message: error.message,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       jobs: [],
     });

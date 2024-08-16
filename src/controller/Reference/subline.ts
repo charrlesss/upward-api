@@ -20,7 +20,7 @@ const Subline = express.Router();
 Subline.get("/get-subline", async (req: Request, res: Response) => {
   const { sublineSearch } = req.query;
   try {
-    const subline = await searchSubline(sublineSearch as string,false,req);
+    const subline = await searchSubline(sublineSearch as string, false, req);
     const line = await getline(req);
     res.send({
       message: "Get Subline Successfully!",
@@ -31,7 +31,11 @@ Subline.get("/get-subline", async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -51,14 +55,16 @@ Subline.post("/add-subline", async (req: Request, res: Response) => {
     delete req.body.search;
     delete req.body.ID;
     req.body.createdAt = new Date();
-    if ((await findSubline(req.body.Line, req.body.SublineName,req)).length > 0) {
+    if (
+      (await findSubline(req.body.Line, req.body.SublineName, req)).length > 0
+    ) {
       return res.send({
         message: "Already Exist!",
         success: false,
       });
     }
     const ID = await generateUniqueUUID("subline", "ID");
-    await addSubline({ ID, ...req.body },req);
+    await addSubline({ ID, ...req.body }, req);
     await saveUserLogs(req, ID, "add", "Subline");
     return res.send({
       message: "Create Mortgagee Successfully!",
@@ -66,7 +72,10 @@ Subline.post("/add-subline", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -85,13 +94,17 @@ Subline.post("/delete-subline", async (req: Request, res: Response) => {
     if (!(await saveUserLogsCode(req, "delete", req.body.ID, "Subline"))) {
       return res.send({ message: "Invalid User Code", success: false });
     }
-    await deletesubline(req.body.ID,req);
+    await deletesubline(req.body.ID, req);
     res.send({
       message: "Delete Subline Successfully!",
       success: true,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
@@ -114,58 +127,85 @@ Subline.post("/update-subline", async (req: Request, res: Response) => {
     delete req.body.mode;
     delete req.body.search;
     delete req.body.userCodeConfirmation;
-    await updateSubline({
-      SublineName: req.body.SublineName,
-      ID: req.body.ID,
-    },req);
+    await updateSubline(
+      {
+        SublineName: req.body.SublineName,
+        ID: req.body.ID,
+      },
+      req
+    );
     res.send({
       message: "Update Subline Successfully!",
       success: true,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
 Subline.get("/search-subline", async (req: Request, res: Response) => {
   const { sublineSearch } = req.query;
   try {
-    const subline: any = await searchSubline(sublineSearch as string,false,req);
+    const subline: any = await searchSubline(
+      sublineSearch as string,
+      false,
+      req
+    );
     res.send({
       message: "Search Subline Successfuly",
       success: true,
       subline,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 
 Subline.get("/export-subline", async (req, res) => {
-  const subAccountHeaders: any = {
-    Subline: {
-      header: ["ID", "Line", "Subline Name", "Created At"],
-      row: ["ID", "Line", "SublineName", "createdAt"],
-    },
-  };
-  const { sublineSearch, isAll } = req.query;
+  try {
+    const subAccountHeaders: any = {
+      Subline: {
+        header: ["ID", "Line", "Subline Name", "Created At"],
+        row: ["ID", "Line", "SublineName", "createdAt"],
+      },
+    };
+    const { sublineSearch, isAll } = req.query;
 
-  let data = [];
-  if (JSON.parse(isAll as string)) {
-    data = mapDataBasedOnHeaders(
-      (await searchSubline("", true,req)) as Array<any>,
-      subAccountHeaders,
-      "Subline"
-    );
-  } else {
-    data = mapDataBasedOnHeaders(
-      (await searchSubline(sublineSearch as string,false,req)) as Array<any>,
-      subAccountHeaders,
-      "Subline"
-    );
+    let data = [];
+    if (JSON.parse(isAll as string)) {
+      data = mapDataBasedOnHeaders(
+        (await searchSubline("", true, req)) as Array<any>,
+        subAccountHeaders,
+        "Subline"
+      );
+    } else {
+      data = mapDataBasedOnHeaders(
+        (await searchSubline(
+          sublineSearch as string,
+          false,
+          req
+        )) as Array<any>,
+        subAccountHeaders,
+        "Subline"
+      );
+    }
+
+    ExportToExcel(data, res);
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
-
-  ExportToExcel(data, res);
 });
 
 export default Subline;

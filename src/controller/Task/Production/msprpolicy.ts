@@ -42,7 +42,13 @@ MSPRPolicy.get("/get-mspr-policy", (req, res) => {
       }
     );
   } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      bondsPolicy: null,
+    });
   }
 });
 
@@ -86,9 +92,12 @@ MSPRPolicy.post("/add-mspr-policy", async (req, res) => {
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea }, req);
     await saveUserLogs(req, PolicyNo, "add", "MSPR Policy");
     res.send({ message: "Create MSPR Policy Successfully", success: true });
-  } catch (err: any) {
-    console.log(err);
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -103,7 +112,12 @@ MSPRPolicy.get("/search-mspr-policy", async (req, res) => {
       ),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, msprPolicy: null });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      msprPolicy: null,
+    });
   }
 });
 
@@ -156,9 +170,12 @@ MSPRPolicy.post("/update-mspr-policy", async (req, res) => {
     await insertMSPRPolicy({ ...req.body, cStrArea, strArea }, req);
 
     res.send({ message: "Update MSPR Policy Successfully", success: true });
-  } catch (err: any) {
-    console.log(err.message);
-    res.send({ message: err.message, success: false });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -188,7 +205,10 @@ MSPRPolicy.post("/delete-mspr-policy", async (req, res) => {
     res.send({ message: "Delete MSPR Policy Successfully", success: true });
   } catch (err: any) {
     console.log(err.message);
-    res.send({ message: err.message, success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 

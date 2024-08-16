@@ -114,7 +114,7 @@ export async function getCheckList(search: string, req: Request) {
 			Official_Receipt, 
 			date_FORMAT(Date_OR,'%m/%d/%Y') AS Date_OR, 
 			BankAccount,
-      cast(ROW_NUMBER() OVER () as CHAR) AS TempID
+      MAX(Deposit_ID) as TempID
 		FROM (Deposit LEFT JOIN deposit_slip ON Deposit.Temp_SlipCode = deposit_slip.SlipCode) 
 			LEFT JOIN (SELECT Official_Receipt, Date_OR FROM Collection GROUP BY Official_Receipt, Date_OR) 
 			OR_Number ON Deposit.Ref_No = OR_Number.Official_Receipt 

@@ -122,7 +122,11 @@ PDC.post("/add-pdc", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, PdcId: null });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      PdcId: null,
+    });
   }
 });
 PDC.post("/update-pdc", async (req, res) => {
@@ -227,7 +231,12 @@ PDC.post("/update-pdc", async (req, res) => {
     await UpdateId("pdc", newId, month, year, req);
     res.send({ message: "Update PDC Successfully.", success: true });
   } catch (error: any) {
-    res.send({ message: error.message, success: false });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 PDC.get("/search-pdc-policy-id", async (req, res) => {
@@ -242,7 +251,12 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
       success: true,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      bondsPolicy: null,
+    });
   }
 });
 PDC.get("/search-pdc-banks", async (req, res) => {
@@ -254,7 +268,13 @@ PDC.get("/search-pdc-banks", async (req, res) => {
       success: true,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, bondsPolicy: null });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      bondsPolicy: null,
+    });
   }
 });
 PDC.get("/pdc-new-ref-number", async (req, res) => {
@@ -264,7 +284,13 @@ PDC.get("/pdc-new-ref-number", async (req, res) => {
       success: true,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, RefNo: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      RefNo: [],
+    });
   }
 });
 PDC.get("/search-pdc", async (req, res) => {
@@ -277,7 +303,13 @@ PDC.get("/search-pdc", async (req, res) => {
       searchPDC: searchPDCData,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, searchPDC: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      searchPDC: [],
+    });
   }
 });
 PDC.post("/get-search-pdc-check", async (req, res) => {
@@ -290,7 +322,12 @@ PDC.post("/get-search-pdc-check", async (req, res) => {
       upload: await getPdcUpload(req.body.ref_no, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, getSearchPDCCheck: [] });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      getSearchPDCCheck: [],
+    });
   }
 });
 function UploadFile(filesArr: Array<any>, uploadDir: string, res: Response) {

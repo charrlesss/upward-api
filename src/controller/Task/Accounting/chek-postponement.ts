@@ -40,7 +40,11 @@ CheckPostponement.get(
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({ message: "SERVER ERROR", success: false, data: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        data: [],
+      });
     }
   }
 );
@@ -59,7 +63,7 @@ CheckPostponement.post(
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
       res.send({
-        message: "SERVER ERROR!",
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         selectedChecks: [],
       });
@@ -78,7 +82,11 @@ CheckPostponement.get(
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({ message: "SERVER ERROR", success: false, id: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        id: [],
+      });
     }
   }
 );
@@ -180,7 +188,10 @@ CheckPostponement.post("/check-postponement/save", async (req, res) => {
     res.send({ message: "Save Successfully.", success: true });
   } catch (error: any) {
     console.log(`${CheckPostponement} : ${error.message}`);
-    res.send({ message: "SERVER ERROR!", success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -195,7 +206,11 @@ CheckPostponement.post(
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({ message: "SERVER ERROR", success: false, rcpn: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        rcpn: [],
+      });
     }
   }
 );
@@ -210,7 +225,11 @@ CheckPostponement.get(
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({ message: "SERVER ERROR", success: false, rcpn: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        rcpn: [],
+      });
     }
   }
 );
@@ -225,7 +244,11 @@ CheckPostponement.post(
       });
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
-      res.send({ message: "SERVER ERROR", success: false, rcpnDetails: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        rcpnDetails: [],
+      });
     }
   }
 );
@@ -244,7 +267,7 @@ CheckPostponement.get("/check-postponement/search-edit", async (req, res) => {
   } catch (error: any) {
     console.log(`${CheckPostponement} : ${error.message}`);
     res.send({
-      message: "SERVER ERROR!",
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
       success: false,
       selectedRequest: [],
     });
@@ -266,7 +289,7 @@ CheckPostponement.post(
     } catch (error: any) {
       console.log(`${CheckPostponement} : ${error.message}`);
       res.send({
-        message: "SERVER ERROR!",
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         selectedSearchEdit: [],
       });
@@ -356,7 +379,6 @@ CheckPostponement.post(
         "Check-Postponement"
       );
 
-
       res.send({
         message: `${req.body.isApproved ? "APPROVED" : "DISAPPROVED"} Request ${
           req.body.RPCD
@@ -366,7 +388,7 @@ CheckPostponement.post(
     } catch (error: any) {
       console.log(error.message);
       res.send({
-        message: "SERVER ERROR!",
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
       });
     }

@@ -26,7 +26,11 @@ CashDisbursement.get("/cash-disbursement/generate-id", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, generatedId: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      generatedId: [],
+    });
   }
 });
 
@@ -130,7 +134,7 @@ CashDisbursement.post(
           req
         );
       });
-      
+
       if (!req.body.hasSelected) {
         await updateCashDisbursementID(req.body.refNo.split("-")[1], req);
         await saveUserLogs(req, req.body.refNo, "add", "Cash-Disbursement");
@@ -144,7 +148,10 @@ CashDisbursement.post(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: error.message, success: false });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+      });
     }
   }
 );
@@ -190,7 +197,10 @@ CashDisbursement.post(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: error.message, success: false });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+      });
     }
   }
 );
@@ -207,7 +217,11 @@ CashDisbursement.get(
       });
     } catch (error: any) {
       console.log(error.message);
-      res.send({ message: error.message, success: false, search: [] });
+      res.send({
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+        success: false,
+        search: [],
+      });
     }
   }
 );
@@ -228,7 +242,7 @@ CashDisbursement.post(
     } catch (error: any) {
       console.log(error.message);
       res.send({
-        message: error.message,
+        message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
         success: false,
         selectedCashDisbursement: [],
       });

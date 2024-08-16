@@ -37,7 +37,12 @@ Deposit.get("/getCashCollection", async (req, res) => {
       cash: await getCashCollection("", req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, cash: [] });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      cash: [],
+    });
   }
 });
 Deposit.get("/getCheckCollection", async (req, res) => {
@@ -48,7 +53,13 @@ Deposit.get("/getCheckCollection", async (req, res) => {
       check: await getCheckCollection("", req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, check: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      check: [],
+    });
   }
 });
 Deposit.get("/getBanks", async (req, res) => {
@@ -60,7 +71,13 @@ Deposit.get("/getBanks", async (req, res) => {
       banks: await getBanksFromDeposit(bankDepositSearch as string, req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, banks: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      banks: [],
+    });
   }
 });
 Deposit.get("/get-deposit-slipcode", async (req, res) => {
@@ -71,7 +88,13 @@ Deposit.get("/get-deposit-slipcode", async (req, res) => {
       slipcode: await depositIDSlipCodeGenerator(req),
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false, slipcode: [] });
+    console.log(error.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      slipcode: [],
+    });
   }
 });
 Deposit.post("/add-deposit", async (req, res) => {
@@ -112,7 +135,10 @@ Deposit.post("/add-deposit", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error);
-    res.send({ message: error.message, success: false });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 Deposit.get("/search-deposit", async (req, res) => {
@@ -127,7 +153,11 @@ Deposit.get("/search-deposit", async (req, res) => {
       deposit,
     });
   } catch (error: any) {
-    res.send({ success: false, message: error.message });
+    console.log(error.message);
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 Deposit.post("/search-cash-check", async (req, res) => {
@@ -195,7 +225,10 @@ Deposit.post("/search-cash-check", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ success: false, message: error.message });
+    res.send({
+      success: false,
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+    });
   }
 });
 Deposit.post("/update-deposit", async (req, res) => {
@@ -227,7 +260,11 @@ Deposit.post("/update-deposit", async (req, res) => {
       success: true,
     });
   } catch (error: any) {
-    res.send({ message: error.message, success: false });
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 
@@ -305,7 +342,7 @@ async function addDeposit(req: any) {
         Credit: parseFloat(
           selectedCollectionValue.Amount.toString().replace(/,/, "")
         ).toFixed(2),
-        Check_Date:   format(
+        Check_Date: format(
           new Date(selectedCollectionValue.Check_Date),
           "yyyy-MM-dd HH:mm:ss.SSS"
         ),

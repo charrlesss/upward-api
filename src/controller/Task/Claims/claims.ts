@@ -28,173 +28,193 @@ import { VerifyToken } from "../../Authentication";
 const Claim = express.Router();
 
 Claim.post("/claims/save", async (req, res) => {
-  const { userAccess }: any = await VerifyToken(
-    req.cookies["up-ac-login"] as string,
-    process.env.USER_ACCESS as string
-  );
-  if (userAccess.includes("ADMIN")) {
-    return res.send({
-      message: `CAN'T ${req.body.mode === "update" ? "UPDATE" : "SAVE"}, ADMIN IS FOR VIEWING ONLY!`,
-      success: false,
-    });
-  }
-  
-  const data = req.body;
-  const isUpdateMode = req.body.mode === "update";
-  if (isUpdateMode) {
-    if (
-      !(await saveUserLogsCode(req, "update", req.body.claims_id, "Claims"))
-    ) {
-      return res.send({ message: "Invalid User Code", success: false });
+  try {
+    const { userAccess }: any = await VerifyToken(
+      req.cookies["up-ac-login"] as string,
+      process.env.USER_ACCESS as string
+    );
+    if (userAccess.includes("ADMIN")) {
+      return res.send({
+        message: `CAN'T ${
+          req.body.mode === "update" ? "UPDATE" : "SAVE"
+        }, ADMIN IS FOR VIEWING ONLY!`,
+        success: false,
+      });
     }
 
-    await deleteClaims(req.body.claims_id,req);
-  }
-
-  const files = req.body.claimsSubmited;
-  const basicDocumentFolder = [
-    "policyFile",
-    "endorsement",
-    "OPP",
-    "ORCR",
-    "DLOR",
-    "PR",
-    "DA",
-    "SMCN",
-  ];
-  const insuranceDocuments = ["loa", "offerLetter", "CE"];
-
-  files.forEach(
-    async (
-      {
-        basicFileCustom,
-        otherFileCustom,
-        insuranceFileCustom,
-        policyState,
-      }: any,
-      index: number
-    ) => {
-      const claims_no = padNumber(index + 1, 3);
-      const uploadDir = path.join(
-        "./static/claim-files",
-        `${data.claims_id}`,
-        claims_no
-      );
-      if (fs.existsSync(uploadDir)) {
-        fs.rmSync(uploadDir, { recursive: true });
+    const data = req.body;
+    const isUpdateMode = req.body.mode === "update";
+    if (isUpdateMode) {
+      if (
+        !(await saveUserLogsCode(req, "update", req.body.claims_id, "Claims"))
+      ) {
+        return res.send({ message: "Invalid User Code", success: false });
       }
-      const basic = UploadFile(basicFileCustom, uploadDir);
-      const others = UploadFile(otherFileCustom, uploadDir);
-      const insuranceFile = UploadFile(insuranceFileCustom, uploadDir);
 
-      policyState.claim_type = policyState.claim_type?.toString();
-      policyState.status = policyState.status?.toString();
-      policyState.totaDue = parseFloat(
-        policyState.totaDue.toString().replace(/,/g, "")
-      ).toFixed(2);
-      policyState.totalpaid = parseFloat(
-        policyState.totalpaid.toString().replace(/,/g, "")
-      ).toFixed(2);
-      policyState.balance = parseFloat(
-        policyState.balance.toString().replace(/,/g, "")
-      ).toFixed(2);
-      policyState.remitted = parseFloat(
-        policyState.remitted.toString().replace(/,/g, "")
-      ).toFixed(2);
-      if (policyState.AmountClaim === "") {
-        policyState.AmountClaim = "0";
-      }
-      if (policyState.AmountApproved === "") {
-        policyState.AmountApproved = "0";
-      }
-      policyState.AmountClaim = parseFloat(
-        policyState.AmountClaim.toString().replace(/,/g, "")
-      ).toFixed(2);
-      policyState.AmountApproved = parseFloat(
-        policyState.AmountApproved.toString().replace(/,/g, "")
-      ).toFixed(2);
-
-      delete policyState.DateFrom;
-      delete policyState.DateTo;
-
-      await createClaimDetails({
-        claim_details_id: uuidV4(),
-        claims_id: data.claims_id,
-        claims_no,
-        basic: JSON.stringify(basic),
-        others: JSON.stringify(others),
-        insuranceFile: JSON.stringify(insuranceFile),
-        ...policyState,
-      },req);
+      await deleteClaims(req.body.claims_id, req);
     }
-  );
 
-  await createClaims({
-    claims_id: data.claims_id,
-    dateReported: data.dateReported,
-    dateAccident: data.dateAccident,
-    dateInspected: data.dateInspected,
-    department: data.department?.toString(),
-    remarks: data.remarks,
-    createdAt: new Date().toISOString(),
-  },req);
+    const files = req.body.claimsSubmited;
+    const basicDocumentFolder = [
+      "policyFile",
+      "endorsement",
+      "OPP",
+      "ORCR",
+      "DLOR",
+      "PR",
+      "DA",
+      "SMCN",
+    ];
+    const insuranceDocuments = ["loa", "offerLetter", "CE"];
 
-  function UploadFile(filesArr: Array<any>, uploadDir: string) {
-    const obj: any = [];
-    filesArr.forEach((file: any) => {
-      let specFolder = "";
-      if (basicDocumentFolder.includes(file.datakey)) {
-        specFolder = "Basic-Document";
-      } else if (insuranceDocuments.includes(file.datakey)) {
-        specFolder = "Insurance-Document";
-      } else {
-        specFolder = "Other-Document";
-      }
-
-      const uploadSpecFolder = path.join(uploadDir, specFolder);
-      const uniqueFilename = generateUniqueFilename(file.fileName);
-      if (!fs.existsSync(uploadSpecFolder)) {
-        fs.mkdirSync(uploadSpecFolder, { recursive: true });
-      }
-      const filePath = path.join(uploadSpecFolder, uniqueFilename);
-      const base64Data = file.fileContent.replace(/^data:.*;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      fs.writeFile(filePath, buffer, (err) => {
-        if (err) {
-          console.log("qweqw2");
-          console.log(err);
-          res.send({ message: err.message, success: false });
-          return;
+    files.forEach(
+      async (
+        {
+          basicFileCustom,
+          otherFileCustom,
+          insuranceFileCustom,
+          policyState,
+        }: any,
+        index: number
+      ) => {
+        const claims_no = padNumber(index + 1, 3);
+        const uploadDir = path.join(
+          "./static/claim-files",
+          `${data.claims_id}`,
+          claims_no
+        );
+        if (fs.existsSync(uploadDir)) {
+          fs.rmSync(uploadDir, { recursive: true });
         }
+        const basic = UploadFile(basicFileCustom, uploadDir);
+        const others = UploadFile(otherFileCustom, uploadDir);
+        const insuranceFile = UploadFile(insuranceFileCustom, uploadDir);
+
+        policyState.claim_type = policyState.claim_type?.toString();
+        policyState.status = policyState.status?.toString();
+        policyState.totaDue = parseFloat(
+          policyState.totaDue.toString().replace(/,/g, "")
+        ).toFixed(2);
+        policyState.totalpaid = parseFloat(
+          policyState.totalpaid.toString().replace(/,/g, "")
+        ).toFixed(2);
+        policyState.balance = parseFloat(
+          policyState.balance.toString().replace(/,/g, "")
+        ).toFixed(2);
+        policyState.remitted = parseFloat(
+          policyState.remitted.toString().replace(/,/g, "")
+        ).toFixed(2);
+        if (policyState.AmountClaim === "") {
+          policyState.AmountClaim = "0";
+        }
+        if (policyState.AmountApproved === "") {
+          policyState.AmountApproved = "0";
+        }
+        policyState.AmountClaim = parseFloat(
+          policyState.AmountClaim.toString().replace(/,/g, "")
+        ).toFixed(2);
+        policyState.AmountApproved = parseFloat(
+          policyState.AmountApproved.toString().replace(/,/g, "")
+        ).toFixed(2);
+
+        delete policyState.DateFrom;
+        delete policyState.DateTo;
+
+        await createClaimDetails(
+          {
+            claim_details_id: uuidV4(),
+            claims_id: data.claims_id,
+            claims_no,
+            basic: JSON.stringify(basic),
+            others: JSON.stringify(others),
+            insuranceFile: JSON.stringify(insuranceFile),
+            ...policyState,
+          },
+          req
+        );
+      }
+    );
+
+    await createClaims(
+      {
+        claims_id: data.claims_id,
+        dateReported: data.dateReported,
+        dateAccident: data.dateAccident,
+        dateInspected: data.dateInspected,
+        department: data.department?.toString(),
+        remarks: data.remarks,
+        createdAt: new Date().toISOString(),
+      },
+      req
+    );
+
+    function UploadFile(filesArr: Array<any>, uploadDir: string) {
+      const obj: any = [];
+      filesArr.forEach((file: any) => {
+        let specFolder = "";
+        if (basicDocumentFolder.includes(file.datakey)) {
+          specFolder = "Basic-Document";
+        } else if (insuranceDocuments.includes(file.datakey)) {
+          specFolder = "Insurance-Document";
+        } else {
+          specFolder = "Other-Document";
+        }
+
+        const uploadSpecFolder = path.join(uploadDir, specFolder);
+        const uniqueFilename = generateUniqueFilename(file.fileName);
+        if (!fs.existsSync(uploadSpecFolder)) {
+          fs.mkdirSync(uploadSpecFolder, { recursive: true });
+        }
+        const filePath = path.join(uploadSpecFolder, uniqueFilename);
+        const base64Data = file.fileContent.replace(/^data:.*;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+
+        fs.writeFile(filePath, buffer, (err) => {
+          if (err) {
+            console.log("qweqw2");
+            console.log(err);
+            res.send({ message: err.message, success: false });
+            return;
+          }
+        });
+        obj.push({
+          fileName: file.fileName,
+          uniqueFilename,
+          datakey: file.datakey,
+          fileType: file.fileType,
+        });
       });
-      obj.push({
-        fileName: file.fileName,
-        uniqueFilename,
-        datakey: file.datakey,
-        fileType: file.fileType,
-      });
+      return obj;
+    }
+    function padNumber(number: number, length: number) {
+      return String(number).padStart(length, "0");
+    }
+    if (!isUpdateMode) {
+      const date = new Date();
+      await saveUserLogs(req, req.body.claims_id, "add", "Claims");
+      await updateClaimIDSequence(
+        {
+          last_count: data.claims_id.split("-")[1].split("C")[1],
+          year: date.getFullYear().toString().slice(-2),
+          month: (date.getMonth() + 1).toString().padStart(2, "0"),
+        },
+        req
+      );
+    }
+    res.send({
+      message: isUpdateMode
+        ? "Claim is update successfully"
+        : "Claim is save successfully",
+      success: true,
     });
-    return obj;
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
-  function padNumber(number: number, length: number) {
-    return String(number).padStart(length, "0");
-  }
-  if (!isUpdateMode) {
-    const date = new Date();
-    await saveUserLogs(req, req.body.claims_id, "add", "Claims");
-    await updateClaimIDSequence({
-      last_count: data.claims_id.split("-")[1].split("C")[1],
-      year: date.getFullYear().toString().slice(-2),
-      month: (date.getMonth() + 1).toString().padStart(2, "0"),
-    },req);
-  }
-  res.send({
-    message: isUpdateMode
-      ? "Claim is update successfully"
-      : "Claim is save successfully",
-    success: true,
-  });
 });
 
 export function generateUniqueFilename(originalFilename: string) {
@@ -212,7 +232,11 @@ Claim.get("/claims/get-insurance-list", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
 });
 
@@ -221,11 +245,15 @@ Claim.get("/claims/get-policy", async (req, res) => {
     res.send({
       message: "Successfully get insurance list",
       success: true,
-      claimPolicy: await claimsPolicy(req.query.searchPolicy as string,req),
+      claimPolicy: await claimsPolicy(req.query.searchPolicy as string, req),
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
 });
 Claim.get("/claims/get-claims-id", async (req, res) => {
@@ -237,7 +265,11 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
 });
 Claim.get("/claims/search-claims", async (req, res) => {
@@ -245,11 +277,15 @@ Claim.get("/claims/search-claims", async (req, res) => {
     res.send({
       message: "Successfully search claim",
       success: true,
-      claims: await searchClaims(req.query.searchClaims as string,req),
+      claims: await searchClaims(req.query.searchClaims as string, req),
     });
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
 });
 Claim.post("/claims/selected-search-claims", async (req, res) => {
@@ -257,14 +293,14 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
     setTimeout(async () => {
       const selectedRowData = req.body.selectedRowData;
       const claims_id = selectedRowData[0].claims_id;
-      const data: any = await selectedData(claims_id,req);
+      const data: any = await selectedData(claims_id, req);
       const formattedSelectedData: Array<any> = [];
       data.forEach((list: any) => {
         formattedSelectedData.push({
           id: list.claims_no,
           basicFileCustom: JSON.parse(list.basic),
           otherFileCustom: JSON.parse(list.others),
-          insuranceFileCustom:JSON.parse(list.insuranceFile),
+          insuranceFileCustom: JSON.parse(list.insuranceFile),
           policyState: {
             policy: list.policy,
             claim_type: parseInt(list.claim_type),
@@ -306,7 +342,11 @@ Claim.post("/claims/selected-search-claims", async (req, res) => {
     }, 1000);
   } catch (error: any) {
     console.log(error.message);
-    res.send({ message: error.message, success: false, insurance: [] });
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      insurance: [],
+    });
   }
 });
 Claim.post("/claims/report-claim", async (req, res) => {
@@ -356,14 +396,19 @@ Claim.post("/claims/report-claim", async (req, res) => {
         return qry;
       }
     }
-    const report = await claimReport(whereStatement, req.body.status,req);
+    const report = await claimReport(whereStatement, req.body.status, req);
     res.send({
       message: "Successfully generate report",
       success: true,
       report,
     });
   } catch (err: any) {
-    res.send({ message: err.message, success: false });
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
   }
 });
 export default Claim;
