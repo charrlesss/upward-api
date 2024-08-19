@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[7685],{7685:function(n,u,r){r.r(u),r.d(u,{default:function(){return t}});r(2791);var e=r(184);function t(){return(0,e.jsx)("div",{children:"MSPRPolicyInformation"})}}}]);
-//# sourceMappingURL=7685.de81dcdd.chunk.js.map

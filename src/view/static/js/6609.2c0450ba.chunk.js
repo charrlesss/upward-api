@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[6609],{6609:function(n,u,r){r.r(u),r.d(u,{default:function(){return e}});r(2791);var t=r(184);function e(){return(0,t.jsx)("div",{children:"PettyCashTransaction"})}}}]);
-//# sourceMappingURL=6609.2c0450ba.chunk.js.map

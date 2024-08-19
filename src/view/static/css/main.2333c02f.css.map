@@ -1,1 +1,0 @@
-{"version":3,"file":"static/css/main.2333c02f.css","mappings":"kFACA,aACI,qCACF","sources":["index.css"],"sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Inclusive+Sans&display=swap');\n.swal2-popup {\n    font-family: 'Inclusive Sans', sans-serif;\n  }\n    "],"names":[],"sourceRoot":""}

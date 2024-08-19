@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[106],{106:function(u,r,e){e.r(r),e.d(r,{default:function(){return i}});e(2791);var n=e(184);function i(){return(0,n.jsx)("div",{children:"FirePolicyPremium"})}}}]);
-//# sourceMappingURL=106.bf289b91.chunk.js.map

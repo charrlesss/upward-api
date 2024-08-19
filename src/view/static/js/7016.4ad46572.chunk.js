@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkupward=self.webpackChunkupward||[]).push([[7016],{7016:function(u,n,e){e.r(n),e.d(n,{default:function(){return t}});e(2791);var r=e(184);function t(){return(0,r.jsx)("div",{children:"Booklet"})}}}]);
-//# sourceMappingURL=7016.4ad46572.chunk.js.map
