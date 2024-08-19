@@ -232,7 +232,7 @@ export async function searchDeposit(searchDeposit: string, req: Request) {
 
   return await prisma.$queryRawUnsafe(`
     SELECT 
-    DATE_FORMAT(a.Date, '%m/%d/%Y') as Date, 
+      DATE_FORMAT(a.Date, '%m/%d/%Y') as Date, 
       a.SlipCode,
       a.BankAccount,
       a.AccountName,
@@ -329,7 +329,7 @@ export async function getCheckDeposit(SlipCode: string, req: Request) {
       a.Temp_OR as  TempOR,
       a.ORNo AS OR_No,
       a.Official_Receipt AS Temp_OR,
-      a.Date_OR AS OR_Date,
+      DATE_FORMAT(a.Date_OR, '%m/%d/%Y')  AS OR_Date,
       a.Check_No,
       a.Check_Date,
       a.Debit AS Amount,

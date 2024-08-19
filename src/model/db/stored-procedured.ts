@@ -1134,7 +1134,7 @@ export function DepositedCollections(
         Deposit.Date_Deposit, 
         Deposit.Slip_Code, 
         Deposit.Account_ID, 
-        Deposit.IDNo, 
+        if(Deposit.Slip_Code is null,Deposit.IDNo ,c.Identity) as IDNo,
         Deposit.Bank, 
         Check_No AS cCheck_No, 
         Deposit.Debit, 
@@ -1145,8 +1145,15 @@ export function DepositedCollections(
         'Monthly' AS Rpt ,
         chart_account.Short as Account_Name,
         ifnull(concat(Deposit.Account_ID,' ',chart_account.Short),'') as acct_name
-    FROM Deposit 
-    left join chart_account on Acct_Code = Deposit. Account_ID
+    FROM (
+      SELECT 
+          a.*, b.BankAccount
+      FROM
+          deposit a
+      LEFT JOIN deposit_slip b ON a.Slip_Code = b.SlipCode
+    ) Deposit 
+    LEFT JOIN chart_account on Acct_Code = Deposit. Account_ID
+    LEFT JOIN bankaccounts c ON Deposit.BankAccount = c.Account_No
     ${sWhere1}
     ORDER BY Deposit.Temp_SlipCntr, Ref_No ${
       order === "Ascending" ? "ASC" : "DESC"
