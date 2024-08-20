@@ -14,6 +14,7 @@ import {
   getTransactionBanksDetails,
   getTransactionBanksDetailsDebit,
   getTransactionDescription,
+  printModel,
   updateCollectionIDSequence,
   updatePDCCheck,
 } from "../../../model/Task/Accounting/collection.model";
@@ -216,6 +217,25 @@ Collection.post("/get-drcode-drtitle-from-collection", async (req, res) => {
       message: "get DR Code and DR Title Collection Successfully!",
       success: true,
       data,
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
+  }
+});
+
+Collection.post("/on-print", async (req, res) => {
+  try {
+    console.log(req.body);
+    const { data, data1 } = await printModel(req, req.body.ORNo);
+    res.send({
+      message: "Print Collection Successfully!",
+      success: true,
+      data,
+      data1,
     });
   } catch (error: any) {
     console.log(error.message);

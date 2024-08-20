@@ -8,7 +8,8 @@ SELECT
   aa.entry_client_id AS IDNo,
   aa.sub_account,
   if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
-  aa.entry_client_id as client_id  
+  aa.entry_client_id as client_id,
+  aa.address  
 FROM
   entry_client aa
 union all
@@ -17,7 +18,8 @@ SELECT
   aa.entry_agent_id AS IDNo,
   aa.sub_account,
   CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
-  aa.entry_agent_id as client_id  
+  aa.entry_agent_id as client_id,
+  aa.address  
 FROM
   entry_agent aa
 union all
@@ -26,7 +28,8 @@ SELECT
   aa.entry_employee_id AS IDNo,
   aa.sub_account,
   CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname , ', '),''), aa.firstname) AS Shortname,
-  aa.entry_employee_id as client_id
+  aa.entry_employee_id as client_id,
+  aa.address  
 FROM
   entry_employee aa
 union all
@@ -35,7 +38,8 @@ SELECT
   aa.entry_supplier_id AS IDNo,
   aa.sub_account,
   if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
-  aa.entry_supplier_id as client_id
+  aa.entry_supplier_id as client_id,
+  aa.address
 FROM
   entry_supplier aa
 union all
@@ -44,7 +48,8 @@ SELECT
   aa.entry_fixed_assets_id AS IDNo,
   aa.sub_account,
   aa.fullname AS Shortname,
-  aa.entry_fixed_assets_id as client_id
+  aa.entry_fixed_assets_id as client_id,
+  aa.description as address
 FROM
   entry_fixed_assets aa
 union all
@@ -53,7 +58,8 @@ SELECT
   aa.entry_others_id AS IDNo,
   aa.sub_account,
   aa.description AS Shortname,
-  aa.entry_others_id as client_id
+  aa.entry_others_id as client_id,
+  aa.description as address
 FROM
   entry_others aa
 `;

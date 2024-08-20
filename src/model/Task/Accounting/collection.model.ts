@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { PrismaList } from "../../connection";
+import { selectClient } from "./pdc.model";
 const { CustomPrismaClient } = PrismaList();
 
 export async function getClientCheckedList(
@@ -250,4 +251,33 @@ export async function getDrCodeAndTitle(code: string, req: Request) {
     b.Acct_Code, 
     b.Acct_Title FROM upward_insurance_umis.transaction_code  a left join upward_insurance_umis.chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
   `);
+}
+
+export async function printModel(req: Request, OR_Num: string) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  const qry = `
+    SELECT 
+    Official_Receipt, 
+    CONCAT(IFNULL(ID_Entry.Shortname, PID.Shortname), 
+    ' (', IFNULL(PID.IDNo, ID_Entry.IDNo), ')') AS Payor,
+    IF(PID.address = '' OR PID.address is null, ID_Entry.address, PID.address) AS PayorAddress,
+    DATE_FORMAT(Date_OR, '%M %d, %Y') AS DateOR,
+    Amount AS ORAmount 
+    FROM 
+    (SELECT Official_Receipt, ID_No, Date_OR, format(SUM(CAST(REPLACE(Debit, ',', '') AS DECIMAL(10,2)) ) , 2) AS Amount 
+    FROM Collection
+    WHERE Official_Receipt = '${OR_Num}' 
+    GROUP BY Official_Receipt, ID_No, Date_OR) AS ORCollection 
+    LEFT JOIN Policy ON ORCollection.ID_No = Policy.PolicyNo 
+    LEFT JOIN (${selectClient}) PID ON Policy.IDNo = PID.IDNo 
+    LEFT JOIN (${selectClient}) ID_Entry ON ORCollection.ID_No = ID_Entry.IDNo
+  `;
+  const qry1 = `SELECT * FROM Collection WHERE  Official_Receipt = '${OR_Num}'`;
+
+  console.log(qry);
+  return {
+    data: await prisma.$queryRawUnsafe(qry),
+    data1: await prisma.$queryRawUnsafe(qry1),
+  };
 }
