@@ -211,7 +211,8 @@ export async function getSearchPDCheck(ref_no: any, req: Request) {
             a.PolicyNo AS IDNo,
             b.sub_account,
             IF(b.option = 'individual', CONCAT(IF(b.lastname, CONCAT(b.lastname is not null, ', '), ''), b.firstname), b.company) AS Shortname,
-            a.IDNo AS client_id
+            a.IDNo AS client_id,
+            b.address
         FROM
             policy a
         LEFT JOIN entry_client b ON a.IDNo = b.entry_client_id) b ON a.PNo = b.IDNo
