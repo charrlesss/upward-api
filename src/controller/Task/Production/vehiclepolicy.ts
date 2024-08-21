@@ -478,6 +478,7 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   }
 });
 VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
+  console.log(req.body)
   convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,
@@ -532,6 +533,7 @@ VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
     await insertNewVPolicy({ ...req.body, cStrArea, strArea }, req);
     res.send({ message: "Update Vehicle Policy Successfully", success: true });
   } catch (err: any) {
+    console.log(err.message)
     res.send({ message: err.message, success: false });
   }
 });

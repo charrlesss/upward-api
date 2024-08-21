@@ -401,36 +401,37 @@ export async function searchDataVPolicy(
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   const qry = `
       SELECT 
-      a.*,
-      b.*,
-      if(c.option = 'individual', concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ),c.company) as client_fullname,
-      c.address as address,
-      concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ) as agent_fullname,
-      c.sale_officer,
-      date_format(a.DateIssued,'%m/%d/%Y') as _DateIssued
-    FROM
-      policy a
-          LEFT JOIN
-        vpolicy b ON a.PolicyNo = b.PolicyNo
-        left join entry_client c on a.IDNo = c.entry_client_id 
-        left join entry_agent d on a.AgentID = d.entry_agent_id 
-            WHERE 
+        a.*,
+        b.*,
+        if(c.option = 'individual', concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ),c.company) as client_fullname,
+        c.address as address,
+        concat(c.firstname,if(c.middlename = '' OR c.middlename is null,'',concat(',',c.middlename)), if(c.lastname = '' OR c.lastname is null,'',concat(',',c.lastname)) ) as agent_fullname,
+        c.sale_officer,
+        date_format(a.DateIssued,'%m/%d/%Y') as _DateIssued
+      FROM
+        policy a
+            LEFT JOIN
+          vpolicy b ON a.PolicyNo = b.PolicyNo
+          left join entry_client c on a.IDNo = c.entry_client_id 
+          left join entry_agent d on a.AgentID = d.entry_agent_id 
+              WHERE 
 
-                b.PolicyNo is not null and
+            b.PolicyNo is not null and
             a.PolicyNo is not null and
-        a.PolicyType = '${policyType}' and
-       ${
-         isTemp
-           ? "left(a.PolicyNo,3) = 'TP-'and"
-           : "left(a.PolicyNo,3) != 'TP-' and"
-       }
-       (
-          a.PolicyNo like '%${search}%' or
-          c.firstname like '%${search}%' or 
-          c.lastname like '%${search}%'
-       )
-    ORDER BY a.PolicyNo desc
-    LIMIT 100 
+            a.PolicyType = '${policyType}' and
+        ${
+          isTemp
+            ? "left(a.PolicyNo,3) = 'TP-'and"
+            : "left(a.PolicyNo,3) != 'TP-' and"
+        }
+        (
+            a.PolicyNo like '%${search}%' or
+            c.firstname like '%${search}%' or 
+            c.lastname like '%${search}%' or
+            b.ChassisNo like '%${search}%'
+        )
+      ORDER BY a.PolicyNo desc
+      LIMIT 100 
   `;
   console.log(qry);
   return await prisma.$queryRawUnsafe(qry);
