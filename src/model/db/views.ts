@@ -112,7 +112,8 @@ FROM
 
 export function qryJournal() {
   const selectClient = clients_view();
-  return `
+
+  const qry = `
     SELECT
         a.Branch_Code,
         CASE 
@@ -143,7 +144,7 @@ export function qryJournal() {
         f.Hide_Code,
         f.Number,
         f.Book_Code,
-        a.Sub_Acct,
+        c.Acronym as Sub_Acct,
         COALESCE(c.ShortName, '') AS mSub_Acct,
         COALESCE(d.ShortName, '') AS mID,
         a.AutoNo AS Auto,
@@ -151,9 +152,11 @@ export function qryJournal() {
     FROM
     journal a
     LEFT OUTER JOIN    policy b ON a.ID_No = b.PolicyNo
-    LEFT OUTER JOIN    sub_account c ON a.Sub_Acct = c.Acronym
+    LEFT OUTER JOIN    sub_account c ON a.Sub_Acct = c.Acronym OR  a.Sub_Acct = c.Sub_Acct
     LEFT OUTER JOIN (${selectClient}) d ON a.ID_No = d.IDNo
     LEFT OUTER JOIN    chart_account e ON a.GL_Acct = e.Acct_Code
     LEFT OUTER JOIN    books f ON a.Source_Type = f.Code
 `;
+
+  return qry;
 }

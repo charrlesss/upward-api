@@ -9,7 +9,7 @@ SELECT
   aa.sub_account,
   if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
   aa.entry_client_id as client_id,
-  aa.address  
+  aa.address 
 FROM
   entry_client aa
 union all
@@ -19,7 +19,7 @@ SELECT
   aa.sub_account,
   CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
   aa.entry_agent_id as client_id,
-  aa.address  
+  aa.address
 FROM
   entry_agent aa
 union all
@@ -78,7 +78,8 @@ export async function getPdcPolicyIdAndCLientId(search: string, req: Request) {
       a.ShortName as sub_shortname,
       b.ShortName,
       b.Acronym,
-      if(a.IDType = 'Policy' and c.PolicyType = "COM" OR c.PolicyType = "TPL",concat('C: ',c.ChassisNo,'  ','E: ',c.MotorNo),'') as remarks
+      if(a.IDType = 'Policy' and c.PolicyType = "COM" OR c.PolicyType = "TPL",concat('C: ',c.ChassisNo,'  ','E: ',c.MotorNo),'') as remarks,
+      ifnull(c.ChassisNo,'') as chassis
     FROM
         (
          ${selectClient}

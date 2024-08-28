@@ -478,7 +478,6 @@ VehiclePolicy.post("/tpl-add-vehicle-policy", async (req, res) => {
   }
 });
 VehiclePolicy.post("/tpl-update-vehicle-policy", async (req, res) => {
-  console.log(req.body)
   convertToPassitive(req);
   const { userAccess }: any = await VerifyToken(
     req.cookies["up-ac-login"] as string,

@@ -2,7 +2,6 @@ import { PrismaClient } from "@prisma/client";
 import express, { NextFunction, Request, Response } from "express";
 import { compareSync } from "bcrypt";
 import jwt from "jsonwebtoken";
-
 const Authentication = express.Router();
 const prisma = new PrismaClient();
 
@@ -220,8 +219,6 @@ export async function VerifyToken(token: string, secret: string) {
 //   updateRefreshToken(id, "");
 //   res.send({ message: "Logout Successfully", success: true });
 // });
-
-
 
 export function logout(req: Request, res: Response) {
   res.cookie("up-rt-login", { expires: Date.now() });

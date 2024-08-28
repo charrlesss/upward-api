@@ -20,6 +20,8 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
   let sFilter = " ";
   let Qry = "";
 
+  console.log(req.body)
+
   const balanceForwarded: any = [];
   const report: any = [];
   if (account === "") account = "ALL";
@@ -277,9 +279,11 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
         }
         break;
       case 2:
-        sFilter = ` AND qryJournal.Sub_Acct = '${subsi_options}' `;
+        sFilter = ` `;
         // Balances
         if (account !== "ALL") {
+          sFilter = ` AND qryJournal.Sub_Acct = '${subsi_options}' `;
+
           if (
             new Date(
               new Date(DateFrom).getMonth() +
@@ -484,6 +488,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
       dt = await prisma.$queryRawUnsafe(Qry);
     }
 
+    console.log(`===\n`,Qry)
 
     if (dt.length > 0) {
       let dtBal: any = [];
@@ -556,6 +561,7 @@ SubsidiaryLedger.post("/subsidiary-ledger-report", async (req, res) => {
       message: "Successuflly Get Report",
       success: true,
       report: JSON.stringify(report),
+      reports:report
     });
   } catch (err: any) {
     console.log(err.message);

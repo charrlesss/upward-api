@@ -10,6 +10,7 @@ const { CustomPrismaClient } = PrismaList();
 
 IncomeStatement.post("/income-statement-report", async (req, res) => {
   try {
+    console.log(req.body)
     const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
     let sql = "";
@@ -112,7 +113,7 @@ IncomeStatement.post("/income-statement-report", async (req, res) => {
           tmp1.Code
       `;
     }
-    console.log(sql);
+    console.log(sql)
     const dataRes: any = await prisma.$queryRawUnsafe(sql);
     
     const updatedDataRes = dataRes.map((obj: any) => ({

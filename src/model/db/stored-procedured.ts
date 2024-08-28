@@ -24,8 +24,11 @@ export function FinancialStatement(
     DateFrom = format(dateFrom, "yyyy-MM-dd");
     DateTo = format(dateFrom, "yyyy-MM-dd");
   } else {
-    DateFrom = format(dateFrom, "yyyy-MM-dd");
-    DateTo = format(addMonths(dateFrom, 1), "yyyy-MM-dd");
+    DateFrom = format(dateFrom, "yyyy-MM");
+    DateTo = format(new Date(dateFrom), `yyyy-MM`);
+    DateFrom = `${DateFrom}-01`;
+    const lastDay = lastDayOfMonth(dateFrom);
+    DateTo = `${DateTo}-${format(lastDay, "dd")}`;
   }
 
   if (SubAcctParam === "ALL") {
@@ -1075,7 +1078,7 @@ export function AbstractCollections(
     ORDER BY Collection.Temp_OR ${order === "Ascending" ? "ASC" : "DESC"}
   `;
 
-  console.log(queryCollection)
+  console.log(queryCollection);
 
   const queryJournal = `
     SELECT Journal.GL_Acct, Chart_Account.Acct_Title AS Title, 
@@ -1231,7 +1234,7 @@ export function ReturnedChecksCollection(
     ORDER BY Journal.Source_No ${order === "Ascending" ? "ASC" : "DESC"}
   `;
 
-  queryReturned =`
+  queryReturned = `
   select 
         *,
         CASE WHEN @prev_source_no = a.Source_No THEN '' ELSE a.Source_No END AS nSource_No,
@@ -1241,7 +1244,7 @@ export function ReturnedChecksCollection(
     from ( 
       ${queryReturned}
     ) a
-  `
+  `;
   const queryJournal = `
     SELECT 
           Journal.GL_Acct, 
@@ -1393,227 +1396,11 @@ export function CashDisbursementBook_CDB_GJB(
   dateFilterType: string,
   sortOrder: string
 ) {
-  let sourceType = "";
+  let sourceType = "CV";
   let strSQL = "";
   let strSubSQL = "";
   let qryJournals = "";
 
-  // switch (reportType) {
-  //   case "Cash Disbursement Book - CDB":
-  //     sourceType = "CV";
-
-  //     break;
-  //   case "General Journal Book - GJB":
-  //     sourceType = "GL";
-  //     qryJournals = `
-  //     SELECT
-  //       a.Date_Entry,
-  //       a.Source_Type,
-  //       a.Source_Type,
-  //       a.Source_No,
-  //       a.Explanation,
-  //       b.Acct_Code,
-  //         b.Acct_Title,
-  //         concat(a.Sub_Acct,' - ',a.cSub_Acct) as subAcct,
-  //       d.IDNo,
-  //         d.Shortname as Name,
-  //         a.Debit,
-  //         a.Credit
-  //     FROM (
-  //     select * from journal
-  //     ) a
-  //     left join chart_account b on a.GL_Acct = b.Acct_Code
-  //     left join ( SELECT
-  //             *
-  //         FROM
-  //             (
-  //               SELECT
-  //               *
-  //           FROM
-  //               (SELECT
-  //                 "Client" as IDType,
-  //                 aa.entry_client_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_client_id as client_id
-  //                 FROM
-  //                   entry_client aa
-  //                 union all
-  //                 SELECT
-  //                 "Agent" as IDType,
-  //                 aa.entry_agent_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_agent_id as client_id
-  //                 FROM
-  //                   entry_agent aa
-  //                 union all
-  //                 SELECT
-  //                 "Employee" as IDType,
-  //                 aa.entry_employee_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_employee_id as client_id
-  //                 FROM
-  //                   entry_employee aa
-  //                 union all
-  //                 SELECT
-  //                 "Supplier" as IDType,
-  //                 aa.entry_supplier_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_supplier_id as client_id
-  //                 FROM
-  //                   entry_supplier aa
-  //                 union all
-  //                 SELECT
-  //                 "Fixed Assets" as IDType,
-  //                 aa.entry_fixed_assets_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.fullname AS Shortname,
-  //                 aa.entry_fixed_assets_id as client_id
-  //                 FROM
-  //                   entry_fixed_assets aa
-  //                 union all
-  //                 SELECT
-  //                 "Others" as IDType,
-  //                 aa.entry_others_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.description AS Shortname,
-  //                 aa.entry_others_id as client_id
-  //                 FROM
-  //                   entry_others aa) a
-  //           WHERE
-  //               a.IDNo NOT IN
-  //               (SELECT IDNo FROM   policy GROUP BY IDNo)
-  //           UNION ALL SELECT
-  //                   'Policy' AS IDType,
-  //                   a.PolicyNo AS IDNo,
-  //                   b.sub_account,
-  //                   b.Shortname,
-  //                   a.IDNo AS client_id
-  //           FROM
-  //                 policy a
-  //           LEFT JOIN (SELECT
-  //                 "Client" as IDType,
-  //                 aa.entry_client_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_client_id as client_id
-  //                 FROM
-  //                   entry_client aa
-  //                 union all
-  //                 SELECT
-  //                 "Agent" as IDType,
-  //                 aa.entry_agent_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_agent_id as client_id
-  //                 FROM
-  //                   entry_agent aa
-  //                 union all
-  //                 SELECT
-  //                 "Employee" as IDType,
-  //                 aa.entry_employee_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_employee_id as client_id
-  //                 FROM
-  //                   entry_employee aa
-  //                 union all
-  //                 SELECT
-  //                 "Supplier" as IDType,
-  //                 aa.entry_supplier_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_supplier_id as client_id
-  //                 FROM
-  //                   entry_supplier aa
-  //                 union all
-  //                 SELECT
-  //                 "Fixed Assets" as IDType,
-  //                 aa.entry_fixed_assets_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.fullname AS Shortname,
-  //                 aa.entry_fixed_assets_id as client_id
-  //                 FROM
-  //                   entry_fixed_assets aa
-  //                 union all
-  //                 SELECT
-  //                 "Others" as IDType,
-  //                 aa.entry_others_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.description AS Shortname,
-  //                 aa.entry_others_id as client_id
-  //                 FROM
-  //                   entry_others aa) b ON a.IDNo = b.IDNo
-  //           WHERE
-  //               a.PolicyNo NOT IN
-  //               (SELECT a.IDNo FROM (SELECT
-  //                 "Client" as IDType,
-  //                 aa.entry_client_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_client_id as client_id
-  //                 FROM
-  //                   entry_client aa
-  //                 union all
-  //                 SELECT
-  //                 "Agent" as IDType,
-  //                 aa.entry_agent_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_agent_id as client_id
-  //                 FROM
-  //                   entry_agent aa
-  //                 union all
-  //                 SELECT
-  //                 "Employee" as IDType,
-  //                 aa.entry_employee_id AS IDNo,
-  //                 aa.sub_account,
-  //                 CONCAT(aa.lastname, ",", aa.firstname) AS Shortname,
-  //                 aa.entry_employee_id as client_id
-  //                 FROM
-  //                   entry_employee aa
-  //                 union all
-  //                 SELECT
-  //                 "Supplier" as IDType,
-  //                 aa.entry_supplier_id AS IDNo,
-  //                 aa.sub_account,
-  //                 if(aa.company = "", CONCAT(aa.lastname, ",", aa.firstname), aa.company) as Shortname,
-  //                 aa.entry_supplier_id as client_id
-  //                 FROM
-  //                   entry_supplier aa
-  //                 union all
-  //                 SELECT
-  //                 "Fixed Assets" as IDType,
-  //                 aa.entry_fixed_assets_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.fullname AS Shortname,
-  //                 aa.entry_fixed_assets_id as client_id
-  //                 FROM
-  //                   entry_fixed_assets aa
-  //                 union all
-  //                 SELECT
-  //                 "Others" as IDType,
-  //                 aa.entry_others_id AS IDNo,
-  //                 aa.sub_account,
-  //                 aa.description AS Shortname,
-  //                 aa.entry_others_id as client_id
-  //                 FROM
-  //                   entry_others aa) a)
-  //           ) a) d on a.ID_No = d.IDNo
-  //     WHERE
-  //       a.Source_Type = 'GL'
-  //       AND date_format(a.Date_Entry,'%Y-%m-%d') >= '2024-06-01'
-  //       AND date_format(a.Date_Entry,'%Y-%m-%d') <= '2024-06-30'
-  //     ORDER BY
-  //     a.Date_Entry, a.Source_No, a.Debit
-  //     `;
-  //     break;
-  //   default:
-  //     throw new Error("Unknown report type");
-  // }
   qryJournals = `
       SELECT
         date_format(a.Date_Entry,'%Y-%m-%d') as Date_Entry,
@@ -1626,8 +1413,8 @@ export function CashDisbursementBook_CDB_GJB(
         concat(c.Acronym,' - ',c.ShortName) as subAcct,
         d.IDNo,
         d.Shortname as Name,
-        a.Debit,
-        a.Credit,
+        format(a.Debit,2) as Debit,
+        format(a.Credit,2) as Credit,
         a.TC
         FROM 
           cash_disbursement a 

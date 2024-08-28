@@ -220,7 +220,6 @@ CashDisbursementBookCDB.post(
         prev_source_no: "",
         summaryFooter: true,
       });
-
       res.send({
         message: "Successfully Get Report",
         success: true,

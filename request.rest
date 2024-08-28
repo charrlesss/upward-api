@@ -2,6 +2,8 @@
 GET http://localhost:4000/testing-query
 
 
+###
+GET http://localhost:4400/api/get-user-details
 
 
 
