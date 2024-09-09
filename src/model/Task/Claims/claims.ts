@@ -9,109 +9,138 @@ export async function getInsuranceList(req: Request) {
   return await prisma.$queryRawUnsafe(qry);
 }
 
+export async function claimSelectedPolicy(PolicyNo: string, req: Request) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+  const qry = `
+    select * from (
+        SELECT 
+        a.PolicyType as policy,
+        ifnull(b.Account,'') as Account ,
+        ifnull(b.PlateNo,'') as PlateNo ,
+        ifnull(b.Model,'') as Model ,
+        ifnull(b.BodyType,'') as BodyType ,
+        ifnull(b.Make,'') as Make ,
+        ifnull(b.ChassisNo,'') as ChassisNo ,
+        ifnull(b.MotorNo,'') as MotorNo ,
+        ifnull(b.ORNo,'') as ORNo ,
+        ifnull(b.CoverNo,'') as CoverNo ,
+        ifnull(b.BLTFileNo,'') as BLTFileNo ,
+        a.PolicyNo ,
+        ifnull(b.DateFrom ,
+              ifnull(c.DateFrom ,
+              ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom))))) as DateFrom,
+        ifnull(b.DateTo ,
+        ifnull(c.DateTo ,
+        ifnull(d.DateTo ,ifnull(e.PeriodTo,ifnull(f.PeriodTo,g.PeriodTo))))) as DateTo,
+        i.totaDue,
+        i.totalpaid,
+        i.balance,
+        i.remitted
+        FROM policy a
+        LEFT JOIN vpolicy b on a.PolicyNo = b.PolicyNo
+        LEFT JOIN fpolicy c on a.PolicyNo = c.PolicyNo
+        LEFT JOIN mpolicy d on a.PolicyNo = d.PolicyNo
+        LEFT JOIN msprpolicy e on a.PolicyNo = e.PolicyNo
+        LEFT JOIN cglpolicy f on a.PolicyNo = f.PolicyNo
+        LEFT JOIN papolicy g on a.PolicyNo = g.PolicyNo
+        LEFT JOIN (
+      ${comnputationQry()}
+        ) i on  a.PolicyNo = i.PolicyNo
+              where 
+              ifnull(b.DateFrom ,
+              ifnull(c.DateFrom ,
+              ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom)))))  is not null
+              AND TRIM(a.PolicyType) in ('TPL','COM','MAR','FIRE','PA','CGL') 
+        ) a
+            where  
+          a.PolicyNo = '${PolicyNo}' 
+  `;
+  return await prisma.$queryRawUnsafe(qry);
+}
+
 export async function claimsPolicy(search: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
-  select * from (
-    SELECT 
-    a.PolicyType as policy,
-    ifnull(b.Account,'') as Account ,
-    ifnull(b.PlateNo,'') as PlateNo ,
-    ifnull(b.Model,'') as Model ,
-    ifnull(b.BodyType,'') as BodyType ,
-    ifnull(b.Make,'') as Make ,
-    ifnull(b.ChassisNo,'') as ChassisNo ,
-    ifnull(b.MotorNo,'') as MotorNo ,
-    ifnull(b.ORNo,'') as ORNo ,
-    ifnull(b.CoverNo,'') as CoverNo ,
-    ifnull(b.BLTFileNo,'') as BLTFileNo ,
-    a.PolicyNo ,
-    h.Shortname    AS AssuredName,
-    h.IDNo,
-    ifnull(b.DateFrom ,
-          ifnull(c.DateFrom ,
-          ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom))))) as DateFrom,
-    ifnull(b.DateTo ,
-    ifnull(c.DateTo ,
-    ifnull(d.DateTo ,ifnull(e.PeriodTo,ifnull(f.PeriodTo,g.PeriodTo))))) as DateTo,
-    i.totaDue,
-    i.totalpaid,
-    i.balance,
-    i.remitted
-    FROM policy a
-    LEFT JOIN vpolicy b on a.PolicyNo = b.PolicyNo
-    LEFT JOIN fpolicy c on a.PolicyNo = c.PolicyNo
-    LEFT JOIN mpolicy d on a.PolicyNo = d.PolicyNo
-    LEFT JOIN msprpolicy e on a.PolicyNo = e.PolicyNo
-    LEFT JOIN cglpolicy f on a.PolicyNo = f.PolicyNo
-    LEFT JOIN papolicy g on a.PolicyNo = g.PolicyNo
-      LEFT JOIN
-      (SELECT 
-          'Client' AS IDType,
-              aa.entry_client_id AS IDNo,
-              aa.sub_account,
-              IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
-              aa.entry_client_id AS client_id
-      FROM
-          entry_client aa UNION ALL SELECT 
-          'Agent' AS IDType,
-              aa.entry_agent_id AS IDNo,
-              aa.sub_account,
-              CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
-              aa.entry_agent_id AS client_id
-      FROM
-          entry_agent aa UNION ALL SELECT 
-          'Employee' AS IDType,
-              aa.entry_employee_id AS IDNo,
-              aa.sub_account,
-              CONCAT(aa.lastname, ',', aa.firstname) AS Shortname,
-              aa.entry_employee_id AS client_id
-      FROM
-          entry_employee aa UNION ALL SELECT 
-          'Supplier' AS IDType,
-              aa.entry_supplier_id AS IDNo,
-              aa.sub_account,
-              IF(aa.company = '', CONCAT(aa.lastname, ',', aa.firstname), aa.company) AS Shortname,
-              aa.entry_supplier_id AS client_id
-      FROM
-          entry_supplier aa UNION ALL SELECT 
-          'Fixed Assets' AS IDType,
-              aa.entry_fixed_assets_id AS IDNo,
-              aa.sub_account,
-              aa.fullname AS Shortname,
-              aa.entry_fixed_assets_id AS client_id
-      FROM
-          entry_fixed_assets aa UNION ALL SELECT 
-          'Others' AS IDType,
-              aa.entry_others_id AS IDNo,
-              aa.sub_account,
-              aa.description AS Shortname,
-              aa.entry_others_id AS client_id
-      FROM
-          entry_others aa) h ON a.IDNo = h.IDNo
-    LEFT JOIN (
-   ${comnputationQry()}
-    ) i on  a.PolicyNo = i.PolicyNo
-          where 
-          ifnull(b.DateFrom ,
-          ifnull(c.DateFrom ,
-          ifnull(d.DateFrom ,ifnull(e.PeriodFrom,ifnull(f.PeriodFrom,g.PeriodFrom)))))  is not null
-           AND TRIM(a.PolicyType) in ('TPL','COM','MAR','FIRE','PA','CGL') 
-    ) a
-        where  
-       a.PolicyNo LIKE '%${search}%' 
-          OR ifnull(a.ORNo ,'') LIKE '%${search}%'
-          OR ifnull(a.CoverNo,'')  LIKE '%${search}%'
-          OR ifnull(a.Model,'')  LIKE '%${search}%'
-          OR ifnull(a.Make,'')  LIKE '%${search}%'
-          OR ifnull(a.BodyType,'')  LIKE '%${search}%'
-          OR ifnull(a.BLTFileNo,'')  LIKE '%${search}%'
-          OR ifnull(a.PlateNo,'')  LIKE '%${search}%'
-          OR ifnull(a.ChassisNo,'')  LIKE '%${search}%'
-          OR ifnull(a.MotorNo,'')  LIKE '%${search}%' 
-          order by  a.PolicyNo asc
-          limit 20
+  select 
+      a.PolicyNo,
+      a.IDNo,
+      h.Shortname as AssuredName,
+      ifnull(ChassisNo,'') as ChassisNo
+  FROM policy a
+      LEFT JOIN vpolicy b on a.PolicyNo = b.PolicyNo
+      LEFT JOIN fpolicy c on a.PolicyNo = c.PolicyNo
+      LEFT JOIN mpolicy d on a.PolicyNo = d.PolicyNo
+      LEFT JOIN msprpolicy e on a.PolicyNo = e.PolicyNo
+      LEFT JOIN cglpolicy f on a.PolicyNo = f.PolicyNo
+      LEFT JOIN papolicy g on a.PolicyNo = g.PolicyNo
+      LEFT JOIN (
+      SELECT 
+            "Client" as IDType,
+            aa.entry_client_id AS IDNo,
+            aa.sub_account,
+            if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '), ''),aa.firstname), aa.company) as Shortname,
+            aa.entry_client_id as client_id,
+            aa.address 
+          FROM
+            entry_client aa
+          union all
+          SELECT 
+            "Agent" as IDType,
+            aa.entry_agent_id AS IDNo,
+            aa.sub_account,
+            CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''), aa.firstname) AS Shortname,
+            aa.entry_agent_id as client_id,
+            aa.address
+          FROM
+            entry_agent aa
+          union all
+          SELECT 
+            "Employee" as IDType,
+            aa.entry_employee_id AS IDNo,
+            aa.sub_account,
+            CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname , ', '),''), aa.firstname) AS Shortname,
+            aa.entry_employee_id as client_id,
+            aa.address  
+          FROM
+            entry_employee aa
+          union all
+          SELECT 
+            "Supplier" as IDType,
+            aa.entry_supplier_id AS IDNo,
+            aa.sub_account,
+            if(aa.option = "individual", CONCAT(IF(aa.lastname is not null AND aa.lastname <> '', CONCAT(aa.lastname, ', '),''),aa.firstname), aa.company) as Shortname,
+            aa.entry_supplier_id as client_id,
+            aa.address
+          FROM
+            entry_supplier aa
+          union all
+          SELECT 
+            "Fixed Assets" as IDType,
+            aa.entry_fixed_assets_id AS IDNo,
+            aa.sub_account,
+            aa.fullname AS Shortname,
+            aa.entry_fixed_assets_id as client_id,
+            aa.description as address
+          FROM
+            entry_fixed_assets aa
+          union all
+          SELECT 
+            "Others" as IDType,
+            aa.entry_others_id AS IDNo,
+            aa.sub_account,
+            aa.description AS Shortname,
+            aa.entry_others_id as client_id,
+            aa.description as address
+          FROM
+            entry_others aa
+      ) h on a.IDNo = h.IDNo
+      where 
+      a.PolicyNo like '%${search}%' OR 
+      a.IDNo  like '%${search}%' OR 
+      ChassisNo like '%${search}%'
+      order by PolicyNo
+      limit 100
   `;
   return await prisma.$queryRawUnsafe(qry);
 }
@@ -391,6 +420,44 @@ FROM
 ) a 
   `;
 }
+
+function reportQryDesk(header: string, where: string) {
+  return `
+SELECT * FROM (
+  SELECT 
+  '${header}' as G,
+  b.AssuredName,
+  IF(b.Model = '' AND b.Make = ''
+          AND b.BodyType = '',
+      '---',
+      CONCAT(b.Model, ' ', b.Make, ' ', b.BodyType)) AS UnitInsured,
+  b.PolicyNo,
+  IF(b.ChassisNo = '', '---', b.ChassisNo) AS ChassisNo,
+  IF(b.PlateNo = '', '---', b.PlateNo) AS PlateNo,
+  IF(b.DateReceived IS NULL,
+      '---',
+      DATE_FORMAT(b.DateReceived, '%m/%d/%Y')) AS DateReceived,
+  IF(b.DateClaim IS NULL,
+      '---',
+      DATE_FORMAT(b.DateClaim, '%m/%d/%Y')) AS DateClaim,
+  b.claim_type,
+  b.AmountClaim,
+  b.AmountApproved,
+  IF(a.dateInspected IS NULL,
+      '---',
+      DATE_FORMAT(a.dateInspected, '%m/%d/%Y')) AS dateInspected,
+  IF(b.NameTPPD = '', '---', b.NameTPPD) AS NameTPPD,
+  b.status,
+  '0' AS header
+FROM
+  claims a
+      LEFT JOIN
+  claims_details b ON a.claims_id = b.claims_id
+  ${where}
+  order by PolicyNo asc
+) a 
+  `;
+}
 export async function claimReport(
   addWhere: string,
   status: number,
@@ -424,6 +491,45 @@ export async function claimReport(
   } else {
     qry = `
     ${reportQry("SETTLED CLAIMS", ` where b.status = 2 ${addWhere}`)}
+  `;
+  }
+
+  console.log(qry);
+  return await prisma.$queryRawUnsafe(qry);
+}
+export async function claimReportDesk(
+  addWhere: string,
+  status: number,
+  req: Request
+) {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  let qry = "";
+  if (status === 0) {
+    qry = `
+    ${reportQryDesk(
+      "ONGOING CLAIMS",
+      ` where b.status <> 1 AND b.status <> 2 ${addWhere}`
+    )}
+    union all
+    ${reportQryDesk("DENIED CLAIMS", ` where b.status = 1 ${addWhere}`)}
+    union all
+    ${reportQryDesk("SETTLED CLAIMS", ` where b.status = 2 ${addWhere}`)}
+  `;
+  } else if (status === 1) {
+    qry = `
+    ${reportQryDesk(
+      "ONGOING CLAIMS",
+      ` where b.status <> 1 AND b.status <> 2 ${addWhere}`
+    )}
+  `;
+  } else if (status === 2) {
+    qry = `
+    ${reportQryDesk("DENIED CLAIMS", ` where b.status = 1 ${addWhere}`)}
+  `;
+  } else {
+    qry = `
+    ${reportQryDesk("SETTLED CLAIMS", ` where b.status = 2 ${addWhere}`)}
   `;
   }
 

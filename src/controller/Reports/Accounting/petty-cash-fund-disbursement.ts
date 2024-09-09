@@ -9,6 +9,7 @@ PettyCashFundDisbursements.post(
   "/petty-cash-fund-disbursement",
   async (req, res) => {
     try {
+      console.log(req.body);
       const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
       const qry = PettyCashFundDisbursement(
@@ -20,6 +21,7 @@ PettyCashFundDisbursements.post(
       const dataCash: any = await prisma.$queryRawUnsafe(qry.dtPettyCashQuery);
       const dataSumm: any = await prisma.$queryRawUnsafe(qry.dtSummaryQuery);
       const summary: Array<any> = [];
+      console.log(qry.dtPettyCashQuery);
 
       const Debit = dataCash
         .reduce((a: number, item: any) => {
@@ -189,6 +191,39 @@ PettyCashFundDisbursements.post(
         report: dataCash.concat(summary),
         summary,
         qry,
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({
+        message: err.message,
+        success: false,
+        report: [],
+      });
+    }
+  }
+);
+
+PettyCashFundDisbursements.post(
+  "/petty-cash-fund-disbursement-desk",
+  async (req, res) => {
+    try {
+      console.log(req.body);
+      const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+      const qry = PettyCashFundDisbursement(
+        req.body.sub_acct.toUpperCase(),
+        req.body.seriesFrom,
+        req.body.seriesTo
+      );
+
+      const data: any = await prisma.$queryRawUnsafe(qry.dtPettyCashQuery);
+      const summary: any = await prisma.$queryRawUnsafe(qry.dtSummaryQuery);
+
+      res.send({
+        message: "Successfully Get Report",
+        success: true,
+        data,
+        summary,
       });
     } catch (err: any) {
       console.log(err.message);

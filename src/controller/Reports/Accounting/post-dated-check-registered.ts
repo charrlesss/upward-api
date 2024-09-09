@@ -25,6 +25,8 @@ PostDatedCheckRegister.post(
         new Date(req.body.datefrom),
         new Date(req.body.dateto)
       );
+      console.log(req.body);
+      console.log(qry);
       const data = await prisma.$queryRawUnsafe(qry);
 
       const groupByCheckDateByMonth = (data: any) => {
@@ -198,5 +200,42 @@ PostDatedCheckRegister.post(
     }
   }
 );
+  
+PostDatedCheckRegister.post(
+  "/post-dated-check-registered-desk",
+  async (req, res) => {
+    console.log(req.body)
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
+    try {
+      const sort = ["Name", "Check_Date", "Date"];
+      const order = ["Ascending", "Descending"];
+      const type = ["All", "Rent", "Loan"];
+      const field = ["Check Date", "Date Received"];
+      const qry = PostDatedCheckRegistered(
+        sort[req.body.sort],
+        order[req.body.order],
+        type[req.body.type],
+        field[req.body.field],
+        req.body.sub_acct,
+        new Date(req.body.datefrom),
+        new Date(req.body.dateto)
+      );
+      const data = await prisma.$queryRawUnsafe(qry);
+
+      res.send({
+        message: "Successfully Get Report",
+        success: true,
+        data,
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({
+        message: err.message,
+        success: false,
+        data: [],
+      });
+    }
+  }
+);
 export default PostDatedCheckRegister;

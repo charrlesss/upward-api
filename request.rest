@@ -5,7 +5,14 @@ GET http://localhost:4000/testing-query
 ###
 GET http://localhost:4400/api/get-user-details
 
+###
+POST http://localhost:4400/api/search-client
+Content-Type: application/json
 
+{
+    "search":"charles",
+    "password":"charles"
+}
 
 ###
 POST http://localhost:4000/api/login

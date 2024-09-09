@@ -242,5 +242,34 @@ ReturnChecksCollection.post("/return-checks-collection", async (req, res) => {
     });
   }
 });
+ReturnChecksCollection.post("/return-checks-collection-desk", async (req, res) => {
+  try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
+    const qry = ReturnedChecksCollection(
+      req.body.dateFormat,
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
+      "Ascending"
+    );
+
+    const data: any = await prisma.$queryRawUnsafe(qry.queryReturned);
+    const summary: any = await prisma.$queryRawUnsafe(qry.queryJournal);
+    console.log(qry.queryReturned)
+    res.send({
+      message: "Successfully Get Report",
+      success: true,
+      data,
+      summary,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      success: false,
+      data: [],
+      summary: [],
+    });
+  }
+});
 export default ReturnChecksCollection;

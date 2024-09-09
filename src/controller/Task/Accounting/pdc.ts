@@ -36,6 +36,7 @@ PDC.post("/add-pdc", async (req, res) => {
   }
 
   try {
+    req.body.Ref_No = "24.0002"
     if ((await findPdc(req.body.Ref_No, req)).length > 0) {
       return res.send({ message: "REF No. Is Already Exist!", success: false });
     }
@@ -248,6 +249,7 @@ PDC.get("/search-pdc-policy-id", async (req, res) => {
     );
     res.send({
       clientsId,
+      data: clientsId,
       success: true,
     });
   } catch (error: any) {

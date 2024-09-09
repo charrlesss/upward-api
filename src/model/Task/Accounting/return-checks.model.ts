@@ -143,7 +143,7 @@ export async function getCreditOnSelectedCheck(
 
   return await prisma.$queryRawUnsafe(`
   SELECT 
-    a.Account_ID, b.Acct_Title, a.Desc,a.Identity
+    a.Account_ID , a.IDNo, b.Acct_Title, a.Desc,a.Identity
 FROM
       bankaccounts a
         LEFT JOIN
@@ -157,8 +157,7 @@ export async function getDebitOnSelectedCheck(
   req: Request
 ) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-
-  return await prisma.$queryRawUnsafe(`
+  const qry = `
   SELECT 
       a.CRCode,
       a.CRTitle,
@@ -179,7 +178,10 @@ export async function getDebitOnSelectedCheck(
       a.Official_Receipt = '${Official_Receipt}'
       AND a.CRCode <> ''
       
-  `);
+  `
+  // dito na stop
+  console.log(qry)
+  return await prisma.$queryRawUnsafe(qry);
 }
 export async function getBranchName(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);

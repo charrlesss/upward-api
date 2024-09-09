@@ -2,6 +2,8 @@ import express from "express";
 import {
   GenerateClaimsID,
   claimReport,
+  claimReportDesk,
+  claimSelectedPolicy,
   claimsPolicy,
   createClaimDetails,
   createClaims,
@@ -242,6 +244,7 @@ Claim.get("/claims/get-insurance-list", async (req, res) => {
 
 Claim.get("/claims/get-policy", async (req, res) => {
   try {
+    console.log("qweqweqw");
     res.send({
       message: "Successfully get insurance list",
       success: true,
@@ -272,6 +275,24 @@ Claim.get("/claims/get-claims-id", async (req, res) => {
     });
   }
 });
+
+Claim.post("/claims/get-selected-policy-details", async (req, res) => {
+  try {
+    res.send({
+      message: "Successfully get claims id",
+      success: true,
+      data: await claimSelectedPolicy(req.body.PolicyNo, req),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+      data: [],
+    });
+  }
+});
+
 Claim.get("/claims/search-claims", async (req, res) => {
   try {
     res.send({
@@ -401,6 +422,68 @@ Claim.post("/claims/report-claim", async (req, res) => {
       message: "Successfully generate report",
       success: true,
       report,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+
+    res.send({
+      message: `We're experiencing a server issue. Please try again in a few minutes. If the issue continues, report it to IT with the details of what you were doing at the time.`,
+      success: false,
+    });
+  }
+});
+Claim.post("/claims/report-claim-desk", async (req, res) => {
+  try {
+    let whereStatement = "";
+    if (req.body.format === 5) {
+      whereStatement = ` AND claim_type = ${req.body.claim_type}`;
+    } else if (req.body.format === 6) {
+      whereStatement = ` AND PolicyNo = '${req.body.PolicyNo}'`;
+    } else {
+      if (req.body.dateFormat === "Monthly") {
+        const date = new Date(req.body.dateFrom);
+        const firstDayOfMonth = startOfMonth(date);
+        const lastDayOfMonth = endOfMonth(date);
+        const formattedFirstDay = format(firstDayOfMonth, "yyyy-MM-dd");
+        const formattedLastDay = format(lastDayOfMonth, "yyyy-MM-dd");
+        whereStatement = selectByDate(formattedFirstDay, formattedLastDay);
+      } else if (req.body.dateFormat === "Yearly") {
+        req.body.dateFrom = new Date(req.body.dateFrom);
+        const firstDayOfFirstMonth = startOfYear(req.body.dateFrom);
+        const formattedFirstDay = format(firstDayOfFirstMonth, "yyyy-MM-dd");
+        const formattedLastDay = format(
+          endOfMonth(
+            endOfYear(addYears(req.body.dateFrom, parseInt(req.body.yearCount)))
+          ),
+          "yyyy-MM-dd"
+        );
+        whereStatement = selectByDate(formattedFirstDay, formattedLastDay);
+      } else {
+        whereStatement = selectByDate(
+          format(new Date(req.body.dateFrom), "yyyy-MM-dd"),
+          format(new Date(req.body.dateTo), "yyyy-MM-dd")
+        );
+      }
+
+      function selectByDate(dateFrom: string, dateTo: string) {
+        let qry = "";
+        if (req.body.format == 0) {
+          qry = ` AND DATE_FORMAT(a.createdAt, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.createdAt, '%Y-%m-%d') <= '${dateTo}' `;
+        } else if (req.body.format == 1) {
+          qry = ` AND DATE_FORMAT(b.DateClaim, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.DateClaim, '%Y-%m-%d') <= '${dateTo}' `;
+        } else if (req.body.format == 2) {
+          qry = ` AND DATE_FORMAT(a.dateInspected, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(a.dateInspected, '%Y-%m-%d') <= '${dateTo}' `;
+        } else {
+          qry = ` AND DATE_FORMAT(b.DateReceived, '%Y-%m-%d') >= '${dateFrom}' AND  DATE_FORMAT(b.DateReceived, '%Y-%m-%d') <= '${dateTo}' `;
+        }
+        return qry;
+      }
+    }
+    const data = await claimReportDesk(whereStatement, req.body.status, req);
+    res.send({
+      message: "Successfully generate report",
+      success: true,
+      data,
     });
   } catch (err: any) {
     console.log(err.message);

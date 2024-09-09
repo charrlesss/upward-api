@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { CashDisbursementBook_CDB_GJB } from "../../../model/db/stored-procedured";
 import { PrismaList } from "../../../model/connection";
+import { createsampleData } from "../../../model/StoredProcedure";
 const { CustomPrismaClient } = PrismaList();
 const CashDisbursementBookCDB = express.Router();
 
@@ -9,7 +10,7 @@ CashDisbursementBookCDB.post(
   "/cash-disbursement-book-cdb",
   async (req, res) => {
     const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-
+    console.log(req.body);
     try {
       const qry = CashDisbursementBook_CDB_GJB(
         "Cash Disbursement Book - CDB",
@@ -18,6 +19,9 @@ CashDisbursementBookCDB.post(
         req.body.dateFormat,
         "ASC"
       );
+
+      console.log(qry.strSQL);
+
       function customReplacer(key: string, value: any) {
         return typeof value === "bigint" ? value.toString() : value;
       }
@@ -233,6 +237,47 @@ CashDisbursementBookCDB.post(
         message: err.message,
         success: false,
         report: [],
+      });
+    }
+  }
+);
+CashDisbursementBookCDB.post(
+  "/cash-disbursement-book-cdb-desk",
+  async (req, res) => {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+    try {
+      const qry = CashDisbursementBook_CDB_GJB(
+        "Cash Disbursement Book - CDB",
+        req.body.sub_acct.toUpperCase(),
+        new Date(req.body.date),
+        req.body.dateFormat,
+        "ASC"
+      );
+
+
+      function customReplacer(key: string, value: any) {
+        return typeof value === "bigint" ? value.toString() : value;
+      }
+
+      const data1: any = await prisma.$queryRawUnsafe(qry.strSQL);
+      const summary: any = await prisma.$queryRawUnsafe(qry.strSubSQL);
+      const jsonString = JSON.stringify(data1, customReplacer);
+      const data = JSON.parse(jsonString);
+
+
+      res.send({
+        message: "Successfully Get Report",
+        success: true,
+        data,
+        summary,
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({
+        message: err.message,
+        success: false,
+        data: [],
+        summary: [],
       });
     }
   }

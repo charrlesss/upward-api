@@ -1134,7 +1134,7 @@ export function DepositedCollections(
         Deposit.Temp_SlipCntr, 
         DATE_FORMAT(Deposit.Temp_SlipDate, '%m/%d/%Y') as Temp_SlipDate , 
         Deposit.Temp_SlipCode, 
-        Deposit.Date_Deposit, 
+        DATE_FORMAT(Deposit.Date_Deposit, '%m/%d/%Y') as Date_Deposit , 
         Deposit.Slip_Code, 
         Deposit.Account_ID, 
         if(Deposit.Slip_Code is null,Deposit.IDNo ,c.Identity) as IDNo,
@@ -1223,7 +1223,7 @@ export function ReturnedChecksCollection(
             Journal.cID_No, 
             Journal.Check_No, 
             Journal.Check_Bank, 
-            Journal.Check_Return, 
+            DATE_FORMAT(STR_TO_DATE(Check_Return, '%m/%d/%Y'),'%m/%d/%Y') as Check_Return, 
             Journal.Check_Deposit, 
             Journal.Check_Reason, 
             format(Journal.Debit,2) as Debit, 
@@ -1298,7 +1298,9 @@ export function PostDatedCheckRegistered(
 
   if (pdcField === "Check Date") {
     query = `
-      SELECT PDC.* 
+      SELECT PDC.* ,
+      date_format(PDC.Check_Date,'%m/%d/%Y') as cCheck_Date,
+      date_format(PDC.Date,'%m/%d/%Y') as dDate
       FROM PDC 
       WHERE (PDC.Check_Date >= '${formattedDateFrom}' AND PDC.Check_Date <= '${formattedDateTo}')
         AND ((PDC.PDC_Remarks <> 'Fully Paid' AND PDC.PDC_Remarks <> 'Foreclosed') 
@@ -1310,7 +1312,10 @@ export function PostDatedCheckRegistered(
         ${sSort}`;
   } else if (pdcField === "Date Received") {
     query = `
-      SELECT PDC.* 
+      SELECT 
+      PDC.* ,
+      date_format(PDC.Check_Date,'%m/%d/%Y') as cCheck_Date,
+      date_format(PDC.Date,'%m/%d/%Y') as dDate
       FROM PDC 
       WHERE (PDC.Date >= '${formattedDateFrom}' AND PDC.Date <= '${formattedDateTo}')
         AND ((PDC.PDC_Remarks <> 'Fully Paid' AND PDC.PDC_Remarks <> 'Foreclosed') 
@@ -1415,7 +1420,8 @@ export function CashDisbursementBook_CDB_GJB(
         d.Shortname as Name,
         format(a.Debit,2) as Debit,
         format(a.Credit,2) as Credit,
-        a.TC
+        a.TC,
+        a.Payto
         FROM 
           cash_disbursement a 
             left join chart_account b on a.GL_Acct = b.Acct_Code
@@ -1702,7 +1708,7 @@ export function CashDisbursementBook_GJB(
   const sourceType = "GL";
   const qryJournals = `
       SELECT 
-        a.Date_Entry,
+        DATE_FORMAT(a.Date_Entry , '%Y-%m-%d') as Date_Entry,
         a.Source_Type,
         a.Source_No,
         a.Explanation,
@@ -1713,7 +1719,8 @@ export function CashDisbursementBook_GJB(
         d.Shortname as Name,
         format(a.Debit,2) as Debit,
         format(a.Credit,2) as Credit,
-        a.TC
+        a.TC,
+        a.Payto
       FROM (
       select * from journal
       ) a 

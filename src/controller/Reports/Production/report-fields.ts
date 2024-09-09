@@ -21,6 +21,22 @@ ReportFields.get("/report-fields/accounts", async (req, res) => {
     });
   }
 });
+ReportFields.get("/report-fields/accounts-desk", async (req, res) => {
+  const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+  try {
+    res.send({
+      data: await prisma.$queryRawUnsafe(
+        `Select 'All' as Account union all SELECT Account FROM  policy_account `
+      ),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      data: [],
+    });
+  }
+});
 
 ReportFields.get("/report-fields/policy", async (req, res) => {
   try {
@@ -48,6 +64,35 @@ ReportFields.get("/report-fields/policy", async (req, res) => {
     console.log(error.message);
     res.send({
       policy: [],
+    });
+  }
+});
+ReportFields.get("/report-fields/policy-desk", async (req, res) => {
+  try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+    res.send({
+      data: await prisma.$queryRawUnsafe(
+        `SELECT 'Bonds' 
+            UNION ALL SELECT DISTINCT
+                PolicyType
+            FROM
+              policy
+            WHERE
+                PolicyType NOT IN (SELECT 
+                        SublineName
+                    FROM
+                      subline
+                    WHERE
+                        Line = 'Bonds')
+            GROUP BY PolicyType
+            HAVING PolicyType <> ''`
+      ),
+    });
+  } catch (error: any) {
+    console.log(error.message);
+    res.send({
+      data: [],
     });
   }
 });

@@ -31,6 +31,9 @@ GeneralLedger.post("/general-ledger-report", async (req, res) => {
 
       return Object.values(grouped);
     }
+    console.log(req.body);
+
+    console.log(qry);
     const report = groupByGLAcct(await prisma.$queryRawUnsafe(qry));
     report.map((itm: any) => {
       const firstItem = itm[0];
@@ -108,6 +111,37 @@ GeneralLedger.post("/general-ledger-report", async (req, res) => {
       message: err.message,
       success: false,
       report: [],
+    });
+  }
+});
+
+GeneralLedger.post("/general-ledger-report-desk", async (req, res) => {
+  try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+    const qry = GeneralLedgerReport(
+      req.body.dateFormat,
+      new Date(req.body.date),
+      req.body.sub_acct,
+      req.body.format,
+      req.body.closing
+    );
+    const qrySum = GeneralLedgerSumm(new Date(), "Monthly", 0, 1);
+
+    console.log(req.body);
+    const data = await prisma.$queryRawUnsafe(qry);
+
+    res.send({
+      message: "Successfully Get Report",
+      success: true,
+      data,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      success: false,
+      data: [],
     });
   }
 });

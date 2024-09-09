@@ -25,7 +25,6 @@ async function updateRefreshToken(UserId: string, refreshToken: string) {
 export function ValidateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-
   if (token === "" || token == null) {
     return res.sendStatus(401);
   }
@@ -129,6 +128,13 @@ Authentication.post("/login", async (req: Request, res: Response) => {
         userAccess: findUser.AccountType,
         department,
         is_master_admin,
+      },
+      cokie: {
+        "up_ac_login": userAccess,
+        "up_dpm_login": department,
+        "up_ima_login": is_master_admin,
+        "up_at_login": accessToken,
+        "up_rt_login": refreshToken,
       },
     });
   } else {

@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { AgingAccountsReport } from "../../../model/db/stored-procedured";
-import { format } from "date-fns";
 import { PrismaList } from "../../../model/connection";
 const { CustomPrismaClient } = PrismaList();
 
@@ -10,12 +8,12 @@ const AgingAccounts = express.Router();
 AgingAccounts.post("/aging-accounts", async (req, res) => {
   try {
     const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-
+    console.log(req.body)
     const qry = AgingAccountsReport(
       new Date(req.body.date),
       req.body.policyType
     );
-
+    
     const data: Array<any> = await prisma.$queryRawUnsafe(qry);
     const report = JSON.parse(JSON.stringify(data, customReplacer));
     const _TotalDue = formatNumber(getTotal(report, "_TotalDue"));
@@ -71,6 +69,7 @@ AgingAccounts.post("/aging-accounts", async (req, res) => {
       success: true,
       report,
       qry,
+      data
     });
   } catch (err: any) {
     console.log(err.message);
@@ -81,5 +80,30 @@ AgingAccounts.post("/aging-accounts", async (req, res) => {
     });
   }
 });
+
+AgingAccounts.post("/aging-accounts-desk", async (req, res) => {
+  try {
+    console.log(req.cookies["up-dpm-login"])
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+    const qry = AgingAccountsReport(
+      new Date(req.body.date),
+      req.body.policyType
+    );
+    const data: Array<any> = await prisma.$queryRawUnsafe(qry);
+    res.send({
+      message: "Successfully Get Report",
+      success: true,
+      data,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      success: false,
+      data: [],
+    });
+  }
+});
+
 
 export default AgingAccounts;

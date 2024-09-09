@@ -16,6 +16,7 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
       "Ascending"
     );
 
+    console.log(queryDeposit);
 
     const dataDeposit: any = await prisma.$queryRawUnsafe(queryDeposit);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
@@ -278,5 +279,39 @@ DepositedCollection.post("/deposited-collection-report", async (req, res) => {
     });
   }
 });
+
+DepositedCollection.post(
+  "/deposited-collection-report-desk",
+  async (req, res) => {
+    try {
+      const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+      const { queryDeposit, queryJournal } = DepositedCollections(
+        req.body.dateFormat,
+        req.body.sub_acct.toUpperCase(),
+        new Date(req.body.date),
+        "Ascending"
+      );
+
+      const data: any = await prisma.$queryRawUnsafe(queryDeposit);
+      const summary: any = await prisma.$queryRawUnsafe(queryJournal);
+
+      res.send({
+        message: "Successfully Get Report",
+        success: true,
+        data,
+        summary,
+      });
+    } catch (err: any) {
+      console.log(err.message);
+      res.send({
+        message: err.message,
+        success: false,
+        data: [],
+        summary: [],
+      });
+    }
+  }
+);
 
 export default DepositedCollection;

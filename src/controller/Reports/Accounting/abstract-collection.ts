@@ -14,6 +14,8 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       new Date(req.body.date),
       "Ascending"
     );
+    console.log(queryCollection , "=============== sdasd");
+    console.log(queryJournal , "=============== dddd");
 
     const dataCollection: any = await prisma.$queryRawUnsafe(queryCollection);
     const dataJournal: any = await prisma.$queryRawUnsafe(queryJournal);
@@ -267,6 +269,38 @@ AbstractCollection.post("/abstract-collection-report", async (req, res) => {
       message: "Successfully Get Report",
       success: true,
       report,
+      summary,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      success: false,
+      report: [],
+    });
+  }
+});
+
+AbstractCollection.post("/abstract-collection-report-desk", async (req, res) => {
+  try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+    console.log(req.cookies["up-dpm-login"]);
+
+    const { queryCollection, queryJournal } = AbstractCollections(
+      req.body.dateFormat,
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
+      "Ascending"
+    );
+
+
+    const data: any = await prisma.$queryRawUnsafe(queryCollection);
+    const summary: any = await prisma.$queryRawUnsafe(queryJournal);
+    console.log(summary)
+    res.send({
+      message: "Successfully Get Report",
+      success: true,
+      data,
       summary,
     });
   } catch (err: any) {

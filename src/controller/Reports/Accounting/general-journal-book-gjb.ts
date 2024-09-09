@@ -8,6 +8,7 @@ const { CustomPrismaClient } = PrismaList();
 
 GeneralJournalBookGJB.post("/general-journal-book-gjb", async (req, res) => {
   try {
+    console.log(req.body)
     const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
     const qry = CashDisbursementBook_GJB(
@@ -17,6 +18,10 @@ GeneralJournalBookGJB.post("/general-journal-book-gjb", async (req, res) => {
       req.body.dateFormat,
       "ASC"
     );
+
+    console.log(qry.strSQL)
+
+
     function customReplacer(key: string, value: any) {
       return typeof value === "bigint" ? value.toString() : value;
     }
@@ -224,6 +229,47 @@ GeneralJournalBookGJB.post("/general-journal-book-gjb", async (req, res) => {
       success: true,
       qry,
       report: report.concat(summary),
+      summary,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    res.send({
+      message: err.message,
+      success: false,
+      report: [],
+    });
+  }
+});
+
+GeneralJournalBookGJB.post("/general-journal-book-gjb-desk", async (req, res) => {
+  try {
+    console.log(req.body)
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+    const qry = CashDisbursementBook_GJB(
+      "General Journal Book - GJB",
+      req.body.sub_acct.toUpperCase(),
+      new Date(req.body.date),
+      req.body.dateFormat,
+      "ASC"
+    );
+
+    console.log(qry.strSQL)
+
+
+    function customReplacer(key: string, value: any) {
+      return typeof value === "bigint" ? value.toString() : value;
+    }
+    const data1: any = await prisma.$queryRawUnsafe(qry.strSQL);
+    const summary: any = await prisma.$queryRawUnsafe(qry.strSubSQL);
+
+    const jsonString = JSON.stringify(data1, customReplacer);
+    const data = JSON.parse(jsonString);
+
+    res.send({
+      message: "Successfully Get Report",
+      success: true,
+      data,
       summary,
     });
   } catch (err: any) {

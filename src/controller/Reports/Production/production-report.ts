@@ -13,11 +13,11 @@ import { PrismaList } from "../../../model/connection";
 
 const ProductionReports = express.Router();
 
-
 const { CustomPrismaClient } = PrismaList();
 
 ProductionReports.post("/get-production-report", async (req, res) => {
   try {
+    console.log(req.body);
     const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
     let dateFrom = "";
@@ -57,7 +57,8 @@ ProductionReports.post("/get-production-report", async (req, res) => {
       req.body.sort
     );
     const report: Array<any> = await prisma.$queryRawUnsafe(reportString);
-   
+    console.log(reportString);
+
     res.send({
       success: true,
       message: "Successfully get production report ",
@@ -68,8 +69,62 @@ ProductionReports.post("/get-production-report", async (req, res) => {
   }
 });
 
+ProductionReports.post("/get-production-report-desk", async (req, res) => {
+  try {
+    const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
+
+    let dateFrom = "";
+    let dateTo = "";
+    if (req.body.report === "Daily") {
+      dateFrom = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
+      dateTo = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
+    }
+    if (req.body.report === "Monthly") {
+      const currentDate = new Date(req.body.dateFrom);
+      dateFrom = format(startOfMonth(currentDate), "yyyy-MM-dd");
+      dateTo = format(endOfMonth(currentDate), "yyyy-MM-dd");
+    }
+    if (req.body.report === "Yearly") {
+      const currentDate = new Date(req.body.dateFrom);
+
+      dateFrom = format(startOfYear(startOfMonth(currentDate)), "yyyy-MM-dd");
+      dateTo = format(
+        endOfMonth(
+          endOfYear(addYears(currentDate, parseInt(req.body.yearCount)))
+        ),
+        "yyyy-MM-dd"
+      );
+    }
+    if (req.body.report === "Custom") {
+      dateFrom = format(new Date(req.body.dateFrom), "yyyy-MM-dd");
+      dateTo = format(new Date(req.body.dateTo), "yyyy-MM-dd");
+    }
+    console.log(req.body);
+    console.log(dateFrom, dateTo);
+
+    const reportString = ProductionReport(
+      dateFrom,
+      dateTo,
+      req.body.account.toUpperCase(),
+      req.body.policy,
+      req.body.format2 === "All" ? 0 : 1,
+      req.body.mortgagee,
+      req.body.policyType,
+      req.body.sort
+    );
+    const data: Array<any> = await prisma.$queryRawUnsafe(reportString);
+
+    res.send({
+      success: true,
+      message: "Successfully get production report ",
+      data,
+    });
+  } catch (err: any) {
+    res.send({ message: "SERVER ERROR", success: false, data: [] });
+  }
+});
+
 ProductionReports.post("/export-excel-production-report", async (req, res) => {
-  
   exportToExcel({
     req,
     res,
