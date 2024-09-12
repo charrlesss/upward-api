@@ -36,7 +36,6 @@ PDC.post("/add-pdc", async (req, res) => {
   }
 
   try {
-    req.body.Ref_No = "24.0002"
     if ((await findPdc(req.body.Ref_No, req)).length > 0) {
       return res.send({ message: "REF No. Is Already Exist!", success: false });
     }
@@ -100,7 +99,7 @@ PDC.post("/add-pdc", async (req, res) => {
       }
     });
     await UpdateId("pdc-chk", newId.split("-")[1], month, year, req);
-    await UpdateId("pdc", req.body.Ref_No.split(".")[1], year, month, req);
+    await UpdateId("pdc", req.body.Ref_No.split(".")[1],  month,year, req);
     const uploadDir = path.join("./static/pdc", `${req.body.Ref_No}`);
     if (fs.existsSync(uploadDir)) {
       fs.rmSync(uploadDir, { recursive: true });

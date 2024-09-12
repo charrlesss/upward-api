@@ -29,7 +29,7 @@ export async function deleteChartAccount(data: any, req:Request) {
 
 export async function getChartAccount(chartAccountSearch: string, req:Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
-  return await prisma.$queryRawUnsafe(`
+  const qry = `
     SELECT 
     IF(a.IDNo = 0, 'NO', 'YES') AS IDNo,
     IF(a.SubAccnt = 0, 'NO', 'YES') AS SubAccnt,
@@ -37,12 +37,15 @@ export async function getChartAccount(chartAccountSearch: string, req:Request) {
     a.Acct_Code,
     a.Acct_Title,
     a.Short,
-    a.Acct_Type
+    a.Acct_Type,
+    a.Account
     FROM
       chart_account a
     WHERE
-    a.Acct_Code LIKE '%${chartAccountSearch}%'
+        a.Acct_Code LIKE '%${chartAccountSearch}%'
         OR a.Acct_Title LIKE '%${chartAccountSearch}%'
         OR a.Short LIKE '%${chartAccountSearch}%'
-    `);
+    `
+    console.log(qry)
+  return await prisma.$queryRawUnsafe(qry);
 }

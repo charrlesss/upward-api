@@ -334,6 +334,14 @@ async function addDeposit(req: any) {
   }
   for (let i = 0; i < selectedCollection.length; i++) {
     const selectedCollectionValue = selectedCollection[i];
+    let Check_Date = ''
+    if(selectedCollectionValue.Check_No !== '' && selectedCollectionValue.Check_No !== null && selectedCollectionValue.Check_No !== undefined ){
+      Check_Date =  format(
+        new Date(selectedCollectionValue.Check_Date),
+        "yyyy-MM-dd HH:mm:ss.SSS"
+      )
+
+    }
 
     await addCashCheckInDeposit(
       {
@@ -342,10 +350,7 @@ async function addDeposit(req: any) {
         Credit: parseFloat(
           selectedCollectionValue.Amount.toString().replace(/,/, "")
         ).toFixed(2),
-        Check_Date: format(
-          new Date(selectedCollectionValue.Check_Date),
-          "yyyy-MM-dd HH:mm:ss.SSS"
-        ),
+        Check_Date ,
         Check_No: selectedCollectionValue.Check_No,
         Bank: selectedCollectionValue.Bank,
         Temp_SlipCode: req.body.depositSlip,
@@ -357,6 +362,7 @@ async function addDeposit(req: any) {
       },
       req
     );
+   
   }
   await addCashBreakDown(
     {
