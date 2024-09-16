@@ -163,7 +163,7 @@ export async function getPolicyAccountType(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-  select SubLineName from Subline where line = 'Bonds'
+  select SubLineName from subline where line = 'Bonds'
   `);
 }
 

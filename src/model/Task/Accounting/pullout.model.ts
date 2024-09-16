@@ -7,7 +7,7 @@ export async function load_pnno(req: Request) {
 
   const qry = `
       SELECT PNo, MIN(Name) AS Name, MIN(Name) AS label
-    FROM PDC  
+    FROM pdc  
     WHERE PDC_Status = 'Stored' 
     GROUP BY PNo 
     ORDER BY PNo DESC;
@@ -36,7 +36,7 @@ export async function loadChecks(req: Request, PNo: string) {
   (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED')  
   and (selecT PNNo from PullOut_Request where  RCPNo = a.RCPNo)  = '${PNo}'
   and CheckNo = pd.Check_No),'--') as 'RCPNO' 
-  FROM PDC PD 
+  FROM pdc PD 
   WHERE PNo = '${PNo}' AND PDC_Status = 'Stored' ORDER BY Check_No
   `;
 
@@ -59,7 +59,7 @@ export async function loadRCPNApproved(req: Request) {
 
   const qry = `
       Select Distinct B.RCPNo 
-        From PDC A 
+        From pdc A 
         Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status 
                     From PullOut_Request A 
                   INNER JOIN PullOut_Request_Details B ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
@@ -78,7 +78,7 @@ export async function loadRCPNApprovedList(req: Request, RCPN: string) {
   }
   const qry = `
        Select B.RCPNo, b.PNNo, a.Name, count(b.CheckNo) NoOfChecks, b.Reason
-        From PDC A 
+        From pdc A 
         Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status, a.Reason 
         			    From PullOut_Request A 
         			    INNER JOIN PullOut_Request_Details B  ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
@@ -108,7 +108,7 @@ export async function deletePulloutRequest(req: Request, RCPNo: string) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-    Delete from PullOut_Request where RCPNo = '${RCPNo}'
+    Delete from pullOut_request where RCPNo = '${RCPNo}'
 ;`);
 }
 
@@ -197,7 +197,7 @@ export async function getSelectedRequestCheck(PNNo: string, req: Request) {
                         AND CheckNo = pd.Check_No and cancel = 0),
             '--') AS 'RCPNO'
   FROM
-      PDC PD
+      pdc PD
   WHERE
     PNo = '${PNNo}'
         AND PDC_Status = 'Stored'
