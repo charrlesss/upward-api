@@ -77,13 +77,13 @@ export async function getApprovedPulloutWarehouse(RCPNo: string, req: Request) {
   SELECT DISTINCT
       B.RCPNo as label
   FROM
-        PDC A
+        pdc A
           INNER JOIN
       (SELECT 
           A.RCPNo, A.PNNo, b.CheckNo, a.Status
       FROM
-            PullOut_Request A
-      left JOIN   PullOut_Request_Details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
+            pullout_request A
+      left JOIN   pullout_request_details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
           AND A.Check_No = B.CheckNo
   WHERE
       PDC_Status = 'Stored'
@@ -107,13 +107,13 @@ export async function getApprovedPulloutWarehouseCheckList(
   convert(COUNT(b.CheckNo),CHAR) NoOfChecks,
   b.Reason
 FROM
-  PDC A
+  pdc A
     INNER JOIN
 (SELECT 
     A.RCPNo, A.PNNo, b.CheckNo, a.Status, a.Reason
 FROM
-      PullOut_Request A
-INNER JOIN  PullOut_Request_Details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
+      pullout_request A
+INNER JOIN  pullout_request_details B ON A.RCPNo = B.RCPNo) B ON A.PNo = B.PNNo
     AND A.Check_No = B.CheckNo
 WHERE
     PDC_Status = 'Stored'

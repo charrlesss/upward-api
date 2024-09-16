@@ -120,7 +120,7 @@ export async function getRCPNList(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-   Select RPCDNo from Postponement Where Status = 'PENDING'
+   Select RPCDNo from postponement Where Status = 'PENDING'
   ;`);
 }
 
@@ -160,7 +160,7 @@ FROM
             date_format(NewCheckDate , '%m/%d/%Y') as NewCheckDate,
             LPAD(ROW_NUMBER() OVER (), 3, '0') as temp_id
     FROM
-        PDC PD
+        pdc PD
     LEFT JOIN (SELECT 
         bb.CheckNo, aa.Status, bb.reason, bb.NewCheckDate
     FROM
@@ -266,7 +266,7 @@ export async function getSelectedCheckPostponementPNNo(
           Check_Amnt,
           ifnull(Status,'--') as Status
       FROM
-            PDC PD
+            pdc PD
           left join (
             SELECT bb.CheckNo,aa.Status FROM  postponement aa
                 left join  postponement_detail bb on aa.RPCDNo = bb.RPCD and bb.cancel = 0 and  aa.Status <> 'CANCEL'

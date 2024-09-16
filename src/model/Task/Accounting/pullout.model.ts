@@ -26,15 +26,15 @@ export async function loadChecks(req: Request, PNo: string) {
     Bank, 
     Check_No, 
     FORMAT(CAST(REPLACE(Check_Amnt, ',', '') AS DECIMAL(15,2)), 2) as Check_Amnt, 
-    ifnull((seleCT (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) as 'Status' 
-    from PullOut_Request_Details  a where 
-    (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED') 
-    and (selecT PNNo from PullOut_Request where  RCPNo = a.RCPNo)  = '${PNo}'
+    ifnull((seleCT (selecT STATus from pullout_request where  RCPNo = a.RCPNo) as 'Status' 
+    from pullout_request_details  a where 
+    (selecT STATus from pullout_request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED') 
+    and (selecT PNNo from pullout_request where  RCPNo = a.RCPNo)  = '${PNo}'
     and CheckNo = pd.Check_No),'--') as 'Status', 
     ifnull((seleCT RCPNO 
-  from PullOut_Request_Details  a where 
-  (selecT STATus from PullOut_Request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED')  
-  and (selecT PNNo from PullOut_Request where  RCPNo = a.RCPNo)  = '${PNo}'
+  from pullout_request_details  a where 
+  (selecT STATus from pullout_request where  RCPNo = a.RCPNo) in ('PENDING','APPROVED')  
+  and (selecT PNNo from pullout_request where  RCPNo = a.RCPNo)  = '${PNo}'
   and CheckNo = pd.Check_No),'--') as 'RCPNO' 
   FROM pdc PD 
   WHERE PNo = '${PNo}' AND PDC_Status = 'Stored' ORDER BY Check_No
@@ -47,7 +47,7 @@ export async function loadRCPN(req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   const qry = `
-  Select distinct a.RCPNo as label, a.RCPNo, Reason, b.Name,b.PNo From PullOut_Request a
+  Select distinct a.RCPNo as label, a.RCPNo, Reason, b.Name,b.PNo From pullout_request a
 left join pdc b  on a.PNNo = b.PNo
 Where a.Branch = 'HO' and Status = 'PENDING' Order by RCPNo
   `;
@@ -61,8 +61,8 @@ export async function loadRCPNApproved(req: Request) {
       Select Distinct B.RCPNo 
         From pdc A 
         Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status 
-                    From PullOut_Request A 
-                  INNER JOIN PullOut_Request_Details B ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
+                    From pullout_request A 
+                  INNER JOIN pullout_request_details B ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
         WHERE PDC_Status = 'Stored' and b.Status = 'APPROVED' 
         Order by B.RCPNo
     `;
@@ -80,8 +80,8 @@ export async function loadRCPNApprovedList(req: Request, RCPN: string) {
        Select B.RCPNo, b.PNNo, a.Name, count(b.CheckNo) NoOfChecks, b.Reason
         From pdc A 
         Inner join ( Select A.RCPNo, A.PNNo, b.CheckNo, a.Status, a.Reason 
-        			    From PullOut_Request A 
-        			    INNER JOIN PullOut_Request_Details B  ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
+        			    From pullout_request A 
+        			    INNER JOIN pullout_request_details B  ON A.RCPNo = B.RCPNo ) B ON A.PNo = B.PNNo AND A.Check_No = B.CheckNo 
         WHERE PDC_Status = 'Stored' and b.Status = 'APPROVED' ${whr}
         Group by B.RCPNo, b.PNNo, a.Name, b.Reason 
         Order by B.RCPNo
@@ -108,7 +108,7 @@ export async function deletePulloutRequest(req: Request, RCPNo: string) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
 
   return await prisma.$queryRawUnsafe(`
-    Delete from pullOut_request where RCPNo = '${RCPNo}'
+    Delete from pullout_request where RCPNo = '${RCPNo}'
 ;`);
 }
 
@@ -153,23 +153,23 @@ export async function getSelectedRequestCheck(PNNo: string, req: Request) {
                     (SELECT 
                                 Status
                             FROM
-                                PullOut_Request
+                                pullout_request
                             WHERE
                                 RCPNo = a.RCPNo) AS 'Status'
                 FROM
-                    PullOut_Request_Details a
+                    pullout_request_details a
                 WHERE
                     (SELECT 
                             Status
                         FROM
-                            PullOut_Request
+                            pullout_request
                         WHERE
 							   Status <> 'CANCEL' AND
                             RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','DISAPPROVED')
                         AND (SELECT 
                             PNNo
                         FROM
-                            PullOut_Request
+                            pullout_request
                         WHERE
                             RCPNo = a.RCPNo) = '${PNNo}'
                            
@@ -178,19 +178,19 @@ export async function getSelectedRequestCheck(PNNo: string, req: Request) {
     IFNULL((SELECT 
                     RCPNO
                 FROM
-                      PullOut_Request_Details a
+                      pullout_request_details a
                 WHERE
                     (SELECT 
                             Status
                         FROM
-                              PullOut_Request
+                              pullout_request
                         WHERE
                           Status <> 'CANCEL' AND
                             RCPNo = a.RCPNo) IN ('PENDING' , 'APPROVED','DISAPPROVED')
                         AND (SELECT 
                             PNNo
                         FROM
-                            PullOut_Request
+                            pullout_request
                         WHERE
                             RCPNo = a.RCPNo) = '${PNNo}'
 						

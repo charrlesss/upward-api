@@ -40,7 +40,7 @@ export async function searchBondsPolicy(search: string, req: Request) {
   c.address,
   c.sale_officer,
   date_format(b.DateIssued , '%m/%d/%Y') as DateIssued
-   FROM Bpolicy a
+   FROM bpolicy a
   left join policy b
   on a.PolicyNo = b.PolicyNo 
   left join entry_client c on b.IDNo = c.entry_client_id

@@ -106,30 +106,31 @@ export async function getCheckList(search: string, req: Request) {
   return await prisma.$queryRawUnsafe(`
     SELECT  
 			Temp_SlipCode AS DepoSlip, 
-			date_FORMAT(CAST(Deposit.Temp_SlipDate AS DATE),'%m/%d/%Y') AS DepoDate,  
-			Deposit.Check_No AS Check_No, 
-			ifnull(date_FORMAT(CAST(Deposit.Check_Date AS DATE),'%m/%d/%Y'),Deposit.Check_Date) AS Check_Date, 
-			format(Deposit.Credit,2) AS Amount, 
-			Deposit.Bank, 
+			date_FORMAT(CAST(deposit.Temp_SlipDate AS DATE),'%m/%d/%Y') AS DepoDate,  
+			deposit.Check_No AS Check_No, 
+			ifnull(date_FORMAT(CAST(deposit.Check_Date AS DATE),'%m/%d/%Y'),deposit.Check_Date) AS Check_Date, 
+			format(deposit.Credit,2) AS Amount, 
+			deposit.Bank, 
 			Official_Receipt, 
 			date_FORMAT(Date_OR,'%m/%d/%Y') AS Date_OR, 
 			BankAccount,
       MAX(Deposit_ID) as TempID
-		FROM (Deposit LEFT JOIN deposit_slip ON Deposit.Temp_SlipCode = deposit_slip.SlipCode) 
-			LEFT JOIN (SELECT Official_Receipt, Date_OR FROM Collection GROUP BY Official_Receipt, Date_OR) 
-			OR_Number ON Deposit.Ref_No = OR_Number.Official_Receipt 
+		FROM (deposit LEFT JOIN deposit_slip ON deposit.Temp_SlipCode = deposit_slip.SlipCode) 
+			LEFT JOIN (SELECT Official_Receipt, Date_OR 
+      FROM collection GROUP BY Official_Receipt, Date_OR) 
+			OR_Number ON deposit.Ref_No = OR_Number.Official_Receipt 
 		GROUP BY 
-			Deposit.Temp_SlipCode, 
-			Deposit.Temp_SlipDate, 
-			Deposit.Ref_No, 
+			deposit.Temp_SlipCode, 
+			deposit.Temp_SlipDate, 
+			deposit.Ref_No, 
 			OR_Number.Date_OR, 
 			deposit_slip.BankAccount, 
-			Deposit.Credit, 
-			Deposit.Check_Date, 
-			Deposit.Check_No, Deposit.Bank, Official_Receipt, BankAccount 
+			deposit.Credit, 
+			deposit.Check_Date, 
+			deposit.Check_No, deposit.Bank, Official_Receipt, BankAccount 
 		HAVING (((OR_Number.Date_OR) Is Not Null) AND 
-		((Deposit.Check_No)<>'')) AND (Check_No LIKE '%${search}%' OR Bank LIKE '%${search}%') 
-        ORDER BY Deposit.Check_Date  desc
+		((deposit.Check_No)<>'')) AND (Check_No LIKE '%${search}%' OR Bank LIKE '%${search}%') 
+        ORDER BY deposit.Check_Date  desc
         limit 50
   `);
 

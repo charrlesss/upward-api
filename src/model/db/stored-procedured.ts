@@ -38,7 +38,7 @@ export function FinancialStatement(
           SUM(IFNULL(Debit, 0)) as Debit,
           SUM(IFNULL(Credit, 0)) as Credit,
           SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-        FROM Journal
+        FROM journal
         WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
         AND Date_Entry <= '${DateFrom}'
         GROUP BY GL_Acct`;
@@ -49,7 +49,7 @@ export function FinancialStatement(
           SUM(IFNULL(Debit, 0)) as Debit,
           SUM(IFNULL(Credit, 0)) as Credit,
           SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-        FROM Journal
+        FROM journal
         WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
         AND Sub_Acct = SubAcctParam
         AND Date_Entry <= '${DateFrom}'
@@ -62,7 +62,7 @@ export function FinancialStatement(
             SUM(IFNULL(Debit, 0)) as Debit,
             SUM(IFNULL(Credit, 0)) as Credit,
             SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-          FROM Journal
+          FROM journal
           WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
           AND Date_Entry >= '${DateFrom}' AND Date_Entry <= '${DateTo}'
           GROUP BY GL_Acct`;
@@ -73,7 +73,7 @@ export function FinancialStatement(
           SUM(IFNULL(Debit, 0)) as Debit,
           SUM(IFNULL(Credit, 0)) as Credit,
           SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-            FROM Journal
+            FROM journal
             WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
             AND Sub_Acct = SubAcctParam
             AND Date_Entry >= '${DateFrom}' AND Date_Entry <= '${DateTo}'
@@ -120,7 +120,7 @@ export function FinancialStatementSumm(date: any, dateFormat: string) {
         SUM(IFNULL(Debit, 0)) as Debit, 
         SUM(IFNULL(Credit, 0)) as Credit, 
         SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-        FROM Journal
+        FROM journal
         AND str_to_date(Date_Entry,'%Y-%m-%d') < '${DateFrom}'
         GROUP BY GL_Acct
         `;
@@ -131,7 +131,7 @@ export function FinancialStatementSumm(date: any, dateFormat: string) {
         SUM(IFNULL(Debit, 0)) as Debit, 
         SUM(IFNULL(Credit, 0)) as Credit, 
         SUM(IFNULL(Debit, 0)) - SUM(IFNULL(Credit, 0)) as Balance
-        FROM Journal
+        FROM journal
         WHERE Source_Type NOT IN ('AB', 'BF', 'BFS', 'BFD')
         AND str_to_date(Date_Entry,'%Y-%m-%d') >= '${DateFrom}' AND str_to_date(Date_Entry,'%Y-%m-%d') <= '${DateTo}'
         GROUP BY GL_Acct
@@ -149,17 +149,17 @@ export function FinancialStatementSumm(date: any, dateFormat: string) {
   return `
         SELECT SubAccount.Acronym AS SACode,
         SubAccount.ShortName AS SubAccount,
-        Chart_Account.Acct_Code AS Code,
-        CONCAT(Chart_Account.Acct_Code, ' ', Acct_Title) AS Title,
+        chart_account.Acct_Code AS Code,
+        CONCAT(chart_account.Acct_Code, ' ', Acct_Title) AS Title,
         SUM(Debit) - SUM(Credit) AS Balance,
         total.Balance AS TotalBalance
-        FROM Chart_Account
-        LEFT JOIN (${union_temp}) union_temp ON Chart_Account.Acct_Code = union_temp.GL_Acct
-        LEFT JOIN Sub_Account SubAccount ON union_temp.Sub_Acct = SubAccount.Acronym
+        FROM chart_account
+        LEFT JOIN (${union_temp}) union_temp ON chart_account.Acct_Code = union_temp.GL_Acct
+        LEFT JOIN sub_account SubAccount ON union_temp.Sub_Acct = SubAccount.Acronym
         LEFT JOIN (${total}) total ON union_temp.GL_Acct = total.GL_Acct
-        GROUP BY union_temp.GL_Acct, SubAccount.Sub_Acct, SubAccount.ShortName, Chart_Account.Acct_Code, Acct_Title, total.Balance
+        GROUP BY union_temp.GL_Acct, SubAccount.Sub_Acct, SubAccount.ShortName, chart_account.Acct_Code, Acct_Title, total.Balance
         HAVING SUM(Debit) - SUM(Credit) IS NOT NULL
-        ORDER BY Chart_Account.Acct_Code`;
+        ORDER BY chart_account.Acct_Code`;
 }
 export function client_ids(search: string) {
   const selectClient = `
@@ -389,19 +389,20 @@ export function production_renewal_notice() {
   const selectClient = clients_view();
   return `
     SELECT 
-        Policy.PolicyNo,
+        policy.PolicyNo,
         client.Shortname AS AssuredName,
-        Policy.PolicyType
-	FROM Policy LEFT JOIN BPolicy ON Policy.PolicyNo = BPolicy.PolicyNo 
-	LEFT JOIN VPolicy ON Policy.PolicyNo = VPolicy.PolicyNo 
-	LEFT JOIN MPolicy ON Policy.PolicyNo = MPolicy.PolicyNo 
-	LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo 
-	LEFT JOIN CGLPolicy ON Policy.PolicyNo = CGLPolicy.PolicyNo 
-	LEFT JOIN MSPRPolicy ON Policy.PolicyNo = MSPRPolicy.PolicyNo 
-	LEFT JOIN FPolicy ON Policy.PolicyNo = FPolicy.PolicyNo 
+        policy.PolicyType
+	FROM policy  
+  LEFT JOIN bpolicy ON Policy.PolicyNo = bpolicy.PolicyNo 
+	LEFT JOIN vpolicy ON Policy.PolicyNo = vpolicy.PolicyNo 
+	LEFT JOIN mpolicy ON Policy.PolicyNo = mpolicy.PolicyNo 
+	LEFT JOIN papolicy ON Policy.PolicyNo = papolicy.PolicyNo 
+	LEFT JOIN cglpolicy ON Policy.PolicyNo = cglpolicy.PolicyNo 
+	LEFT JOIN msprpolicy ON Policy.PolicyNo = msprpolicy.PolicyNo 
+	LEFT JOIN fpolicy ON Policy.PolicyNo = fpolicy.PolicyNo 
 	LEFT JOIN (
 	   ${selectClient}
-	) client ON Policy.IDNo = client.IDNo
+	) client ON policy.IDNo = client.IDNo
     `;
 }
 export function ProductionReport(
@@ -418,7 +419,7 @@ export function ProductionReport(
   let whr_query = "";
   let sql_query = `
     SELECT 
-        VPolicy.Mortgagee AS Mortgagee,
+        vpolicy.Mortgagee AS Mortgagee,
         Policy.IDNo AS IDNo,
         client.Shortname AS AssuredName,
         Policy.Account AS Account,
@@ -435,11 +436,11 @@ export function ProductionReport(
         Policy.TotalDue,
         Policy.TotalPaid,
         Policy.Discount,
-        VPolicy.Sec4A,
-        VPolicy.Sec4B,
-        VPolicy.Sec4C,
-        DATE_FORMAT(IFNULL(BPolicy.BidDate, IFNULL(VPolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))), "%m-%d-%Y") AS EffictiveDate,
-        IF( ${IsFinanced} = 0, IFNULL(CGLPolicy.LimitB, 0) + IFNULL(CGLPolicy.LimitA, 0) + IFNULL(VPolicy.ODamage, 0) + IFNULL(VPolicy.TPLLimit, 0),IFNULL(ODamage, 0) + IFNULL(TPLLimit, 0)) AS PLimit,
+        vpolicy.Sec4A,
+        vpolicy.Sec4B,
+        vpolicy.Sec4C,
+        DATE_FORMAT(IFNULL(BPolicy.BidDate, IFNULL(vpolicy.DateFrom, IFNULL(MPolicy.DateFrom, IFNULL(PAPolicy.PeriodFrom, IFNULL(CGLPolicy.PeriodFrom, IFNULL(MSPRPolicy.PeriodFrom, FPolicy.DateFrom)))))), "%m-%d-%Y") AS EffictiveDate,
+        IF( ${IsFinanced} = 0, IFNULL(CGLPolicy.LimitB, 0) + IFNULL(CGLPolicy.LimitA, 0) + IFNULL(vpolicy.ODamage, 0) + IFNULL(vpolicy.TPLLimit, 0),IFNULL(ODamage, 0) + IFNULL(TPLLimit, 0)) AS PLimit,
         IF(${IsFinanced}= 0, IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0) + IFNULL(FPolicy.InsuredValue, 0) + IFNULL(BPolicy.BondValue, 0) + IFNULL(MPolicy.InsuredValue, 0) + IFNULL(MSPRPolicy.SecI, 0) + IFNULL(MSPRPolicy.SecIB, 0) + IFNULL(MSPRPolicy.SecII, 0),IFNULL(EstimatedValue, 0) + IFNULL(TPLLimit, 0))  AS InsuredValue,
         CoverNo,
         Policy.Remarks as Remarks,
@@ -450,10 +451,10 @@ export function ProductionReport(
         ChassisNo,
         MotorNo,
         Mortgagee,
-        VPolicy.Remarks as VRemarks
+        vpolicy.Remarks as VRemarks
     FROM Policy 
     LEFT JOIN BPolicy ON Policy.PolicyNo = BPolicy.PolicyNo 
-    LEFT JOIN VPolicy ON Policy.PolicyNo = VPolicy.PolicyNo 
+    LEFT JOIN vpolicy ON Policy.PolicyNo = vpolicy.PolicyNo 
     LEFT JOIN MPolicy ON Policy.PolicyNo = MPolicy.PolicyNo 
     LEFT JOIN PAPolicy ON Policy.PolicyNo = PAPolicy.PolicyNo 
     LEFT JOIN CGLPolicy ON Policy.PolicyNo = CGLPolicy.PolicyNo 

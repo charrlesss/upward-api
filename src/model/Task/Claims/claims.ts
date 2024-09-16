@@ -167,9 +167,9 @@ function comnputationQry() {
         SELECT 
           MAX(b.Debit) AS Discount , MAX(a.ID_No) as PolicyNo
         FROM
-          upward_insurance_umis.journal a
+          journal a
             LEFT JOIN
-          upward_insurance_umis.journal_voucher b ON a.ID_No = b.ID_No
+          journal_voucher b ON a.ID_No = b.ID_No
         WHERE
              a.GL_Acct = '7.10.15'
             AND a.cGL_Acct = 'Discount'

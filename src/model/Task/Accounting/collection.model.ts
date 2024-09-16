@@ -249,7 +249,7 @@ export async function getDrCodeAndTitle(code: string, req: Request) {
   return await prisma.$queryRawUnsafe(`
     SELECT 
     b.Acct_Code, 
-    b.Acct_Title FROM upward_insurance_umis.transaction_code  a left join upward_insurance_umis.chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
+    b.Acct_Title FROM transaction_code  a left join chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
   `);
 }
 
@@ -266,14 +266,14 @@ export async function printModel(req: Request, OR_Num: string) {
     Amount AS ORAmount 
     FROM 
     (SELECT Official_Receipt, ID_No, Date_OR, format(SUM(CAST(REPLACE(Debit, ',', '') AS DECIMAL(10,2)) ) , 2) AS Amount 
-    FROM Collection
+    FROM collection
     WHERE Official_Receipt = '${OR_Num}' 
     GROUP BY Official_Receipt, ID_No, Date_OR) AS ORCollection 
     LEFT JOIN Policy ON ORCollection.ID_No = Policy.PolicyNo 
     LEFT JOIN (${selectClient}) PID ON Policy.IDNo = PID.IDNo 
     LEFT JOIN (${selectClient}) ID_Entry ON ORCollection.ID_No = ID_Entry.IDNo
   `;
-  const qry1 = `SELECT * FROM Collection WHERE  Official_Receipt = '${OR_Num}'`;
+  const qry1 = `SELECT * FROM collection WHERE  Official_Receipt = '${OR_Num}'`;
 
   console.log(qry);
   return {

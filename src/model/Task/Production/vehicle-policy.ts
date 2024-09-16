@@ -143,6 +143,7 @@ export async function getRate(
   and trim(Line) = '${line}' 
   and trim(Type) = '${type}'
   `;
+  console.log(query)
   return await prisma.$queryRawUnsafe(query);
 }
 
