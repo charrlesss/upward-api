@@ -27,6 +27,7 @@ import saveUserLogs from "../../../lib/save_user_logs";
 import { saveUserLogsCode } from "../../../lib/saveUserlogsCode";
 import { VerifyToken } from "../../Authentication";
 import { convertToPassitive } from "../../../lib/convertToPassitive";
+import { format } from "date-fns";
 
 const MarinePolicy = express.Router();
 
@@ -163,6 +164,9 @@ MarinePolicy.post("/update-marine-policy", async (req, res) => {
     const strArea =
       subAccount.Acronym === "" ? sub_account : subAccount.Acronym;
     const cStrArea = subAccount.ShortName;
+
+
+    req.body.DateIssued = new Date(req.body.DateIssued)
 
     //delete policy
     await deletePolicyFromMarine(PolicyNo, req);
@@ -313,7 +317,7 @@ async function insertMarinePolicy(
   await createJournal(
     {
       Branch_Code: sub_account,
-      Date_Entry: DateIssued,
+      Date_Entry: format(new Date(DateIssued),'yyyy-MM-dd'),
       Source_Type: "PL",
       Source_No: PolicyNo,
       Explanation: "Marine Production",
@@ -335,7 +339,7 @@ async function insertMarinePolicy(
   await createJournal(
     {
       Branch_Code: sub_account,
-      Date_Entry: DateIssued,
+      Date_Entry: format(new Date(DateIssued),'yyyy-MM-dd'),
       Source_Type: "PL",
       Source_No: PolicyNo,
       Explanation: "Marine Production",

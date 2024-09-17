@@ -248,8 +248,12 @@ export async function getDrCodeAndTitle(code: string, req: Request) {
   const prisma = CustomPrismaClient(req.cookies["up-dpm-login"]);
   return await prisma.$queryRawUnsafe(`
     SELECT 
-    b.Acct_Code, 
-    b.Acct_Title FROM transaction_code  a left join chart_account b on a.Acct_Code = b.Acct_Code where Code = '${code}'
+      b.Acct_Code, 
+      b.Acct_Title FROM 
+    transaction_code  a 
+    left join chart_account 
+    b on a.Acct_Code = b.Acct_Code 
+    where Code = '${code}'
   `);
 }
 
