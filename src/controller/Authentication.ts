@@ -139,7 +139,7 @@ Authentication.post("/login", async (req: Request, res: Response) => {
     });
   } else {
     return res.send({
-      message: "Password Incorect",
+      message: "Password Incorrect",
       success: false,
       username: false,
       password: true,

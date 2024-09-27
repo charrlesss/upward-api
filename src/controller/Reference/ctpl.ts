@@ -105,7 +105,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
       });
     }
 
-    for (let i = parseInt(NumSeriesFrom); i <= parseInt(NumSeriesTo); i++) {
+    for (let i = parseInt(NumSeriesFrom); i <=  parseInt(NumSeriesTo); i++) {
       const _sourceNo = `${Prefix}${addZeroFromSeries}${i}`;
       // DEBIT'
       const newDate = format(new Date(), "yyyy-MM-dd HH:mm:ss.SSS");
@@ -133,7 +133,7 @@ CTPL.post("/add-ctpl", async (req: Request, res: Response) => {
           Date_Entry: newDate,
           Source_Type: "GL",
           Explanation: "CTPL Registration",
-          GL_Acct: "1.04.01",
+          GL_Acct: "1.03.04",
           cGL_Acct: "Advance Remittance",
           Debit: 0,
           Credit: parseFloat(Cost),
